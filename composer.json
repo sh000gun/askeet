@@ -29,7 +29,8 @@
         "symfony/twig-pack": "*",
         "symfony/validator": "5.1.*",
         "symfony/web-link": "5.1.*",
-        "symfony/yaml": "5.1.*"
+        "symfony/yaml": "5.1.*",
+        "symfony/finder": "5.1.*"
     },
     "require-dev": {
         "symfony/debug-pack": "*",
@@ -46,7 +47,10 @@
     },
     "autoload": {
         "psr-4": {
-            "App\\": "src/"
+            "App\\": "src/",
+            "Propel\\Runtime\\": "vendor/propel/src/",
+            "Propel\\Common\\": "vendor/propel/src/",
+            "Propel\\Generator\\": "vendor/propel/src/"
         }
     },
     "autoload-dev": {

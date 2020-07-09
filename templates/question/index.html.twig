@@ -1,0 +1,32 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+
+<h1>question</h1>
+
+<table>
+  <thead>
+    <tr>
+      <th>Id</th>
+      <th>User</th>
+      <th>Title</th>
+      <th>Body</th>
+      <th>Created at</th>
+      <th>Updated at</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for question in questionList %}
+    <tr>
+      <td><a>{{ question.id }}</a></td>
+      <td>{{ question.userId }}</td>
+      <td>{{ question.title }}</td>
+      <td>{{ question.body }}</td>
+      <td>{{ question.createdAt|date('Y-m-d H:i:s') }}</td>
+      <td>{{ question.updatedAt|date('Y-m-d H:i:s') }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+{% endblock %}

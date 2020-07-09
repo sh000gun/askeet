@@ -1,0 +1,10 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}	
+	
+	<form action="{{ path('question_new') }}" method="post">
+	    {{ form_widget(form) }}
+	
+	    <input type="submit" />
+	</form>
+{% endblock %}

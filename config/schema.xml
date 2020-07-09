@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+ <database name="askeet" defaultIdMethod="native" noxsd="true" namespace="App\Entity">
+   <table name="ask_question" phpName="Question">
+     <column name="id" type="integer" required="true" primaryKey="true" autoIncrement="true" />
+     <column name="user_id" type="integer" />
+     <foreign-key foreignTable="ask_user">
+       <reference local="user_id" foreign="id"/>
+     </foreign-key>
+     <column name="title" type="longvarchar" />
+     <column name="body" type="longvarchar" />
+     <column name="created_at" type="timestamp" />
+     <column name="updated_at" type="timestamp" />
+     <behavior name="timestampable">
+       <parameter name="create_column" value="created_at" />
+       <parameter name="update_column" value="updated_at" />
+     </behavior>
+   </table>
+ 
+   <table name="ask_answer" phpName="Answer">
+     <column name="id" type="integer" required="true" primaryKey="true" autoIncrement="true" />
+     <column name="question_id" type="integer" />
+     <foreign-key foreignTable="ask_question">
+       <reference local="question_id" foreign="id"/>
+     </foreign-key>
+     <column name="user_id" type="integer" />
+     <foreign-key foreignTable="ask_user">
+       <reference local="user_id" foreign="id"/>
+     </foreign-key>
+     <column name="body" type="longvarchar" />
+     <column name="created_at" type="timestamp" />
+     <behavior name="timestampable">
+       <parameter name="create_column" value="created_at" />
+     </behavior>
+   </table>
+ 
+   <table name="ask_user" phpName="User">
+     <column name="id" type="integer" required="true" primaryKey="true" autoIncrement="true" />
+     <column name="nickname" type="varchar" size="50" />
+     <column name="first_name" type="varchar" size="100" />
+     <column name="last_name" type="varchar" size="100" />
+     <column name="created_at" type="timestamp" />
+     <behavior name="timestampable">
+       <parameter name="create_column" value="created_at" />
+     </behavior>
+   </table>
+ 
+   <table name="ask_interest" phpName="Interest">
+     <column name="question_id" type="integer" primaryKey="true" />
+     <foreign-key foreignTable="ask_question">
+       <reference local="question_id" foreign="id"/>
+     </foreign-key>
+     <column name="user_id" type="integer" primaryKey="true" />
+     <foreign-key foreignTable="ask_user">
+       <reference local="user_id" foreign="id"/>
+     </foreign-key>
+     <column name="created_at" type="timestamp" />
+     <behavior name="timestampable">
+       <parameter name="create_column" value="created_at" />
+     </behavior>
+   </table>
+ 
+   <table name="ask_relevancy" phpName="Relevancy">
+     <column name="answer_id" type="integer" primaryKey="true" />
+     <foreign-key foreignTable="ask_answer">
+       <reference local="answer_id" foreign="id"/>
+     </foreign-key>
+     <column name="user_id" type="integer" primaryKey="true" />
+     <foreign-key foreignTable="ask_user">
+       <reference local="user_id" foreign="id"/>
+     </foreign-key>
+     <column name="score" type="integer" />
+     <column name="created_at" type="timestamp" />
+     <behavior name="timestampable">
+       <parameter name="create_column" value="created_at" />
+     </behavior>
+   </table>
+ 
+ </database>
