@@ -1,0 +1,60 @@
+App\Entity\User:
+  anonymous:
+    nickname:   anonymous
+    first_name: Anonymous
+    last_name:  Coward
+
+  fabien:
+    nickname:   fabpot
+    first_name: Fabien
+    last_name:  Potencier
+
+  francois:
+    nickname:   francoisz
+    first_name: François
+    last_name:  Zaninotto
+
+App\Entity\Question:
+  q1:
+    title: What shall I do tonight with my girlfriend?
+    user: '@fabien'
+    body:  |
+      We shall meet in front of the Dunkin'Donuts before dinner, 
+      and I haven't the slightest idea of what I can do with her. 
+      She's not interested in programming, space opera movies nor insects.
+      She's kinda cute, so I really need to find something 
+      that will keep her to my side for another evening.
+
+  q2:
+    title: What can I offer to my step mother?
+    user: '@anonymous'
+    body:  |
+      My stepmother has everything a stepmother is usually offered
+      (watch, vacuum cleaner, earrings, del.icio.us account). 
+      Her birthday comes next week, I am broke, and I know that 
+      if I don't offer her something sweet, my girlfriend 
+      won't look at me in the eyes for another month.
+
+  q3:
+    title: How can I generate traffic to my blog?
+    user: '@francois'
+    body:  |
+      I have a very swell blog that talks 
+      about my class and mates and pets and favorite movies.
+
+App\Entity\Interest:
+  i1:
+    user: '@fabien'
+    question: '@q1'
+
+  i2:
+    user: '@francois'
+    question: '@q1'
+
+  i3:
+    user: '@fabien'
+    question: '@q2'
+
+  i4:
+    user: '@francois'
+    question: '@q2'
