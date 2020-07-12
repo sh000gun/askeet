@@ -58,7 +58,7 @@ class QuestionTableMap extends TableMap
     /**
      * The total number of columns
      */
-    const NUM_COLUMNS = 6;
+    const NUM_COLUMNS = 8;
 
     /**
      * The number of lazy-loaded columns
@@ -68,7 +68,7 @@ class QuestionTableMap extends TableMap
     /**
      * The number of columns to hydrate (NUM_COLUMNS - NUM_LAZY_LOAD_COLUMNS)
      */
-    const NUM_HYDRATE_COLUMNS = 6;
+    const NUM_HYDRATE_COLUMNS = 8;
 
     /**
      * the column name for the id field
@@ -101,6 +101,16 @@ class QuestionTableMap extends TableMap
     const COL_UPDATED_AT = 'ask_question.updated_at';
 
     /**
+     * the column name for the interested_users field
+     */
+    const COL_INTERESTED_USERS = 'ask_question.interested_users';
+
+    /**
+     * the column name for the stripped_title field
+     */
+    const COL_STRIPPED_TITLE = 'ask_question.stripped_title';
+
+    /**
      * The default string format for model objects of the related table
      */
     const DEFAULT_STRING_FORMAT = 'YAML';
@@ -112,11 +122,11 @@ class QuestionTableMap extends TableMap
      * e.g. self::$fieldNames[self::TYPE_PHPNAME][0] = 'Id'
      */
     protected static $fieldNames = array (
-        self::TYPE_PHPNAME       => array('Id', 'UserId', 'Title', 'Body', 'CreatedAt', 'UpdatedAt', ),
-        self::TYPE_CAMELNAME     => array('id', 'userId', 'title', 'body', 'createdAt', 'updatedAt', ),
-        self::TYPE_COLNAME       => array(QuestionTableMap::COL_ID, QuestionTableMap::COL_USER_ID, QuestionTableMap::COL_TITLE, QuestionTableMap::COL_BODY, QuestionTableMap::COL_CREATED_AT, QuestionTableMap::COL_UPDATED_AT, ),
-        self::TYPE_FIELDNAME     => array('id', 'user_id', 'title', 'body', 'created_at', 'updated_at', ),
-        self::TYPE_NUM           => array(0, 1, 2, 3, 4, 5, )
+        self::TYPE_PHPNAME       => array('Id', 'UserId', 'Title', 'Body', 'CreatedAt', 'UpdatedAt', 'InterestedUsers', 'StrippedTitle', ),
+        self::TYPE_CAMELNAME     => array('id', 'userId', 'title', 'body', 'createdAt', 'updatedAt', 'interestedUsers', 'strippedTitle', ),
+        self::TYPE_COLNAME       => array(QuestionTableMap::COL_ID, QuestionTableMap::COL_USER_ID, QuestionTableMap::COL_TITLE, QuestionTableMap::COL_BODY, QuestionTableMap::COL_CREATED_AT, QuestionTableMap::COL_UPDATED_AT, QuestionTableMap::COL_INTERESTED_USERS, QuestionTableMap::COL_STRIPPED_TITLE, ),
+        self::TYPE_FIELDNAME     => array('id', 'user_id', 'title', 'body', 'created_at', 'updated_at', 'interested_users', 'stripped_title', ),
+        self::TYPE_NUM           => array(0, 1, 2, 3, 4, 5, 6, 7, )
     );
 
     /**
@@ -126,11 +136,11 @@ class QuestionTableMap extends TableMap
      * e.g. self::$fieldKeys[self::TYPE_PHPNAME]['Id'] = 0
      */
     protected static $fieldKeys = array (
-        self::TYPE_PHPNAME       => array('Id' => 0, 'UserId' => 1, 'Title' => 2, 'Body' => 3, 'CreatedAt' => 4, 'UpdatedAt' => 5, ),
-        self::TYPE_CAMELNAME     => array('id' => 0, 'userId' => 1, 'title' => 2, 'body' => 3, 'createdAt' => 4, 'updatedAt' => 5, ),
-        self::TYPE_COLNAME       => array(QuestionTableMap::COL_ID => 0, QuestionTableMap::COL_USER_ID => 1, QuestionTableMap::COL_TITLE => 2, QuestionTableMap::COL_BODY => 3, QuestionTableMap::COL_CREATED_AT => 4, QuestionTableMap::COL_UPDATED_AT => 5, ),
-        self::TYPE_FIELDNAME     => array('id' => 0, 'user_id' => 1, 'title' => 2, 'body' => 3, 'created_at' => 4, 'updated_at' => 5, ),
-        self::TYPE_NUM           => array(0, 1, 2, 3, 4, 5, )
+        self::TYPE_PHPNAME       => array('Id' => 0, 'UserId' => 1, 'Title' => 2, 'Body' => 3, 'CreatedAt' => 4, 'UpdatedAt' => 5, 'InterestedUsers' => 6, 'StrippedTitle' => 7, ),
+        self::TYPE_CAMELNAME     => array('id' => 0, 'userId' => 1, 'title' => 2, 'body' => 3, 'createdAt' => 4, 'updatedAt' => 5, 'interestedUsers' => 6, 'strippedTitle' => 7, ),
+        self::TYPE_COLNAME       => array(QuestionTableMap::COL_ID => 0, QuestionTableMap::COL_USER_ID => 1, QuestionTableMap::COL_TITLE => 2, QuestionTableMap::COL_BODY => 3, QuestionTableMap::COL_CREATED_AT => 4, QuestionTableMap::COL_UPDATED_AT => 5, QuestionTableMap::COL_INTERESTED_USERS => 6, QuestionTableMap::COL_STRIPPED_TITLE => 7, ),
+        self::TYPE_FIELDNAME     => array('id' => 0, 'user_id' => 1, 'title' => 2, 'body' => 3, 'created_at' => 4, 'updated_at' => 5, 'interested_users' => 6, 'stripped_title' => 7, ),
+        self::TYPE_NUM           => array(0, 1, 2, 3, 4, 5, 6, 7, )
     );
 
     /**
@@ -156,6 +166,8 @@ class QuestionTableMap extends TableMap
         $this->addColumn('body', 'Body', 'LONGVARCHAR', false, null, null);
         $this->addColumn('created_at', 'CreatedAt', 'TIMESTAMP', false, null, null);
         $this->addColumn('updated_at', 'UpdatedAt', 'TIMESTAMP', false, null, null);
+        $this->addColumn('interested_users', 'InterestedUsers', 'INTEGER', false, null, 0);
+        $this->addColumn('stripped_title', 'StrippedTitle', 'VARCHAR', false, 255, null);
     } // initialize()
 
     /**
@@ -346,6 +358,8 @@ class QuestionTableMap extends TableMap
             $criteria->addSelectColumn(QuestionTableMap::COL_BODY);
             $criteria->addSelectColumn(QuestionTableMap::COL_CREATED_AT);
             $criteria->addSelectColumn(QuestionTableMap::COL_UPDATED_AT);
+            $criteria->addSelectColumn(QuestionTableMap::COL_INTERESTED_USERS);
+            $criteria->addSelectColumn(QuestionTableMap::COL_STRIPPED_TITLE);
         } else {
             $criteria->addSelectColumn($alias . '.id');
             $criteria->addSelectColumn($alias . '.user_id');
@@ -353,6 +367,8 @@ class QuestionTableMap extends TableMap
             $criteria->addSelectColumn($alias . '.body');
             $criteria->addSelectColumn($alias . '.created_at');
             $criteria->addSelectColumn($alias . '.updated_at');
+            $criteria->addSelectColumn($alias . '.interested_users');
+            $criteria->addSelectColumn($alias . '.stripped_title');
         }
     }
 

@@ -14,6 +14,11 @@
        <parameter name="create_column" value="created_at" />
        <parameter name="update_column" value="updated_at" />
      </behavior>
+     <column name="interested_users" type="integer" default="0" />
+     <column name="stripped_title" type="varchar" size="255" />
+     <unique name="unique_stripped_title">
+       <unique-column name="stripped_title" />
+     </unique>
    </table>
  
    <table name="ask_answer" phpName="Answer">
@@ -31,6 +36,8 @@
      <behavior name="timestampable">
        <parameter name="create_column" value="created_at" />
      </behavior>
+     <column name="relevancy_up" type="integer" default="0" />
+     <column name="relevancy_down" type="integer" default="0" />
    </table>
  
    <table name="ask_user" phpName="User">

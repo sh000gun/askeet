@@ -21,16 +21,16 @@ class QuestionController extends AbstractController
         $questionList = QuestionQuery::create()
             ->find();
 
-        return $this->render('question/index.html.twig',
+        return $this->render('question/listSuccess.html.twig',
                 array('questionList' => $questionList)
         );
     }
 
     /**
-     * @Route("/question/new", name="question_new")
+     * @Route("/question/create", name="question_create")
      */
 
-    public function new(Request $request)
+    public function create(Request $request)
     {
         $question = new Question();
         $form = $this->createForm(QuestionType::class, $question);
@@ -47,8 +47,22 @@ class QuestionController extends AbstractController
             }
         }
 
-        return $this->render('question/new.html.twig',
+        return $this->render('question/editSuccess.html.twig',
                 array('form' => $form->createView())
         );
+    }
+
+    /**
+     *  @Route ("question/show/{stripped_title}", name="question_show")
+     */
+    public function show($stripped_title)
+    {
+      $question = QuestionQuery::create()
+        ->filterByStrippedTitle($stripped_title)
+        ->findOne();
+
+      return $this->render('question/showSuccess.html.twig',
+              array('question' => $question)
+      );
     }
 }

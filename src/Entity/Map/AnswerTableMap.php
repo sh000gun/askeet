@@ -58,7 +58,7 @@ class AnswerTableMap extends TableMap
     /**
      * The total number of columns
      */
-    const NUM_COLUMNS = 6;
+    const NUM_COLUMNS = 8;
 
     /**
      * The number of lazy-loaded columns
@@ -68,7 +68,7 @@ class AnswerTableMap extends TableMap
     /**
      * The number of columns to hydrate (NUM_COLUMNS - NUM_LAZY_LOAD_COLUMNS)
      */
-    const NUM_HYDRATE_COLUMNS = 6;
+    const NUM_HYDRATE_COLUMNS = 8;
 
     /**
      * the column name for the id field
@@ -96,6 +96,16 @@ class AnswerTableMap extends TableMap
     const COL_CREATED_AT = 'ask_answer.created_at';
 
     /**
+     * the column name for the relevancy_up field
+     */
+    const COL_RELEVANCY_UP = 'ask_answer.relevancy_up';
+
+    /**
+     * the column name for the relevancy_down field
+     */
+    const COL_RELEVANCY_DOWN = 'ask_answer.relevancy_down';
+
+    /**
      * the column name for the updated_at field
      */
     const COL_UPDATED_AT = 'ask_answer.updated_at';
@@ -112,11 +122,11 @@ class AnswerTableMap extends TableMap
      * e.g. self::$fieldNames[self::TYPE_PHPNAME][0] = 'Id'
      */
     protected static $fieldNames = array (
-        self::TYPE_PHPNAME       => array('Id', 'QuestionId', 'UserId', 'Body', 'CreatedAt', 'UpdatedAt', ),
-        self::TYPE_CAMELNAME     => array('id', 'questionId', 'userId', 'body', 'createdAt', 'updatedAt', ),
-        self::TYPE_COLNAME       => array(AnswerTableMap::COL_ID, AnswerTableMap::COL_QUESTION_ID, AnswerTableMap::COL_USER_ID, AnswerTableMap::COL_BODY, AnswerTableMap::COL_CREATED_AT, AnswerTableMap::COL_UPDATED_AT, ),
-        self::TYPE_FIELDNAME     => array('id', 'question_id', 'user_id', 'body', 'created_at', 'updated_at', ),
-        self::TYPE_NUM           => array(0, 1, 2, 3, 4, 5, )
+        self::TYPE_PHPNAME       => array('Id', 'QuestionId', 'UserId', 'Body', 'CreatedAt', 'RelevancyUp', 'RelevancyDown', 'UpdatedAt', ),
+        self::TYPE_CAMELNAME     => array('id', 'questionId', 'userId', 'body', 'createdAt', 'relevancyUp', 'relevancyDown', 'updatedAt', ),
+        self::TYPE_COLNAME       => array(AnswerTableMap::COL_ID, AnswerTableMap::COL_QUESTION_ID, AnswerTableMap::COL_USER_ID, AnswerTableMap::COL_BODY, AnswerTableMap::COL_CREATED_AT, AnswerTableMap::COL_RELEVANCY_UP, AnswerTableMap::COL_RELEVANCY_DOWN, AnswerTableMap::COL_UPDATED_AT, ),
+        self::TYPE_FIELDNAME     => array('id', 'question_id', 'user_id', 'body', 'created_at', 'relevancy_up', 'relevancy_down', 'updated_at', ),
+        self::TYPE_NUM           => array(0, 1, 2, 3, 4, 5, 6, 7, )
     );
 
     /**
@@ -126,11 +136,11 @@ class AnswerTableMap extends TableMap
      * e.g. self::$fieldKeys[self::TYPE_PHPNAME]['Id'] = 0
      */
     protected static $fieldKeys = array (
-        self::TYPE_PHPNAME       => array('Id' => 0, 'QuestionId' => 1, 'UserId' => 2, 'Body' => 3, 'CreatedAt' => 4, 'UpdatedAt' => 5, ),
-        self::TYPE_CAMELNAME     => array('id' => 0, 'questionId' => 1, 'userId' => 2, 'body' => 3, 'createdAt' => 4, 'updatedAt' => 5, ),
-        self::TYPE_COLNAME       => array(AnswerTableMap::COL_ID => 0, AnswerTableMap::COL_QUESTION_ID => 1, AnswerTableMap::COL_USER_ID => 2, AnswerTableMap::COL_BODY => 3, AnswerTableMap::COL_CREATED_AT => 4, AnswerTableMap::COL_UPDATED_AT => 5, ),
-        self::TYPE_FIELDNAME     => array('id' => 0, 'question_id' => 1, 'user_id' => 2, 'body' => 3, 'created_at' => 4, 'updated_at' => 5, ),
-        self::TYPE_NUM           => array(0, 1, 2, 3, 4, 5, )
+        self::TYPE_PHPNAME       => array('Id' => 0, 'QuestionId' => 1, 'UserId' => 2, 'Body' => 3, 'CreatedAt' => 4, 'RelevancyUp' => 5, 'RelevancyDown' => 6, 'UpdatedAt' => 7, ),
+        self::TYPE_CAMELNAME     => array('id' => 0, 'questionId' => 1, 'userId' => 2, 'body' => 3, 'createdAt' => 4, 'relevancyUp' => 5, 'relevancyDown' => 6, 'updatedAt' => 7, ),
+        self::TYPE_COLNAME       => array(AnswerTableMap::COL_ID => 0, AnswerTableMap::COL_QUESTION_ID => 1, AnswerTableMap::COL_USER_ID => 2, AnswerTableMap::COL_BODY => 3, AnswerTableMap::COL_CREATED_AT => 4, AnswerTableMap::COL_RELEVANCY_UP => 5, AnswerTableMap::COL_RELEVANCY_DOWN => 6, AnswerTableMap::COL_UPDATED_AT => 7, ),
+        self::TYPE_FIELDNAME     => array('id' => 0, 'question_id' => 1, 'user_id' => 2, 'body' => 3, 'created_at' => 4, 'relevancy_up' => 5, 'relevancy_down' => 6, 'updated_at' => 7, ),
+        self::TYPE_NUM           => array(0, 1, 2, 3, 4, 5, 6, 7, )
     );
 
     /**
@@ -155,6 +165,8 @@ class AnswerTableMap extends TableMap
         $this->addForeignKey('user_id', 'UserId', 'INTEGER', 'ask_user', 'id', false, null, null);
         $this->addColumn('body', 'Body', 'LONGVARCHAR', false, null, null);
         $this->addColumn('created_at', 'CreatedAt', 'TIMESTAMP', false, null, null);
+        $this->addColumn('relevancy_up', 'RelevancyUp', 'INTEGER', false, null, 0);
+        $this->addColumn('relevancy_down', 'RelevancyDown', 'INTEGER', false, null, 0);
         $this->addColumn('updated_at', 'UpdatedAt', 'TIMESTAMP', false, null, null);
     } // initialize()
 
@@ -345,6 +357,8 @@ class AnswerTableMap extends TableMap
             $criteria->addSelectColumn(AnswerTableMap::COL_USER_ID);
             $criteria->addSelectColumn(AnswerTableMap::COL_BODY);
             $criteria->addSelectColumn(AnswerTableMap::COL_CREATED_AT);
+            $criteria->addSelectColumn(AnswerTableMap::COL_RELEVANCY_UP);
+            $criteria->addSelectColumn(AnswerTableMap::COL_RELEVANCY_DOWN);
             $criteria->addSelectColumn(AnswerTableMap::COL_UPDATED_AT);
         } else {
             $criteria->addSelectColumn($alias . '.id');
@@ -352,6 +366,8 @@ class AnswerTableMap extends TableMap
             $criteria->addSelectColumn($alias . '.user_id');
             $criteria->addSelectColumn($alias . '.body');
             $criteria->addSelectColumn($alias . '.created_at');
+            $criteria->addSelectColumn($alias . '.relevancy_up');
+            $criteria->addSelectColumn($alias . '.relevancy_down');
             $criteria->addSelectColumn($alias . '.updated_at');
         }
     }

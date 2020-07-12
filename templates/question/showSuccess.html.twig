@@ -1,0 +1,29 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+
+ 
+<div class="interested_block">
+  {{ include('question/_interested_user.html.twig') }}
+</div>
+ 
+<h2>{{ question.title }}</h2>
+ 
+<div class="question_body">
+  {{ question.body }}
+</div>
+
+<div id="answers">
+  {% for answer in question.answers  %}
+    <div class="answer">
+      {{ answer.relevancyUpPercent }}% UP {{ answer.relevancyDownPercent  }}% DOWN 
+      posted by {{ answer.User }} 
+      on {{ answer.createdAt|date('Y-m-d H:i:s') }}
+      <div>
+        {{ answer.body }}
+      </div>
+    </div>
+  {% endfor %}
+</div>
+
+{% endblock %}

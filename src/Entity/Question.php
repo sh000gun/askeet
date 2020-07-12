@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Entity\Base\Question as BaseQuestion;
+use App\Lib\myTools;
 
 /**
  * Skeleton subclass for representing a row from the 'ask_question' table.
@@ -15,5 +16,10 @@ use App\Entity\Base\Question as BaseQuestion;
  */
 class Question extends BaseQuestion
 {
-
+  public function setTitle($v)
+  {
+    parent::setTitle($v);
+ 
+    $this->setStrippedTitle(myTools::stripText($v));
+  }
 }

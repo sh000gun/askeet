@@ -114,6 +114,21 @@ abstract class Question implements ActiveRecordInterface
     protected $updated_at;
 
     /**
+     * The value for the interested_users field.
+     *
+     * Note: this column has a database default value of: 0
+     * @var        int
+     */
+    protected $interested_users;
+
+    /**
+     * The value for the stripped_title field.
+     *
+     * @var        string
+     */
+    protected $stripped_title;
+
+    /**
      * @var        ChildUser
      */
     protected $aUser;
@@ -151,10 +166,23 @@ abstract class Question implements ActiveRecordInterface
     protected $interestsScheduledForDeletion = null;
 
     /**
+     * Applies default values to this object.
+     * This method should be called from the object's constructor (or
+     * equivalent initialization method).
+     * @see __construct()
+     */
+    public function applyDefaultValues()
+    {
+        $this->interested_users = 0;
+    }
+
+    /**
      * Initializes internal state of App\Entity\Base\Question object.
+     * @see applyDefaults()
      */
     public function __construct()
     {
+        $this->applyDefaultValues();
     }
 
     /**
@@ -456,6 +484,26 @@ abstract class Question implements ActiveRecordInterface
     }
 
     /**
+     * Get the [interested_users] column value.
+     *
+     * @return int
+     */
+    public function getInterestedUsers()
+    {
+        return $this->interested_users;
+    }
+
+    /**
+     * Get the [stripped_title] column value.
+     *
+     * @return string
+     */
+    public function getStrippedTitle()
+    {
+        return $this->stripped_title;
+    }
+
+    /**
      * Set the value of [id] column.
      *
      * @param int $v new value
@@ -580,6 +628,46 @@ abstract class Question implements ActiveRecordInterface
     } // setUpdatedAt()
 
     /**
+     * Set the value of [interested_users] column.
+     *
+     * @param int $v new value
+     * @return $this|\App\Entity\Question The current object (for fluent API support)
+     */
+    public function setInterestedUsers($v)
+    {
+        if ($v !== null) {
+            $v = (int) $v;
+        }
+
+        if ($this->interested_users !== $v) {
+            $this->interested_users = $v;
+            $this->modifiedColumns[QuestionTableMap::COL_INTERESTED_USERS] = true;
+        }
+
+        return $this;
+    } // setInterestedUsers()
+
+    /**
+     * Set the value of [stripped_title] column.
+     *
+     * @param string $v new value
+     * @return $this|\App\Entity\Question The current object (for fluent API support)
+     */
+    public function setStrippedTitle($v)
+    {
+        if ($v !== null) {
+            $v = (string) $v;
+        }
+
+        if ($this->stripped_title !== $v) {
+            $this->stripped_title = $v;
+            $this->modifiedColumns[QuestionTableMap::COL_STRIPPED_TITLE] = true;
+        }
+
+        return $this;
+    } // setStrippedTitle()
+
+    /**
      * Indicates whether the columns in this object are only set to default values.
      *
      * This method can be used in conjunction with isModified() to indicate whether an object is both
@@ -589,6 +677,10 @@ abstract class Question implements ActiveRecordInterface
      */
     public function hasOnlyDefaultValues()
     {
+            if ($this->interested_users !== 0) {
+                return false;
+            }
+
         // otherwise, everything was equal, so return TRUE
         return true;
     } // hasOnlyDefaultValues()
@@ -638,6 +730,12 @@ abstract class Question implements ActiveRecordInterface
                 $col = null;
             }
             $this->updated_at = (null !== $col) ? PropelDateTime::newInstance($col, null, 'DateTime') : null;
+
+            $col = $row[TableMap::TYPE_NUM == $indexType ? 6 + $startcol : QuestionTableMap::translateFieldName('InterestedUsers', TableMap::TYPE_PHPNAME, $indexType)];
+            $this->interested_users = (null !== $col) ? (int) $col : null;
+
+            $col = $row[TableMap::TYPE_NUM == $indexType ? 7 + $startcol : QuestionTableMap::translateFieldName('StrippedTitle', TableMap::TYPE_PHPNAME, $indexType)];
+            $this->stripped_title = (null !== $col) ? (string) $col : null;
             $this->resetModified();
 
             $this->setNew(false);
@@ -646,7 +744,7 @@ abstract class Question implements ActiveRecordInterface
                 $this->ensureConsistency();
             }
 
-            return $startcol + 6; // 6 = QuestionTableMap::NUM_HYDRATE_COLUMNS.
+            return $startcol + 8; // 8 = QuestionTableMap::NUM_HYDRATE_COLUMNS.
 
         } catch (Exception $e) {
             throw new PropelException(sprintf('Error populating %s object', '\\App\\Entity\\Question'), 0, $e);
@@ -933,6 +1031,12 @@ abstract class Question implements ActiveRecordInterface
         if ($this->isColumnModified(QuestionTableMap::COL_UPDATED_AT)) {
             $modifiedColumns[':p' . $index++]  = 'updated_at';
         }
+        if ($this->isColumnModified(QuestionTableMap::COL_INTERESTED_USERS)) {
+            $modifiedColumns[':p' . $index++]  = 'interested_users';
+        }
+        if ($this->isColumnModified(QuestionTableMap::COL_STRIPPED_TITLE)) {
+            $modifiedColumns[':p' . $index++]  = 'stripped_title';
+        }
 
         $sql = sprintf(
             'INSERT INTO ask_question (%s) VALUES (%s)',
@@ -961,6 +1065,12 @@ abstract class Question implements ActiveRecordInterface
                         break;
                     case 'updated_at':
                         $stmt->bindValue($identifier, $this->updated_at ? $this->updated_at->format("Y-m-d H:i:s.u") : null, PDO::PARAM_STR);
+                        break;
+                    case 'interested_users':
+                        $stmt->bindValue($identifier, $this->interested_users, PDO::PARAM_INT);
+                        break;
+                    case 'stripped_title':
+                        $stmt->bindValue($identifier, $this->stripped_title, PDO::PARAM_STR);
                         break;
                 }
             }
@@ -1042,6 +1152,12 @@ abstract class Question implements ActiveRecordInterface
             case 5:
                 return $this->getUpdatedAt();
                 break;
+            case 6:
+                return $this->getInterestedUsers();
+                break;
+            case 7:
+                return $this->getStrippedTitle();
+                break;
             default:
                 return null;
                 break;
@@ -1078,6 +1194,8 @@ abstract class Question implements ActiveRecordInterface
             $keys[3] => $this->getBody(),
             $keys[4] => $this->getCreatedAt(),
             $keys[5] => $this->getUpdatedAt(),
+            $keys[6] => $this->getInterestedUsers(),
+            $keys[7] => $this->getStrippedTitle(),
         );
         if ($result[$keys[4]] instanceof \DateTimeInterface) {
             $result[$keys[4]] = $result[$keys[4]]->format('c');
@@ -1190,6 +1308,12 @@ abstract class Question implements ActiveRecordInterface
             case 5:
                 $this->setUpdatedAt($value);
                 break;
+            case 6:
+                $this->setInterestedUsers($value);
+                break;
+            case 7:
+                $this->setStrippedTitle($value);
+                break;
         } // switch()
 
         return $this;
@@ -1233,6 +1357,12 @@ abstract class Question implements ActiveRecordInterface
         }
         if (array_key_exists($keys[5], $arr)) {
             $this->setUpdatedAt($arr[$keys[5]]);
+        }
+        if (array_key_exists($keys[6], $arr)) {
+            $this->setInterestedUsers($arr[$keys[6]]);
+        }
+        if (array_key_exists($keys[7], $arr)) {
+            $this->setStrippedTitle($arr[$keys[7]]);
         }
     }
 
@@ -1292,6 +1422,12 @@ abstract class Question implements ActiveRecordInterface
         }
         if ($this->isColumnModified(QuestionTableMap::COL_UPDATED_AT)) {
             $criteria->add(QuestionTableMap::COL_UPDATED_AT, $this->updated_at);
+        }
+        if ($this->isColumnModified(QuestionTableMap::COL_INTERESTED_USERS)) {
+            $criteria->add(QuestionTableMap::COL_INTERESTED_USERS, $this->interested_users);
+        }
+        if ($this->isColumnModified(QuestionTableMap::COL_STRIPPED_TITLE)) {
+            $criteria->add(QuestionTableMap::COL_STRIPPED_TITLE, $this->stripped_title);
         }
 
         return $criteria;
@@ -1384,6 +1520,8 @@ abstract class Question implements ActiveRecordInterface
         $copyObj->setBody($this->getBody());
         $copyObj->setCreatedAt($this->getCreatedAt());
         $copyObj->setUpdatedAt($this->getUpdatedAt());
+        $copyObj->setInterestedUsers($this->getInterestedUsers());
+        $copyObj->setStrippedTitle($this->getStrippedTitle());
 
         if ($deepCopy) {
             // important: temporarily setNew(false) because this affects the behavior of
@@ -2023,8 +2161,11 @@ abstract class Question implements ActiveRecordInterface
         $this->body = null;
         $this->created_at = null;
         $this->updated_at = null;
+        $this->interested_users = null;
+        $this->stripped_title = null;
         $this->alreadyInSave = false;
         $this->clearAllReferences();
+        $this->applyDefaultValues();
         $this->resetModified();
         $this->setNew(true);
         $this->setDeleted(false);

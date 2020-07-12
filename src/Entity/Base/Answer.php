@@ -106,6 +106,22 @@ abstract class Answer implements ActiveRecordInterface
     protected $created_at;
 
     /**
+     * The value for the relevancy_up field.
+     *
+     * Note: this column has a database default value of: 0
+     * @var        int
+     */
+    protected $relevancy_up;
+
+    /**
+     * The value for the relevancy_down field.
+     *
+     * Note: this column has a database default value of: 0
+     * @var        int
+     */
+    protected $relevancy_down;
+
+    /**
      * The value for the updated_at field.
      *
      * @var        DateTime
@@ -143,10 +159,24 @@ abstract class Answer implements ActiveRecordInterface
     protected $relevanciesScheduledForDeletion = null;
 
     /**
+     * Applies default values to this object.
+     * This method should be called from the object's constructor (or
+     * equivalent initialization method).
+     * @see __construct()
+     */
+    public function applyDefaultValues()
+    {
+        $this->relevancy_up = 0;
+        $this->relevancy_down = 0;
+    }
+
+    /**
      * Initializes internal state of App\Entity\Base\Answer object.
+     * @see applyDefaults()
      */
     public function __construct()
     {
+        $this->applyDefaultValues();
     }
 
     /**
@@ -428,6 +458,26 @@ abstract class Answer implements ActiveRecordInterface
     }
 
     /**
+     * Get the [relevancy_up] column value.
+     *
+     * @return int
+     */
+    public function getRelevancyUp()
+    {
+        return $this->relevancy_up;
+    }
+
+    /**
+     * Get the [relevancy_down] column value.
+     *
+     * @return int
+     */
+    public function getRelevancyDown()
+    {
+        return $this->relevancy_down;
+    }
+
+    /**
      * Get the [optionally formatted] temporal [updated_at] column value.
      *
      *
@@ -556,6 +606,46 @@ abstract class Answer implements ActiveRecordInterface
     } // setCreatedAt()
 
     /**
+     * Set the value of [relevancy_up] column.
+     *
+     * @param int $v new value
+     * @return $this|\App\Entity\Answer The current object (for fluent API support)
+     */
+    public function setRelevancyUp($v)
+    {
+        if ($v !== null) {
+            $v = (int) $v;
+        }
+
+        if ($this->relevancy_up !== $v) {
+            $this->relevancy_up = $v;
+            $this->modifiedColumns[AnswerTableMap::COL_RELEVANCY_UP] = true;
+        }
+
+        return $this;
+    } // setRelevancyUp()
+
+    /**
+     * Set the value of [relevancy_down] column.
+     *
+     * @param int $v new value
+     * @return $this|\App\Entity\Answer The current object (for fluent API support)
+     */
+    public function setRelevancyDown($v)
+    {
+        if ($v !== null) {
+            $v = (int) $v;
+        }
+
+        if ($this->relevancy_down !== $v) {
+            $this->relevancy_down = $v;
+            $this->modifiedColumns[AnswerTableMap::COL_RELEVANCY_DOWN] = true;
+        }
+
+        return $this;
+    } // setRelevancyDown()
+
+    /**
      * Sets the value of [updated_at] column to a normalized version of the date/time value specified.
      *
      * @param  mixed $v string, integer (timestamp), or \DateTimeInterface value.
@@ -585,6 +675,14 @@ abstract class Answer implements ActiveRecordInterface
      */
     public function hasOnlyDefaultValues()
     {
+            if ($this->relevancy_up !== 0) {
+                return false;
+            }
+
+            if ($this->relevancy_down !== 0) {
+                return false;
+            }
+
         // otherwise, everything was equal, so return TRUE
         return true;
     } // hasOnlyDefaultValues()
@@ -629,7 +727,13 @@ abstract class Answer implements ActiveRecordInterface
             }
             $this->created_at = (null !== $col) ? PropelDateTime::newInstance($col, null, 'DateTime') : null;
 
-            $col = $row[TableMap::TYPE_NUM == $indexType ? 5 + $startcol : AnswerTableMap::translateFieldName('UpdatedAt', TableMap::TYPE_PHPNAME, $indexType)];
+            $col = $row[TableMap::TYPE_NUM == $indexType ? 5 + $startcol : AnswerTableMap::translateFieldName('RelevancyUp', TableMap::TYPE_PHPNAME, $indexType)];
+            $this->relevancy_up = (null !== $col) ? (int) $col : null;
+
+            $col = $row[TableMap::TYPE_NUM == $indexType ? 6 + $startcol : AnswerTableMap::translateFieldName('RelevancyDown', TableMap::TYPE_PHPNAME, $indexType)];
+            $this->relevancy_down = (null !== $col) ? (int) $col : null;
+
+            $col = $row[TableMap::TYPE_NUM == $indexType ? 7 + $startcol : AnswerTableMap::translateFieldName('UpdatedAt', TableMap::TYPE_PHPNAME, $indexType)];
             if ($col === '0000-00-00 00:00:00') {
                 $col = null;
             }
@@ -642,7 +746,7 @@ abstract class Answer implements ActiveRecordInterface
                 $this->ensureConsistency();
             }
 
-            return $startcol + 6; // 6 = AnswerTableMap::NUM_HYDRATE_COLUMNS.
+            return $startcol + 8; // 8 = AnswerTableMap::NUM_HYDRATE_COLUMNS.
 
         } catch (Exception $e) {
             throw new PropelException(sprintf('Error populating %s object', '\\App\\Entity\\Answer'), 0, $e);
@@ -917,6 +1021,12 @@ abstract class Answer implements ActiveRecordInterface
         if ($this->isColumnModified(AnswerTableMap::COL_CREATED_AT)) {
             $modifiedColumns[':p' . $index++]  = 'created_at';
         }
+        if ($this->isColumnModified(AnswerTableMap::COL_RELEVANCY_UP)) {
+            $modifiedColumns[':p' . $index++]  = 'relevancy_up';
+        }
+        if ($this->isColumnModified(AnswerTableMap::COL_RELEVANCY_DOWN)) {
+            $modifiedColumns[':p' . $index++]  = 'relevancy_down';
+        }
         if ($this->isColumnModified(AnswerTableMap::COL_UPDATED_AT)) {
             $modifiedColumns[':p' . $index++]  = 'updated_at';
         }
@@ -945,6 +1055,12 @@ abstract class Answer implements ActiveRecordInterface
                         break;
                     case 'created_at':
                         $stmt->bindValue($identifier, $this->created_at ? $this->created_at->format("Y-m-d H:i:s.u") : null, PDO::PARAM_STR);
+                        break;
+                    case 'relevancy_up':
+                        $stmt->bindValue($identifier, $this->relevancy_up, PDO::PARAM_INT);
+                        break;
+                    case 'relevancy_down':
+                        $stmt->bindValue($identifier, $this->relevancy_down, PDO::PARAM_INT);
                         break;
                     case 'updated_at':
                         $stmt->bindValue($identifier, $this->updated_at ? $this->updated_at->format("Y-m-d H:i:s.u") : null, PDO::PARAM_STR);
@@ -1027,6 +1143,12 @@ abstract class Answer implements ActiveRecordInterface
                 return $this->getCreatedAt();
                 break;
             case 5:
+                return $this->getRelevancyUp();
+                break;
+            case 6:
+                return $this->getRelevancyDown();
+                break;
+            case 7:
                 return $this->getUpdatedAt();
                 break;
             default:
@@ -1064,14 +1186,16 @@ abstract class Answer implements ActiveRecordInterface
             $keys[2] => $this->getUserId(),
             $keys[3] => $this->getBody(),
             $keys[4] => $this->getCreatedAt(),
-            $keys[5] => $this->getUpdatedAt(),
+            $keys[5] => $this->getRelevancyUp(),
+            $keys[6] => $this->getRelevancyDown(),
+            $keys[7] => $this->getUpdatedAt(),
         );
         if ($result[$keys[4]] instanceof \DateTimeInterface) {
             $result[$keys[4]] = $result[$keys[4]]->format('c');
         }
 
-        if ($result[$keys[5]] instanceof \DateTimeInterface) {
-            $result[$keys[5]] = $result[$keys[5]]->format('c');
+        if ($result[$keys[7]] instanceof \DateTimeInterface) {
+            $result[$keys[7]] = $result[$keys[7]]->format('c');
         }
 
         $virtualColumns = $this->virtualColumns;
@@ -1175,6 +1299,12 @@ abstract class Answer implements ActiveRecordInterface
                 $this->setCreatedAt($value);
                 break;
             case 5:
+                $this->setRelevancyUp($value);
+                break;
+            case 6:
+                $this->setRelevancyDown($value);
+                break;
+            case 7:
                 $this->setUpdatedAt($value);
                 break;
         } // switch()
@@ -1219,7 +1349,13 @@ abstract class Answer implements ActiveRecordInterface
             $this->setCreatedAt($arr[$keys[4]]);
         }
         if (array_key_exists($keys[5], $arr)) {
-            $this->setUpdatedAt($arr[$keys[5]]);
+            $this->setRelevancyUp($arr[$keys[5]]);
+        }
+        if (array_key_exists($keys[6], $arr)) {
+            $this->setRelevancyDown($arr[$keys[6]]);
+        }
+        if (array_key_exists($keys[7], $arr)) {
+            $this->setUpdatedAt($arr[$keys[7]]);
         }
     }
 
@@ -1276,6 +1412,12 @@ abstract class Answer implements ActiveRecordInterface
         }
         if ($this->isColumnModified(AnswerTableMap::COL_CREATED_AT)) {
             $criteria->add(AnswerTableMap::COL_CREATED_AT, $this->created_at);
+        }
+        if ($this->isColumnModified(AnswerTableMap::COL_RELEVANCY_UP)) {
+            $criteria->add(AnswerTableMap::COL_RELEVANCY_UP, $this->relevancy_up);
+        }
+        if ($this->isColumnModified(AnswerTableMap::COL_RELEVANCY_DOWN)) {
+            $criteria->add(AnswerTableMap::COL_RELEVANCY_DOWN, $this->relevancy_down);
         }
         if ($this->isColumnModified(AnswerTableMap::COL_UPDATED_AT)) {
             $criteria->add(AnswerTableMap::COL_UPDATED_AT, $this->updated_at);
@@ -1370,6 +1512,8 @@ abstract class Answer implements ActiveRecordInterface
         $copyObj->setUserId($this->getUserId());
         $copyObj->setBody($this->getBody());
         $copyObj->setCreatedAt($this->getCreatedAt());
+        $copyObj->setRelevancyUp($this->getRelevancyUp());
+        $copyObj->setRelevancyDown($this->getRelevancyDown());
         $copyObj->setUpdatedAt($this->getUpdatedAt());
 
         if ($deepCopy) {
@@ -1803,9 +1947,12 @@ abstract class Answer implements ActiveRecordInterface
         $this->user_id = null;
         $this->body = null;
         $this->created_at = null;
+        $this->relevancy_up = null;
+        $this->relevancy_down = null;
         $this->updated_at = null;
         $this->alreadyInSave = false;
         $this->clearAllReferences();
+        $this->applyDefaultValues();
         $this->resetModified();
         $this->setNew(true);
         $this->setDeleted(false);

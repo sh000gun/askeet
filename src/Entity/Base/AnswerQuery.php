@@ -25,6 +25,8 @@ use Propel\Runtime\Exception\PropelException;
  * @method     ChildAnswerQuery orderByUserId($order = Criteria::ASC) Order by the user_id column
  * @method     ChildAnswerQuery orderByBody($order = Criteria::ASC) Order by the body column
  * @method     ChildAnswerQuery orderByCreatedAt($order = Criteria::ASC) Order by the created_at column
+ * @method     ChildAnswerQuery orderByRelevancyUp($order = Criteria::ASC) Order by the relevancy_up column
+ * @method     ChildAnswerQuery orderByRelevancyDown($order = Criteria::ASC) Order by the relevancy_down column
  * @method     ChildAnswerQuery orderByUpdatedAt($order = Criteria::ASC) Order by the updated_at column
  *
  * @method     ChildAnswerQuery groupById() Group by the id column
@@ -32,6 +34,8 @@ use Propel\Runtime\Exception\PropelException;
  * @method     ChildAnswerQuery groupByUserId() Group by the user_id column
  * @method     ChildAnswerQuery groupByBody() Group by the body column
  * @method     ChildAnswerQuery groupByCreatedAt() Group by the created_at column
+ * @method     ChildAnswerQuery groupByRelevancyUp() Group by the relevancy_up column
+ * @method     ChildAnswerQuery groupByRelevancyDown() Group by the relevancy_down column
  * @method     ChildAnswerQuery groupByUpdatedAt() Group by the updated_at column
  *
  * @method     ChildAnswerQuery leftJoin($relation) Adds a LEFT JOIN clause to the query
@@ -82,6 +86,8 @@ use Propel\Runtime\Exception\PropelException;
  * @method     ChildAnswer findOneByUserId(int $user_id) Return the first ChildAnswer filtered by the user_id column
  * @method     ChildAnswer findOneByBody(string $body) Return the first ChildAnswer filtered by the body column
  * @method     ChildAnswer findOneByCreatedAt(string $created_at) Return the first ChildAnswer filtered by the created_at column
+ * @method     ChildAnswer findOneByRelevancyUp(int $relevancy_up) Return the first ChildAnswer filtered by the relevancy_up column
+ * @method     ChildAnswer findOneByRelevancyDown(int $relevancy_down) Return the first ChildAnswer filtered by the relevancy_down column
  * @method     ChildAnswer findOneByUpdatedAt(string $updated_at) Return the first ChildAnswer filtered by the updated_at column *
 
  * @method     ChildAnswer requirePk($key, ConnectionInterface $con = null) Return the ChildAnswer by primary key and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
@@ -92,6 +98,8 @@ use Propel\Runtime\Exception\PropelException;
  * @method     ChildAnswer requireOneByUserId(int $user_id) Return the first ChildAnswer filtered by the user_id column and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
  * @method     ChildAnswer requireOneByBody(string $body) Return the first ChildAnswer filtered by the body column and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
  * @method     ChildAnswer requireOneByCreatedAt(string $created_at) Return the first ChildAnswer filtered by the created_at column and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
+ * @method     ChildAnswer requireOneByRelevancyUp(int $relevancy_up) Return the first ChildAnswer filtered by the relevancy_up column and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
+ * @method     ChildAnswer requireOneByRelevancyDown(int $relevancy_down) Return the first ChildAnswer filtered by the relevancy_down column and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
  * @method     ChildAnswer requireOneByUpdatedAt(string $updated_at) Return the first ChildAnswer filtered by the updated_at column and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
  *
  * @method     ChildAnswer[]|ObjectCollection find(ConnectionInterface $con = null) Return ChildAnswer objects based on current ModelCriteria
@@ -100,6 +108,8 @@ use Propel\Runtime\Exception\PropelException;
  * @method     ChildAnswer[]|ObjectCollection findByUserId(int $user_id) Return ChildAnswer objects filtered by the user_id column
  * @method     ChildAnswer[]|ObjectCollection findByBody(string $body) Return ChildAnswer objects filtered by the body column
  * @method     ChildAnswer[]|ObjectCollection findByCreatedAt(string $created_at) Return ChildAnswer objects filtered by the created_at column
+ * @method     ChildAnswer[]|ObjectCollection findByRelevancyUp(int $relevancy_up) Return ChildAnswer objects filtered by the relevancy_up column
+ * @method     ChildAnswer[]|ObjectCollection findByRelevancyDown(int $relevancy_down) Return ChildAnswer objects filtered by the relevancy_down column
  * @method     ChildAnswer[]|ObjectCollection findByUpdatedAt(string $updated_at) Return ChildAnswer objects filtered by the updated_at column
  * @method     ChildAnswer[]|\Propel\Runtime\Util\PropelModelPager paginate($page = 1, $maxPerPage = 10, ConnectionInterface $con = null) Issue a SELECT query based on the current ModelCriteria and uses a page and a maximum number of results per page to compute an offset and a limit
  *
@@ -199,7 +209,7 @@ abstract class AnswerQuery extends ModelCriteria
      */
     protected function findPkSimple($key, ConnectionInterface $con)
     {
-        $sql = 'SELECT id, question_id, user_id, body, created_at, updated_at FROM ask_answer WHERE id = :p0';
+        $sql = 'SELECT id, question_id, user_id, body, created_at, relevancy_up, relevancy_down, updated_at FROM ask_answer WHERE id = :p0';
         try {
             $stmt = $con->prepare($sql);
             $stmt->bindValue(':p0', $key, PDO::PARAM_INT);
@@ -482,6 +492,88 @@ abstract class AnswerQuery extends ModelCriteria
         }
 
         return $this->addUsingAlias(AnswerTableMap::COL_CREATED_AT, $createdAt, $comparison);
+    }
+
+    /**
+     * Filter the query on the relevancy_up column
+     *
+     * Example usage:
+     * <code>
+     * $query->filterByRelevancyUp(1234); // WHERE relevancy_up = 1234
+     * $query->filterByRelevancyUp(array(12, 34)); // WHERE relevancy_up IN (12, 34)
+     * $query->filterByRelevancyUp(array('min' => 12)); // WHERE relevancy_up > 12
+     * </code>
+     *
+     * @param     mixed $relevancyUp The value to use as filter.
+     *              Use scalar values for equality.
+     *              Use array values for in_array() equivalent.
+     *              Use associative array('min' => $minValue, 'max' => $maxValue) for intervals.
+     * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
+     *
+     * @return $this|ChildAnswerQuery The current query, for fluid interface
+     */
+    public function filterByRelevancyUp($relevancyUp = null, $comparison = null)
+    {
+        if (is_array($relevancyUp)) {
+            $useMinMax = false;
+            if (isset($relevancyUp['min'])) {
+                $this->addUsingAlias(AnswerTableMap::COL_RELEVANCY_UP, $relevancyUp['min'], Criteria::GREATER_EQUAL);
+                $useMinMax = true;
+            }
+            if (isset($relevancyUp['max'])) {
+                $this->addUsingAlias(AnswerTableMap::COL_RELEVANCY_UP, $relevancyUp['max'], Criteria::LESS_EQUAL);
+                $useMinMax = true;
+            }
+            if ($useMinMax) {
+                return $this;
+            }
+            if (null === $comparison) {
+                $comparison = Criteria::IN;
+            }
+        }
+
+        return $this->addUsingAlias(AnswerTableMap::COL_RELEVANCY_UP, $relevancyUp, $comparison);
+    }
+
+    /**
+     * Filter the query on the relevancy_down column
+     *
+     * Example usage:
+     * <code>
+     * $query->filterByRelevancyDown(1234); // WHERE relevancy_down = 1234
+     * $query->filterByRelevancyDown(array(12, 34)); // WHERE relevancy_down IN (12, 34)
+     * $query->filterByRelevancyDown(array('min' => 12)); // WHERE relevancy_down > 12
+     * </code>
+     *
+     * @param     mixed $relevancyDown The value to use as filter.
+     *              Use scalar values for equality.
+     *              Use array values for in_array() equivalent.
+     *              Use associative array('min' => $minValue, 'max' => $maxValue) for intervals.
+     * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
+     *
+     * @return $this|ChildAnswerQuery The current query, for fluid interface
+     */
+    public function filterByRelevancyDown($relevancyDown = null, $comparison = null)
+    {
+        if (is_array($relevancyDown)) {
+            $useMinMax = false;
+            if (isset($relevancyDown['min'])) {
+                $this->addUsingAlias(AnswerTableMap::COL_RELEVANCY_DOWN, $relevancyDown['min'], Criteria::GREATER_EQUAL);
+                $useMinMax = true;
+            }
+            if (isset($relevancyDown['max'])) {
+                $this->addUsingAlias(AnswerTableMap::COL_RELEVANCY_DOWN, $relevancyDown['max'], Criteria::LESS_EQUAL);
+                $useMinMax = true;
+            }
+            if ($useMinMax) {
+                return $this;
+            }
+            if (null === $comparison) {
+                $comparison = Criteria::IN;
+            }
+        }
+
+        return $this->addUsingAlias(AnswerTableMap::COL_RELEVANCY_DOWN, $relevancyDown, $comparison);
     }
 
     /**
