@@ -15,5 +15,27 @@ use App\Entity\Base\QuestionQuery as BaseQuestionQuery;
  */
 class QuestionQuery extends BaseQuestionQuery
 {
+  public static function getHomepagePager($page)
+  {
+     $query = QuestionQuery::create()
+        ->orderByInterestedUsers('desc');
+
+     return $query->paginate($page, 2);
+  }
+
+  public static function getQuestionFromTitle($title)
+  {
+    return QuestionQuery::create()
+        ->filterByStrippedTitle($title)
+        ->findOne();
+  }
+
+   public static function getRecentPager($page)
+  {
+     $query = QuestionQuery::create()
+        ->orderByCreatedAt('desc');
+
+     return $query->paginate($page, 2);
+  }
 
 }

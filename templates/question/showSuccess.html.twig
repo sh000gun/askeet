@@ -16,12 +16,7 @@
 <div id="answers">
   {% for answer in question.answers  %}
     <div class="answer">
-      {{ answer.relevancyUpPercent }}% UP {{ answer.relevancyDownPercent  }}% DOWN 
-      posted by {{ answer.User }} 
-      on {{ answer.createdAt|date('Y-m-d H:i:s') }}
-      <div>
-        {{ answer.body }}
-      </div>
+      {% include 'answer/_answer.html.twig' %}
     </div>
   {% endfor %}
 </div>

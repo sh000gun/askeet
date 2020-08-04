@@ -1,0 +1,33 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+
+<h1>{{ subscriber }}'s profile</h1>
+ 
+<h2>Interests</h2>
+<ul>
+{% for interest in interests %}
+  <li><a href="{{ path('question_show', {stripped_title: interest.question.strippedTitle}) }}">{{ interest.question.title }}</a>
+  </li>
+{% endfor %}
+</ul>
+
+<h2>Contributions</h2>
+<ul>
+{% for answer in answers %}
+  <li><a href="{{ path('question_show', {stripped_title: answer.question.strippedTitle}) }}">{{ answer.question.title }}</a><br />
+  {{ answer.body }}
+  </li>
+{% endfor %}
+</ul>
+
+<h2>Questions</h2>
+<ul>
+{% for question in questions %}
+  <li><a href="{{ path('question_show', {stripped_title: question.strippedTitle}) }}">{{ question.title }}</a>
+  </li>
+{% endfor %}
+</ul>
+
+
+{% endblock %}

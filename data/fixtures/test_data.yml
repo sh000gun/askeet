@@ -3,16 +3,22 @@ App\Entity\User:
     nickname:   anonymous
     first_name: Anonymous
     last_name:  Coward
+    password:   anonymous
+    email:      anonymous@example.com
 
   fabien:
     nickname:   fabpot
     first_name: Fabien
     last_name:  Potencier
+    password:   symfony
+    email:      fp@example.com
 
   francois:
     nickname:   francoisz
     first_name: François
     last_name:  Zaninotto
+    password:   adventcal
+    email:      fz@example.com
 
 App\Entity\Question:
   q1:

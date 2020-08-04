@@ -111,6 +111,27 @@ abstract class User implements ActiveRecordInterface
     protected $created_at;
 
     /**
+     * The value for the email field.
+     *
+     * @var        string
+     */
+    protected $email;
+
+    /**
+     * The value for the sha1_password field.
+     *
+     * @var        string
+     */
+    protected $sha1_password;
+
+    /**
+     * The value for the salt field.
+     *
+     * @var        string
+     */
+    protected $salt;
+
+    /**
      * The value for the updated_at field.
      *
      * @var        DateTime
@@ -459,6 +480,36 @@ abstract class User implements ActiveRecordInterface
     }
 
     /**
+     * Get the [email] column value.
+     *
+     * @return string
+     */
+    public function getEmail()
+    {
+        return $this->email;
+    }
+
+    /**
+     * Get the [sha1_password] column value.
+     *
+     * @return string
+     */
+    public function getSha1Password()
+    {
+        return $this->sha1_password;
+    }
+
+    /**
+     * Get the [salt] column value.
+     *
+     * @return string
+     */
+    public function getSalt()
+    {
+        return $this->salt;
+    }
+
+    /**
      * Get the [optionally formatted] temporal [updated_at] column value.
      *
      *
@@ -579,6 +630,66 @@ abstract class User implements ActiveRecordInterface
     } // setCreatedAt()
 
     /**
+     * Set the value of [email] column.
+     *
+     * @param string $v new value
+     * @return $this|\App\Entity\User The current object (for fluent API support)
+     */
+    public function setEmail($v)
+    {
+        if ($v !== null) {
+            $v = (string) $v;
+        }
+
+        if ($this->email !== $v) {
+            $this->email = $v;
+            $this->modifiedColumns[UserTableMap::COL_EMAIL] = true;
+        }
+
+        return $this;
+    } // setEmail()
+
+    /**
+     * Set the value of [sha1_password] column.
+     *
+     * @param string $v new value
+     * @return $this|\App\Entity\User The current object (for fluent API support)
+     */
+    public function setSha1Password($v)
+    {
+        if ($v !== null) {
+            $v = (string) $v;
+        }
+
+        if ($this->sha1_password !== $v) {
+            $this->sha1_password = $v;
+            $this->modifiedColumns[UserTableMap::COL_SHA1_PASSWORD] = true;
+        }
+
+        return $this;
+    } // setSha1Password()
+
+    /**
+     * Set the value of [salt] column.
+     *
+     * @param string $v new value
+     * @return $this|\App\Entity\User The current object (for fluent API support)
+     */
+    public function setSalt($v)
+    {
+        if ($v !== null) {
+            $v = (string) $v;
+        }
+
+        if ($this->salt !== $v) {
+            $this->salt = $v;
+            $this->modifiedColumns[UserTableMap::COL_SALT] = true;
+        }
+
+        return $this;
+    } // setSalt()
+
+    /**
      * Sets the value of [updated_at] column to a normalized version of the date/time value specified.
      *
      * @param  mixed $v string, integer (timestamp), or \DateTimeInterface value.
@@ -652,7 +763,16 @@ abstract class User implements ActiveRecordInterface
             }
             $this->created_at = (null !== $col) ? PropelDateTime::newInstance($col, null, 'DateTime') : null;
 
-            $col = $row[TableMap::TYPE_NUM == $indexType ? 5 + $startcol : UserTableMap::translateFieldName('UpdatedAt', TableMap::TYPE_PHPNAME, $indexType)];
+            $col = $row[TableMap::TYPE_NUM == $indexType ? 5 + $startcol : UserTableMap::translateFieldName('Email', TableMap::TYPE_PHPNAME, $indexType)];
+            $this->email = (null !== $col) ? (string) $col : null;
+
+            $col = $row[TableMap::TYPE_NUM == $indexType ? 6 + $startcol : UserTableMap::translateFieldName('Sha1Password', TableMap::TYPE_PHPNAME, $indexType)];
+            $this->sha1_password = (null !== $col) ? (string) $col : null;
+
+            $col = $row[TableMap::TYPE_NUM == $indexType ? 7 + $startcol : UserTableMap::translateFieldName('Salt', TableMap::TYPE_PHPNAME, $indexType)];
+            $this->salt = (null !== $col) ? (string) $col : null;
+
+            $col = $row[TableMap::TYPE_NUM == $indexType ? 8 + $startcol : UserTableMap::translateFieldName('UpdatedAt', TableMap::TYPE_PHPNAME, $indexType)];
             if ($col === '0000-00-00 00:00:00') {
                 $col = null;
             }
@@ -665,7 +785,7 @@ abstract class User implements ActiveRecordInterface
                 $this->ensureConsistency();
             }
 
-            return $startcol + 6; // 6 = UserTableMap::NUM_HYDRATE_COLUMNS.
+            return $startcol + 9; // 9 = UserTableMap::NUM_HYDRATE_COLUMNS.
 
         } catch (Exception $e) {
             throw new PropelException(sprintf('Error populating %s object', '\\App\\Entity\\User'), 0, $e);
@@ -972,6 +1092,15 @@ abstract class User implements ActiveRecordInterface
         if ($this->isColumnModified(UserTableMap::COL_CREATED_AT)) {
             $modifiedColumns[':p' . $index++]  = 'created_at';
         }
+        if ($this->isColumnModified(UserTableMap::COL_EMAIL)) {
+            $modifiedColumns[':p' . $index++]  = 'email';
+        }
+        if ($this->isColumnModified(UserTableMap::COL_SHA1_PASSWORD)) {
+            $modifiedColumns[':p' . $index++]  = 'sha1_password';
+        }
+        if ($this->isColumnModified(UserTableMap::COL_SALT)) {
+            $modifiedColumns[':p' . $index++]  = 'salt';
+        }
         if ($this->isColumnModified(UserTableMap::COL_UPDATED_AT)) {
             $modifiedColumns[':p' . $index++]  = 'updated_at';
         }
@@ -1000,6 +1129,15 @@ abstract class User implements ActiveRecordInterface
                         break;
                     case 'created_at':
                         $stmt->bindValue($identifier, $this->created_at ? $this->created_at->format("Y-m-d H:i:s.u") : null, PDO::PARAM_STR);
+                        break;
+                    case 'email':
+                        $stmt->bindValue($identifier, $this->email, PDO::PARAM_STR);
+                        break;
+                    case 'sha1_password':
+                        $stmt->bindValue($identifier, $this->sha1_password, PDO::PARAM_STR);
+                        break;
+                    case 'salt':
+                        $stmt->bindValue($identifier, $this->salt, PDO::PARAM_STR);
                         break;
                     case 'updated_at':
                         $stmt->bindValue($identifier, $this->updated_at ? $this->updated_at->format("Y-m-d H:i:s.u") : null, PDO::PARAM_STR);
@@ -1082,6 +1220,15 @@ abstract class User implements ActiveRecordInterface
                 return $this->getCreatedAt();
                 break;
             case 5:
+                return $this->getEmail();
+                break;
+            case 6:
+                return $this->getSha1Password();
+                break;
+            case 7:
+                return $this->getSalt();
+                break;
+            case 8:
                 return $this->getUpdatedAt();
                 break;
             default:
@@ -1119,14 +1266,17 @@ abstract class User implements ActiveRecordInterface
             $keys[2] => $this->getFirstName(),
             $keys[3] => $this->getLastName(),
             $keys[4] => $this->getCreatedAt(),
-            $keys[5] => $this->getUpdatedAt(),
+            $keys[5] => $this->getEmail(),
+            $keys[6] => $this->getSha1Password(),
+            $keys[7] => $this->getSalt(),
+            $keys[8] => $this->getUpdatedAt(),
         );
         if ($result[$keys[4]] instanceof \DateTimeInterface) {
             $result[$keys[4]] = $result[$keys[4]]->format('c');
         }
 
-        if ($result[$keys[5]] instanceof \DateTimeInterface) {
-            $result[$keys[5]] = $result[$keys[5]]->format('c');
+        if ($result[$keys[8]] instanceof \DateTimeInterface) {
+            $result[$keys[8]] = $result[$keys[8]]->format('c');
         }
 
         $virtualColumns = $this->virtualColumns;
@@ -1245,6 +1395,15 @@ abstract class User implements ActiveRecordInterface
                 $this->setCreatedAt($value);
                 break;
             case 5:
+                $this->setEmail($value);
+                break;
+            case 6:
+                $this->setSha1Password($value);
+                break;
+            case 7:
+                $this->setSalt($value);
+                break;
+            case 8:
                 $this->setUpdatedAt($value);
                 break;
         } // switch()
@@ -1289,7 +1448,16 @@ abstract class User implements ActiveRecordInterface
             $this->setCreatedAt($arr[$keys[4]]);
         }
         if (array_key_exists($keys[5], $arr)) {
-            $this->setUpdatedAt($arr[$keys[5]]);
+            $this->setEmail($arr[$keys[5]]);
+        }
+        if (array_key_exists($keys[6], $arr)) {
+            $this->setSha1Password($arr[$keys[6]]);
+        }
+        if (array_key_exists($keys[7], $arr)) {
+            $this->setSalt($arr[$keys[7]]);
+        }
+        if (array_key_exists($keys[8], $arr)) {
+            $this->setUpdatedAt($arr[$keys[8]]);
         }
     }
 
@@ -1346,6 +1514,15 @@ abstract class User implements ActiveRecordInterface
         }
         if ($this->isColumnModified(UserTableMap::COL_CREATED_AT)) {
             $criteria->add(UserTableMap::COL_CREATED_AT, $this->created_at);
+        }
+        if ($this->isColumnModified(UserTableMap::COL_EMAIL)) {
+            $criteria->add(UserTableMap::COL_EMAIL, $this->email);
+        }
+        if ($this->isColumnModified(UserTableMap::COL_SHA1_PASSWORD)) {
+            $criteria->add(UserTableMap::COL_SHA1_PASSWORD, $this->sha1_password);
+        }
+        if ($this->isColumnModified(UserTableMap::COL_SALT)) {
+            $criteria->add(UserTableMap::COL_SALT, $this->salt);
         }
         if ($this->isColumnModified(UserTableMap::COL_UPDATED_AT)) {
             $criteria->add(UserTableMap::COL_UPDATED_AT, $this->updated_at);
@@ -1440,6 +1617,9 @@ abstract class User implements ActiveRecordInterface
         $copyObj->setFirstName($this->getFirstName());
         $copyObj->setLastName($this->getLastName());
         $copyObj->setCreatedAt($this->getCreatedAt());
+        $copyObj->setEmail($this->getEmail());
+        $copyObj->setSha1Password($this->getSha1Password());
+        $copyObj->setSalt($this->getSalt());
         $copyObj->setUpdatedAt($this->getUpdatedAt());
 
         if ($deepCopy) {
@@ -2523,6 +2703,9 @@ abstract class User implements ActiveRecordInterface
         $this->first_name = null;
         $this->last_name = null;
         $this->created_at = null;
+        $this->email = null;
+        $this->sha1_password = null;
+        $this->salt = null;
         $this->updated_at = null;
         $this->alreadyInSave = false;
         $this->clearAllReferences();

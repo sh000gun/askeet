@@ -1,0 +1,27 @@
+{% macro pager_navigation(pager, routeName) %}
+  {% if pager.haveToPaginate %}
+    {% if pager.getPage != 1 %}
+      <a href="{{ path(routeName, {page: 1} ) }}"><img src="{{ asset('images/first.gif') }}" align="absmiddle" /></a>
+      <a href="{{ path(routeName, {page: pager.getPreviousPage}) }}"><img src="{{ asset('images/previous.gif') }}" align="absmiddle" /></a>
+    {% endif %}
+    
+    {% for page in pager.getLinks %}
+      {%if page == pager.getPage %}
+        {{ page }}
+      {% else %}
+        <a href="{{ path(routeName, {page: page}) }}">{{ page }}</a>
+      {% endif %}
+
+       {%if page != pager.getCurrentMaxLink %}
+        -
+       {% endif %}
+
+    {% endfor %}
+
+    {% if pager.getPage != pager.getCurrentMaxLink %}
+      <a href="{{ path(routeName, {page: pager.getNextPage})  }}"><img src="{{ asset('images/next.gif') }}" align="absmiddle" /></a>
+      <a href="{{ path(routeName, {page: pager.getLastPage})  }}"><img src="{{ asset('images/last.gif') }}" align="absmiddle" /></a>
+    {% endif %}
+
+  {% endif %}
+{% endmacro %}

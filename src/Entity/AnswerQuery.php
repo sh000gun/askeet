@@ -15,5 +15,11 @@ use App\Entity\Base\AnswerQuery as BaseAnswerQuery;
  */
 class AnswerQuery extends BaseAnswerQuery
 {
+  public static function getRecentPager($page)
+  {
+    $query = AnswerQuery::create()
+      ->orderByCreatedAt('desc');
 
+    return $query->paginate($page, 2);
+  }
 }

@@ -3,21 +3,8 @@
 {% block body %}
 
 <h1>popular questions</h1> 
- 
-{% for question in questionList %}
-  <div class="question">
-    <div class="interested_block">
-      {{ include('question/_interested_user.html.twig') }}      
-    </div>
- 
-    <h2><a href="{{ path('question_show', {stripped_title: question.getStrippedTitle}) }}" >{{ question.title }}</a></h2>
- 
-    <div class="question_body">
-     {{ question.body|u.truncate(200) }}
-    </div>
-  </div>
-{% endfor %}
 
-<a href="{{ path('question_create') }}">create</a>
+
+{% include 'question/_list.html.twig' with {'question_pager': question_pager, 'rule': 'question_list'}  %}
 
 {% endblock %}

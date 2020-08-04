@@ -49,6 +49,9 @@
      <behavior name="timestampable">
        <parameter name="create_column" value="created_at" />
      </behavior>
+     <column name="email" type="varchar" size="100" />
+     <column name="sha1_password" type="varchar" size="40" />
+     <column name="salt" type="varchar" size="32" />
    </table>
  
    <table name="ask_interest" phpName="Interest">

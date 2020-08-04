@@ -1,0 +1,22 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+
+<h1> recent answers </h1>
+
+<div id="answers">
+  {% for answer in answer_pager %}
+    <div class="answer">
+      <h2><a href="{{ path('question_show', {stripped_title: answer.question.strippedTitle}) }}">{{ answer.getQuestion.getTitle }}</a></h2>
+       {% include 'answer/_answer.html.twig' %}
+    </div>
+  {% endfor %}
+</div>
+
+<div id="question_pager">
+  {% import "_pager_navigation.html.twig" as pager %}
+  {{ pager.pager_navigation(answer_pager, 'answer_recent') }}
+</div>
+
+
+{% endblock %}

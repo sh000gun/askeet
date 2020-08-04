@@ -1,0 +1,38 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+
+  <form action="{{ path('user_login') }}" method="post"/>
+ 
+    <fieldset>
+ 
+    <div class="form-row">
+      {%if login_error is defined %}
+        <div class="form_error">{{ login_error }}</div>
+      {% endif %}
+
+      {%if errorMessages is defined and errorMessages.nickname is defined %}
+        <div class="form_error">{{ errorMessages.nickname ? errorMessages.nickname : null  }}</div>
+      {% endif %}
+      <label for="nickname">nickname:</label>
+      <input type="text" name="nickname" id="inputNickname" value="{{ nickname is defined ? nickname : null  }}"/>
+    </div>
+ 
+    <div class="form-row">
+       {%if errorMessages is defined and errorMessages.password is defined %}
+        <div class="form_error">{{ errorMessages.password ?  errorMessages.password : null }}</div>
+      {% endif %}
+      <label for="password">password:</label>
+      <input type="password" name="password" id="inputPassword" />
+    </div>
+ 
+    </fieldset>
+
+    <input type="hidden" name="referer" value="{{ failure_path is defined ? failure_path : app.request.headers.get('referer')|default('question_list') }}" />
+
+    <input type="submit" />
+ 
+</form>
+
+{% endblock %}
+

@@ -1,0 +1,20 @@
+{% for question in question_pager.results %}
+  <div class="question">
+    <div class="interested_block">
+      {{ include('question/_interested_user.html.twig') }}      
+    </div>
+ 
+    <h2><a href="{{ path('question_show', {stripped_title: question.getStrippedTitle}) }}" >{{ question.title }}</a></h2>
+ 
+    <div class="question_body">
+      <div>asked by <a href="{{ path('user_show', {id: question.user.id}) }}">{{ question.user }}</a> on {{ question.createdAt|date('M d, Y g:i A') }}
+      </div>
+     {{ question.body|u.truncate(200) }}
+    </div>
+  </div>
+{% endfor %}
+
+<div id="question_pager">
+  {% import "_pager_navigation.html.twig" as pager %}
+  {{ pager.pager_navigation(question_pager, rule) }}
+</div>

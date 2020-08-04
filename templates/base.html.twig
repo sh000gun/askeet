@@ -13,7 +13,14 @@
     <body>
         <div id="header">
             <ul>
-                <li><a href="{{ path('question_list') }}">about</a></li>
+              {% if is_granted("IS_AUTHENTICATED_FULLY") %}
+                <li><a href="{{ path('user_logout') }}">sign out</a></li>
+                <li><a href="{{ path('user_profile') }}">{{ app.session.get('user') }} profile</a></li>
+              {% elseif not app.user %}
+                <li><a href="{{ path('user_login') }}">sign in</a></li>
+              {% endif %}
+
+              <li><a href="{{ path('question_list') }}">about</a></li>
             </ul>
             <h1><a href="{{ path('question_list') }}"><img src="{{ asset('images/askeet_logo.gif') }}" alt="askeet" /></a></h1>
         </div>
@@ -25,7 +32,7 @@
             </div>
  
             <div id="content_bar">
-                <!-- Nothing for the moment -->
+                {% include '_sidebar.html.twig' %}
                 <div class="verticalalign"></div>
             </div>
         </div>
