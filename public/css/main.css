@@ -144,6 +144,7 @@ div#footer
 
 .form_error
 {
+  content: "\f0d7";
   padding-left: 85px;
   color: #d8732f;
 }
@@ -156,6 +157,5 @@ div#indicator
   left: 10px;
   top: 10px;
   z-index: 900;
-  background: url(/images/indicator.gif) no-repeat 0 0;
 }
 

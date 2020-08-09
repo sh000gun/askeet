@@ -8,92 +8,132 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Security\Core\Exception\BadCredentialsException;
 
 use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
+use Symfony\Component\Security\Http\Event\InteractiveLoginEvent;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Symfony\Component\Form\FormError;
 use App\Entity\UserQuery;
+use App\Lib\myLoginValidator;
+use App\Form\Type\LoginType;
+use Symfony\Component\Security\Core\User\UserProviderInterface;
+use Symfony\Component\Security\Core\Authentication\AuthenticationProviderManager;
+use Symfony\Component\Security\Core\Authentication\Provider\DaoAuthenticationProvider;
+use Symfony\Component\Security\Core\User\UserChecker;
+use Symfony\Component\Security\Core\Encoder\EncoderFactory;
+use App\Security\AskeetPasswordEncoder;
+
+use App\Entity\InterestQuery;
+use App\Entity\Interest;
+use App\Entity\User;
 
 class UserController extends AbstractController
 { 
+    private $userProvider;
+
+    public function __construct(UserProviderInterface $userProvider)
+    {
+        $this->userProvider = $userProvider;
+    }
+    
+    /**
+     * @Route("/user/embed", name="user_embedLogin")
+     */
+
+    public function embedLogin($request)
+    {
+        $data = new myLoginValidator();
+        $data->_target_path = $this->generateUrl('question_list');
+
+         // set page request
+        $pageRequest = $request->getPathInfo();;
+
+        if ($pageRequest != null && $pageRequest != $this->generateUrl('user_login'))
+        {
+            $data->_target_path = $pageRequest;
+        
+        }
+
+        $form = $this->createForm(LoginType::class, $data);
+
+        return $this->render('user/embedLoginSuccess.html.twig', [
+                'form' => $form->createView()
+            ]);
+
+    }
+
     /**
      * @Route("/user/login", name="user_login")
      */
 
-    public function login(Request $request, ValidatorInterface $validator)
+    public function login(Request $request)
     {
+        $data = new myLoginValidator();
+        $data->_target_path = $this->generateUrl('question_list');
 
-      if ($request->getMethod() != 'POST')
-      {
-        // display the form
-        return $this->render(
-          'user/loginSuccess.html.twig',
-        );
-      }
-      else 
-      {
-        // handle the form submission
-        $nickname = $request->get('nickname');
-        $password = $request->get('password');
+         // set referer
+        $referer = $request->headers->get('referer');
 
-
-        $input = ['nickname' => $nickname, 'password' => $password];
-
-        $constraints = new Assert\Collection([
-            'nickname' => [new Assert\Length(['min' => 2]), new Assert\NotBlank],
-            'password' => [new Assert\notBlank],
-        ]);
-
-        $violations = $validator->validate($input, $constraints);
-
-        if (count($violations) > 0) {
-
-            $accessor = PropertyAccess::createPropertyAccessor();
-
-            $errorMessages = [];
-
-            foreach ($violations as $violation) {
-
-                $accessor->setValue($errorMessages,
-                    $violation->getPropertyPath(),
-                    $violation->getMessage());
-            }
-
-            return $this->render('user/loginSuccess.html.twig',
-              ['errorMessages' => $errorMessages,
-               'nickname' => $nickname,]
-            );
-        } else {
-
-        $user = UserQuery::create()
-          ->filterByNickname($nickname)
-          ->findOne();
-
-        if ($user )
+        if ($referer != null && $referer != $this->generateUrl('user_login'))
         {
-          if (sha1($user->getSalt().$password) == $user->getSha1Password())
-          {
-            $token = new UsernamePasswordToken($nickname, $password, 'default', ['subscriber']);
-            $this->get('security.token_storage')->setToken($token);
-            $this->get('session')->set('_security_default', serialize($token)); 
-            $this->get('session')->set('user', $nickname);
-          }
-          else
-          {
-            $login_error = 'this account does not exist or you entered a wrong password';
-            
-            return $this->render('user/loginSuccess.html.twig',
-              ['login_error' => $login_error,
-               'failure_path' => $this->generateUrl('question_list'),
-               'nickname' => $nickname,
-            ]
-            );
-
-          }
-        }
+            $data->_target_path = $request->headers->get('referer');
         
-         return $this->redirect($request->get('referer') != 'user_login' ? $request->get('referer') : 'question_list' );
-
         }
-      }
+
+        $form = $this->createForm(LoginType::class, $data);
+       
+        if ($request->getMethod() == 'POST')
+        {
+            $form->handleRequest($request);
+
+            if ($form->isSubmitted() && $form->isValid())
+            {
+                // handle the form submission
+                $nickname = $data->nickname;
+                $password = $data->password;
+
+                $token = new UsernamePasswordToken($nickname, $password, 'main', ['ROLE_SUBSCRIBER']);
+
+
+                $encoderFactory = new EncoderFactory([
+                    User::class => new AskeetPasswordEncoder(),
+                ]);
+                
+                $authenticationManager = new AuthenticationProviderManager([
+                    new DaoAuthenticationProvider(
+                    $this->userProvider,
+                    new UserChecker(),
+                    'main',
+                    $encoderFactory 
+                    ),
+                ]);
+
+                try
+                {
+                    $authenticatedToken = $authenticationManager
+                            ->authenticate($token);
+                } catch (BadCredentialsException $exception)
+                {
+                    $form->addError(new FormError($exception->getMessage()));
+                    return $this->render('user/loginSuccess.html.twig', [
+                          'form' => $form->createView()
+                    ]);
+
+                }
+
+
+                $this->get('security.token_storage')->setToken($authenticatedToken);
+
+                return $this->redirect($data->_target_path);
+
+            } 
+        }
+ 
+        return $this->render('user/loginSuccess.html.twig', [
+                'form' => $form->createView()
+            ]);
     }
 
     /**
@@ -108,10 +148,9 @@ class UserController extends AbstractController
       return $this->redirectToRoute('question_list');
     }
 
-     /**
+    /**
      * @Route("/user/show/{id}", name="user_show", requirements={"page"="+d\"})
      */
-
     public function show($id)
     {
       $subscriber = UserQuery::create()
@@ -127,5 +166,44 @@ class UserController extends AbstractController
               'questions' => $questions
             )
             );
+    }
+
+     /**
+     * @Route("/user/is_interested/{userId}/{questionId}", name="user_is_interested")
+     */
+    public function is_interested($userId, $questionId)
+    {
+        $interested = InterestQuery::create()
+          ->filterByPrimaryKey(array($questionId, $userId))
+          ->find();
+        if (count($interested) > 0)
+        {
+          return $this->render('question/_is_interested_user.html.twig',
+            array('interested' => $interested));
+        }
+
+        return $this->render('question/_is_interested_user.html.twig',
+           array('questionId' => $questionId));
+    }
+
+    /**
+     * @Route("/user/interested/{questionId}", name="user_interested")
+     */
+    public function interested($questionId)
+    {
+      $userId = $this->getUser()->getId();
+
+      $interest = new Interest();
+      $interest->setQuestionId($questionId);
+      $interest->setUserId($userId);
+      $interest->save();
+
+      $data = array(
+        'interestedUsers' => $interest->getQuestion()->getInterestedUsers(),
+        );
+
+        $response = new Response(json_encode($data));
+
+        return $response;
     }
 }

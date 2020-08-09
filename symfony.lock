@@ -84,6 +84,9 @@
     "fzaninotto/faker": {
         "version": "v1.9.1"
     },
+    "michelf/php-markdown": {
+        "version": "1.9.0"
+    },
     "monolog/monolog": {
         "version": "2.1.0"
     },

@@ -1,7 +1,12 @@
 security:
     # https://symfony.com/doc/current/security.html#where-do-users-come-from-user-providers
     providers:
-        users_in_memory: { memory: null }
+         # users_in_memory: { memory: null }
+        user_in_propel:
+            propel:
+                class: App\Entity\User
+                property: nickname
+
     firewalls:
         dev:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
@@ -9,7 +14,8 @@ security:
         main:
             anonymous: true
             lazy: true
-            provider: users_in_memory
+            # provider: users_in_memory
+            provider: user_in_propel
 
             # activate different ways to authenticate
             # https://symfony.com/doc/current/security.html#firewalls-authentication

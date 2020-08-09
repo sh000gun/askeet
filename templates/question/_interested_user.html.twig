@@ -1,3 +1,9 @@
 <div class="interested_mark" id="mark_{{ question.id }}">
     {{ question.interestedUsers }}
 </div>
+
+{% if app.user.id is defined %}
+  {{ render(path('user_is_interested', {'userId':  app.user.id, 'questionId': question.id})) }}
+{% else %}
+  <a id="unauthenticated_interested_link_{{ question.id }}" href="#">interested?</a>
+{% endif %}

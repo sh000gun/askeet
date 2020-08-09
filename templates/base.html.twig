@@ -11,11 +11,14 @@
         {% endblock %}
     </head>
     <body>
+        <div id="indicator" style="display: none">
+        </div>
+
         <div id="header">
             <ul>
-              {% if is_granted("IS_AUTHENTICATED_FULLY") %}
+              {% if is_granted("ROLE_SUBSCRIBER") %}
                 <li><a href="{{ path('user_logout') }}">sign out</a></li>
-                <li><a href="{{ path('user_profile') }}">{{ app.session.get('user') }} profile</a></li>
+                <li><a href="{{ path('user_show', {'id': app.user.id }) }}">{{ app.user.nickname }} profile</a></li>
               {% elseif not app.user %}
                 <li><a href="{{ path('user_login') }}">sign in</a></li>
               {% endif %}
@@ -24,6 +27,15 @@
             </ul>
             <h1><a href="{{ path('question_list') }}"><img src="{{ asset('images/askeet_logo.gif') }}" alt="askeet" /></a></h1>
         </div>
+
+        <div id="login" style="display: none">
+          <h2>Please sign-in first</h2>
+
+          <a id="login_cancel" href="#">cancel</a><br />
+            
+          {{ render(controller('App\\Controller\\UserController::embedLogin', {'request' : app.request})) }}
+          
+          </div>
 
         <div id="content">
             <div id="content_main">
@@ -35,8 +47,14 @@
                 {% include '_sidebar.html.twig' %}
                 <div class="verticalalign"></div>
             </div>
-        </div>
+        </div>        
+ 
+        {% block javascripts %}
+          <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+          <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.min.js"></script>
+          <script src="{{ asset('js/login.js') }}"></script> 
+          <script src="{{ asset('js/user_interested.js') }}"></script>
+        {% endblock %}
 
-        {% block javascripts %}{% endblock %}
     </body>
 </html>

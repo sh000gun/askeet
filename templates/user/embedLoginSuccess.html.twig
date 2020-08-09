@@ -1,24 +1,14 @@
-{% extends 'base.html.twig' %}
-
-{% block body %}
-
 {{ form_start(form, {'action': path('user_login'), 'method': 'POST', attr: {'novalidate': 'novalidate'}}) }}
-    <div class="form_error">{{ form_errors(form) }}</div>
     <div class="form-row">
-        <div class="form_error">{{ form_errors(form.nickname) }}</div>
         {{ form_label(form.nickname) }}
         {{ form_widget(form.nickname) }}
     </div>
     
     <div class="form-row">
-        <div class="form_error">{{ form_errors(form.password) }}</div>
         {{ form_label(form.password) }}
         {{ form_widget(form.password) }}
     </div>
 
     <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}" />
-    <input type="submit" value="sign in" />
-  {{ form_end(form) }} 
-
-{% endblock %}
-
+    <input type="submit" value="login" />
+{{ form_end(form) }} 

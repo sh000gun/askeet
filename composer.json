@@ -5,6 +5,7 @@
         "php": "^7.2.5",
         "ext-ctype": "*",
         "ext-iconv": "*",
+        "michelf/php-markdown": "^1.9",
         "sensio/framework-extra-bundle": "^5.1",
         "symfony/apache-pack": "^1.0",
         "symfony/asset": "5.1.*",
@@ -50,9 +51,10 @@
     "autoload": {
         "psr-4": {
             "App\\": "src/",
-            "Propel\\Runtime\\": "vendor/propel/src/",
-            "Propel\\Common\\": "vendor/propel/src/",
-            "Propel\\Generator\\": "vendor/propel/src/"
+            "Propel\\Runtime\\": "vendor/propelorm/Propel2/src/",
+            "Propel\\Common\\": "vendor/propelorm/Propel2/src/",
+            "Propel\\Generator\\": "vendor/propelorm/Propel2/src/",
+            "Propel\\Bundle\\PropelBundle\\": "vendor/propelorm/PropelBundle"
         }
     },
     "autoload-dev": {

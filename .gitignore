@@ -16,3 +16,4 @@
 ###< symfony/phpunit-bridge ###
 
 .DS_Store
+/config/generated*

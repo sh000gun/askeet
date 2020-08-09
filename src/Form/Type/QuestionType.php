@@ -7,6 +7,7 @@ use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints as Assert;
 
 use App\Entity\Question;
 
@@ -14,7 +15,12 @@ class QuestionType extends AbstractType
 {
 	public function buildForm(FormBuilderInterface $builder, array $options)
 	{
-		$builder->add('title', TextType::class)
+    $builder->add('title', TextType::class, [
+                'constraints' => [
+                  new Assert\Length(['min' => 2]),
+                  new Assert\NotBlank,
+                ],
+              ])
 		        ->add('body', TextareaType::class);
 	}
 	
