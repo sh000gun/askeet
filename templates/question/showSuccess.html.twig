@@ -9,7 +9,7 @@
 <h2>{{ question.title }}</h2>
  
 <div class="question_body">
-  {{ question.body }}
+  {{ question.htmlBody|raw }}
 </div>
 
 <div id="answers">

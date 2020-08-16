@@ -19,6 +19,7 @@
      <unique name="unique_stripped_title">
        <unique-column name="stripped_title" />
      </unique>
+     <column name="html_body" type="longvarchar" />
    </table>
  
    <table name="ask_answer" phpName="Answer">

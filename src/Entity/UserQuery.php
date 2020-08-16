@@ -15,5 +15,10 @@ use App\Entity\Base\UserQuery as BaseUserQuery;
  */
 class UserQuery extends BaseUserQuery
 {
-
+    public static function retrieveByNickname($nickname)
+    {
+        return UserQuery::create()
+          ->filterByNickname($nickname)
+          ->findOne();
+    }
 }

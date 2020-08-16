@@ -1,5 +1,5 @@
 {{ answer.relevancyUpPercent }}% UP {{ answer.relevancyDownPercent  }}% DOWN 
-posted by {{ answer.User }} on {{ answer.createdAt|date('M d, Y') }}
+posted by <a href="{{ path('user_show', {nickname: answer.user.nickname}) }}">{{ answer.user }}</a> on {{ answer.createdAt|date('M d, Y') }}
       
 <div>        
   {{ answer.body }}

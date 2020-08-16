@@ -7,9 +7,9 @@
     <h2><a href="{{ path('question_show', {stripped_title: question.getStrippedTitle}) }}" >{{ question.title }}</a></h2>
  
     <div class="question_body">
-      <div>asked by <a href="{{ path('user_show', {id: question.user.id}) }}">{{ question.user }}</a> on {{ question.createdAt|date('M d, Y g:i A') }}
+      <div>asked by <a href="{{ path('user_show', {nickname: question.user.nickname}) }}">{{ question.user }}</a> on {{ question.createdAt|date('M d, Y g:i A') }}
       </div>
-     {{ question.body|u.truncate(200) }}
+     {{ question.htmlBody|u.truncate(200)|raw }}
     </div>
   </div>
 {% endfor %}

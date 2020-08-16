@@ -5,6 +5,8 @@ namespace App\Entity;
 use App\Entity\Base\Question as BaseQuestion;
 use App\Lib\myTools;
 
+use Michelf\Markdown;
+
 /**
  * Skeleton subclass for representing a row from the 'ask_question' table.
  *
@@ -16,10 +18,18 @@ use App\Lib\myTools;
  */
 class Question extends BaseQuestion
 {
-  public function setTitle($v)
-  {
-    parent::setTitle($v);
+    public function setTitle($v)
+    {
+        parent::setTitle($v);
  
-    $this->setStrippedTitle(myTools::stripText($v));
+        $this->setStrippedTitle(myTools::stripText($v));
+    }
+
+    public function setBody($v)
+    {
+        parent::setBody($v);
+
+        $v = htmlentities($v, ENT_QUOTES, 'UTF-8');
+        $this->setHtmlBody(Markdown::defaultTransform($v));
   }
 }

@@ -129,6 +129,13 @@ abstract class Question implements ActiveRecordInterface
     protected $stripped_title;
 
     /**
+     * The value for the html_body field.
+     *
+     * @var        string
+     */
+    protected $html_body;
+
+    /**
      * @var        ChildUser
      */
     protected $aUser;
@@ -504,6 +511,16 @@ abstract class Question implements ActiveRecordInterface
     }
 
     /**
+     * Get the [html_body] column value.
+     *
+     * @return string
+     */
+    public function getHtmlBody()
+    {
+        return $this->html_body;
+    }
+
+    /**
      * Set the value of [id] column.
      *
      * @param int $v new value
@@ -668,6 +685,26 @@ abstract class Question implements ActiveRecordInterface
     } // setStrippedTitle()
 
     /**
+     * Set the value of [html_body] column.
+     *
+     * @param string $v new value
+     * @return $this|\App\Entity\Question The current object (for fluent API support)
+     */
+    public function setHtmlBody($v)
+    {
+        if ($v !== null) {
+            $v = (string) $v;
+        }
+
+        if ($this->html_body !== $v) {
+            $this->html_body = $v;
+            $this->modifiedColumns[QuestionTableMap::COL_HTML_BODY] = true;
+        }
+
+        return $this;
+    } // setHtmlBody()
+
+    /**
      * Indicates whether the columns in this object are only set to default values.
      *
      * This method can be used in conjunction with isModified() to indicate whether an object is both
@@ -736,6 +773,9 @@ abstract class Question implements ActiveRecordInterface
 
             $col = $row[TableMap::TYPE_NUM == $indexType ? 7 + $startcol : QuestionTableMap::translateFieldName('StrippedTitle', TableMap::TYPE_PHPNAME, $indexType)];
             $this->stripped_title = (null !== $col) ? (string) $col : null;
+
+            $col = $row[TableMap::TYPE_NUM == $indexType ? 8 + $startcol : QuestionTableMap::translateFieldName('HtmlBody', TableMap::TYPE_PHPNAME, $indexType)];
+            $this->html_body = (null !== $col) ? (string) $col : null;
             $this->resetModified();
 
             $this->setNew(false);
@@ -744,7 +784,7 @@ abstract class Question implements ActiveRecordInterface
                 $this->ensureConsistency();
             }
 
-            return $startcol + 8; // 8 = QuestionTableMap::NUM_HYDRATE_COLUMNS.
+            return $startcol + 9; // 9 = QuestionTableMap::NUM_HYDRATE_COLUMNS.
 
         } catch (Exception $e) {
             throw new PropelException(sprintf('Error populating %s object', '\\App\\Entity\\Question'), 0, $e);
@@ -1037,6 +1077,9 @@ abstract class Question implements ActiveRecordInterface
         if ($this->isColumnModified(QuestionTableMap::COL_STRIPPED_TITLE)) {
             $modifiedColumns[':p' . $index++]  = 'stripped_title';
         }
+        if ($this->isColumnModified(QuestionTableMap::COL_HTML_BODY)) {
+            $modifiedColumns[':p' . $index++]  = 'html_body';
+        }
 
         $sql = sprintf(
             'INSERT INTO ask_question (%s) VALUES (%s)',
@@ -1071,6 +1114,9 @@ abstract class Question implements ActiveRecordInterface
                         break;
                     case 'stripped_title':
                         $stmt->bindValue($identifier, $this->stripped_title, PDO::PARAM_STR);
+                        break;
+                    case 'html_body':
+                        $stmt->bindValue($identifier, $this->html_body, PDO::PARAM_STR);
                         break;
                 }
             }
@@ -1158,6 +1204,9 @@ abstract class Question implements ActiveRecordInterface
             case 7:
                 return $this->getStrippedTitle();
                 break;
+            case 8:
+                return $this->getHtmlBody();
+                break;
             default:
                 return null;
                 break;
@@ -1196,6 +1245,7 @@ abstract class Question implements ActiveRecordInterface
             $keys[5] => $this->getUpdatedAt(),
             $keys[6] => $this->getInterestedUsers(),
             $keys[7] => $this->getStrippedTitle(),
+            $keys[8] => $this->getHtmlBody(),
         );
         if ($result[$keys[4]] instanceof \DateTimeInterface) {
             $result[$keys[4]] = $result[$keys[4]]->format('c');
@@ -1314,6 +1364,9 @@ abstract class Question implements ActiveRecordInterface
             case 7:
                 $this->setStrippedTitle($value);
                 break;
+            case 8:
+                $this->setHtmlBody($value);
+                break;
         } // switch()
 
         return $this;
@@ -1363,6 +1416,9 @@ abstract class Question implements ActiveRecordInterface
         }
         if (array_key_exists($keys[7], $arr)) {
             $this->setStrippedTitle($arr[$keys[7]]);
+        }
+        if (array_key_exists($keys[8], $arr)) {
+            $this->setHtmlBody($arr[$keys[8]]);
         }
     }
 
@@ -1428,6 +1484,9 @@ abstract class Question implements ActiveRecordInterface
         }
         if ($this->isColumnModified(QuestionTableMap::COL_STRIPPED_TITLE)) {
             $criteria->add(QuestionTableMap::COL_STRIPPED_TITLE, $this->stripped_title);
+        }
+        if ($this->isColumnModified(QuestionTableMap::COL_HTML_BODY)) {
+            $criteria->add(QuestionTableMap::COL_HTML_BODY, $this->html_body);
         }
 
         return $criteria;
@@ -1522,6 +1581,7 @@ abstract class Question implements ActiveRecordInterface
         $copyObj->setUpdatedAt($this->getUpdatedAt());
         $copyObj->setInterestedUsers($this->getInterestedUsers());
         $copyObj->setStrippedTitle($this->getStrippedTitle());
+        $copyObj->setHtmlBody($this->getHtmlBody());
 
         if ($deepCopy) {
             // important: temporarily setNew(false) because this affects the behavior of
@@ -2163,6 +2223,7 @@ abstract class Question implements ActiveRecordInterface
         $this->updated_at = null;
         $this->interested_users = null;
         $this->stripped_title = null;
+        $this->html_body = null;
         $this->alreadyInSave = false;
         $this->clearAllReferences();
         $this->applyDefaultValues();

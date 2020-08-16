@@ -149,12 +149,12 @@ class UserController extends AbstractController
     }
 
     /**
-     * @Route("/user/show/{id}", name="user_show", requirements={"page"="+d\"})
+     * @Route("/user/show/{nickname}", name="user_show")
      */
-    public function show($id)
+    public function show($nickname)
     {
-      $subscriber = UserQuery::create()
-        ->findPK($id);
+      $subscriber = UserQuery::retrieveByNickname($nickname);
+
       $interests = $subscriber->getInterestsJoinQuestion();
       $answers   = $subscriber->getAnswersJoinQuestion();
       $questions = $subscriber->getQuestions();

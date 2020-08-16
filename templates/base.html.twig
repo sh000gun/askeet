@@ -18,7 +18,7 @@
             <ul>
               {% if is_granted("ROLE_SUBSCRIBER") %}
                 <li><a href="{{ path('user_logout') }}">sign out</a></li>
-                <li><a href="{{ path('user_show', {'id': app.user.id }) }}">{{ app.user.nickname }} profile</a></li>
+                <li><a href="{{ path('user_show', {'nickname': app.user.nickname }) }}">{{ app.user.nickname }} profile</a></li>
               {% elseif not app.user %}
                 <li><a href="{{ path('user_login') }}">sign in</a></li>
               {% endif %}

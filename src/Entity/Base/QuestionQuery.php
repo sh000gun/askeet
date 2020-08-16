@@ -28,6 +28,7 @@ use Propel\Runtime\Exception\PropelException;
  * @method     ChildQuestionQuery orderByUpdatedAt($order = Criteria::ASC) Order by the updated_at column
  * @method     ChildQuestionQuery orderByInterestedUsers($order = Criteria::ASC) Order by the interested_users column
  * @method     ChildQuestionQuery orderByStrippedTitle($order = Criteria::ASC) Order by the stripped_title column
+ * @method     ChildQuestionQuery orderByHtmlBody($order = Criteria::ASC) Order by the html_body column
  *
  * @method     ChildQuestionQuery groupById() Group by the id column
  * @method     ChildQuestionQuery groupByUserId() Group by the user_id column
@@ -37,6 +38,7 @@ use Propel\Runtime\Exception\PropelException;
  * @method     ChildQuestionQuery groupByUpdatedAt() Group by the updated_at column
  * @method     ChildQuestionQuery groupByInterestedUsers() Group by the interested_users column
  * @method     ChildQuestionQuery groupByStrippedTitle() Group by the stripped_title column
+ * @method     ChildQuestionQuery groupByHtmlBody() Group by the html_body column
  *
  * @method     ChildQuestionQuery leftJoin($relation) Adds a LEFT JOIN clause to the query
  * @method     ChildQuestionQuery rightJoin($relation) Adds a RIGHT JOIN clause to the query
@@ -88,7 +90,8 @@ use Propel\Runtime\Exception\PropelException;
  * @method     ChildQuestion findOneByCreatedAt(string $created_at) Return the first ChildQuestion filtered by the created_at column
  * @method     ChildQuestion findOneByUpdatedAt(string $updated_at) Return the first ChildQuestion filtered by the updated_at column
  * @method     ChildQuestion findOneByInterestedUsers(int $interested_users) Return the first ChildQuestion filtered by the interested_users column
- * @method     ChildQuestion findOneByStrippedTitle(string $stripped_title) Return the first ChildQuestion filtered by the stripped_title column *
+ * @method     ChildQuestion findOneByStrippedTitle(string $stripped_title) Return the first ChildQuestion filtered by the stripped_title column
+ * @method     ChildQuestion findOneByHtmlBody(string $html_body) Return the first ChildQuestion filtered by the html_body column *
 
  * @method     ChildQuestion requirePk($key, ConnectionInterface $con = null) Return the ChildQuestion by primary key and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
  * @method     ChildQuestion requireOne(ConnectionInterface $con = null) Return the first ChildQuestion matching the query and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
@@ -101,6 +104,7 @@ use Propel\Runtime\Exception\PropelException;
  * @method     ChildQuestion requireOneByUpdatedAt(string $updated_at) Return the first ChildQuestion filtered by the updated_at column and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
  * @method     ChildQuestion requireOneByInterestedUsers(int $interested_users) Return the first ChildQuestion filtered by the interested_users column and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
  * @method     ChildQuestion requireOneByStrippedTitle(string $stripped_title) Return the first ChildQuestion filtered by the stripped_title column and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
+ * @method     ChildQuestion requireOneByHtmlBody(string $html_body) Return the first ChildQuestion filtered by the html_body column and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
  *
  * @method     ChildQuestion[]|ObjectCollection find(ConnectionInterface $con = null) Return ChildQuestion objects based on current ModelCriteria
  * @method     ChildQuestion[]|ObjectCollection findById(int $id) Return ChildQuestion objects filtered by the id column
@@ -111,6 +115,7 @@ use Propel\Runtime\Exception\PropelException;
  * @method     ChildQuestion[]|ObjectCollection findByUpdatedAt(string $updated_at) Return ChildQuestion objects filtered by the updated_at column
  * @method     ChildQuestion[]|ObjectCollection findByInterestedUsers(int $interested_users) Return ChildQuestion objects filtered by the interested_users column
  * @method     ChildQuestion[]|ObjectCollection findByStrippedTitle(string $stripped_title) Return ChildQuestion objects filtered by the stripped_title column
+ * @method     ChildQuestion[]|ObjectCollection findByHtmlBody(string $html_body) Return ChildQuestion objects filtered by the html_body column
  * @method     ChildQuestion[]|\Propel\Runtime\Util\PropelModelPager paginate($page = 1, $maxPerPage = 10, ConnectionInterface $con = null) Issue a SELECT query based on the current ModelCriteria and uses a page and a maximum number of results per page to compute an offset and a limit
  *
  */
@@ -209,7 +214,7 @@ abstract class QuestionQuery extends ModelCriteria
      */
     protected function findPkSimple($key, ConnectionInterface $con)
     {
-        $sql = 'SELECT id, user_id, title, body, created_at, updated_at, interested_users, stripped_title FROM ask_question WHERE id = :p0';
+        $sql = 'SELECT id, user_id, title, body, created_at, updated_at, interested_users, stripped_title, html_body FROM ask_question WHERE id = :p0';
         try {
             $stmt = $con->prepare($sql);
             $stmt->bindValue(':p0', $key, PDO::PARAM_INT);
@@ -583,6 +588,31 @@ abstract class QuestionQuery extends ModelCriteria
         }
 
         return $this->addUsingAlias(QuestionTableMap::COL_STRIPPED_TITLE, $strippedTitle, $comparison);
+    }
+
+    /**
+     * Filter the query on the html_body column
+     *
+     * Example usage:
+     * <code>
+     * $query->filterByHtmlBody('fooValue');   // WHERE html_body = 'fooValue'
+     * $query->filterByHtmlBody('%fooValue%', Criteria::LIKE); // WHERE html_body LIKE '%fooValue%'
+     * </code>
+     *
+     * @param     string $htmlBody The value to use as filter.
+     * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
+     *
+     * @return $this|ChildQuestionQuery The current query, for fluid interface
+     */
+    public function filterByHtmlBody($htmlBody = null, $comparison = null)
+    {
+        if (null === $comparison) {
+            if (is_array($htmlBody)) {
+                $comparison = Criteria::IN;
+            }
+        }
+
+        return $this->addUsingAlias(QuestionTableMap::COL_HTML_BODY, $htmlBody, $comparison);
     }
 
     /**

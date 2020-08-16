@@ -19,6 +19,7 @@ CREATE TABLE `ask_question`
     `updated_at` DATETIME,
     `interested_users` INTEGER DEFAULT 0,
     `stripped_title` VARCHAR(255),
+    `html_body` TEXT,
     PRIMARY KEY (`id`),
     UNIQUE INDEX `unique_stripped_title` (`stripped_title`),
     INDEX `ask_question_fi_c9f24d` (`user_id`),
