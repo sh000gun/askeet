@@ -1,0 +1,7 @@
+question.title.not_blank: You must give a title to your question
+question.body.not_blank: You must provide a brief context for your question
+question.body.length: Please, give some more details
+answer.body.not_blank: You must provide a brief context for your answer 
+anwer.body.length: Please, give some more details
+
+

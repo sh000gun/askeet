@@ -20,5 +20,30 @@
   {% endfor %}
 </div>
 
+<div class="answer" id="add_answer">
+
+<div class="form-row">
+        {% if is_granted('ROLE_SUBSCRIBER') %}
+            {{ app.user.nickname }}
+        {% else %}
+            Anonymous Coward 
+            <a id="answer_{{ question.id }}" href="#">login</a>
+        {% endif %}
+</div>
+
+{{ form_start(form, {'action': path('answer_add'), 'method': 'POST', attr: {'novalidate': 'novalidate'}}) }}
+        <div class="form-row">
+            <div class="form_error">{{ form_errors(form.body) }}</div>
+            {{ form_label(form.body, 'Your answer:') }}
+            {{ form_widget(form.body) }}
+        </div>
+         
+        {{ form_widget(form.question_id) }}
+
+        <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}" />
+        <input id="answer_it" type="submit" value="answer it" />
+    {{ form_end(form) }}
+</div>
+
 {% endblock %}
 

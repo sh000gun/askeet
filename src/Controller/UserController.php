@@ -25,6 +25,8 @@ use Symfony\Component\Security\Core\User\UserChecker;
 use Symfony\Component\Security\Core\Encoder\EncoderFactory;
 use App\Security\AskeetPasswordEncoder;
 
+use Symfony\Component\Security\Core\Exception\InsufficientAuthenticationException;
+
 use App\Entity\InterestQuery;
 use App\Entity\Interest;
 use App\Entity\User;

@@ -5,11 +5,15 @@ namespace App\Controller;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 
 use App\Entity\Question;
 use App\Entity\QuestionQuery;
 
 use App\Form\Type\QuestionType;
+use App\Form\Type\AnswerType;
+use App\Lib\myQuestionValidator;
+use App\Lib\myAnswerValidator;
 
 class QuestionController extends AbstractController
 { 
@@ -38,22 +42,35 @@ class QuestionController extends AbstractController
     /**
      * @Route("/question/add", name="question_add")
      */
-
     public function add(Request $request)
     {
-        $question = new Question();
-        $form = $this->createForm(QuestionType::class, $question);
 
-        if ($request->getMethod() == 'POST') {
-            $form->handleRequest($request);
+        try {
+            $this->denyAccessUnlessGranted('ROLE_SUBSCRIBER');
+        } catch(AccessDeniedException $exception)
+        {
+            return $this->redirectToRoute('user_login');
             
-            if ($form->isSubmitted() && $form->isValid()) {
-              // save into database
-              $question = $form->getData();
-              $question->save();
+        }
 
-              return $this->redirectToRoute('question_list');
-            }
+        $data = new myQuestionValidator();
+        $form = $this->createForm(QuestionType::class, $data);
+        $form->handleRequest($request);
+
+                               
+        if ($form->isSubmitted() && $form->isValid()) 
+        {
+            $question = new Question();
+            $question->setTitle($data->title);
+            $question->setBody($data->body);
+            $question->setUser($this->getUser());
+            
+            // save into database
+            $question->save();
+
+            $this->getUser()->isInterestedIn($question);
+
+            return $this->redirectToRoute('question_show', array('stripped_title' => $question->getStrippedTitle()));
         }
 
         return $this->render('question/editSuccess.html.twig',
@@ -68,8 +85,14 @@ class QuestionController extends AbstractController
     {
       $question = QuestionQuery::getQuestionFromTitle($stripped_title);
 
-      return $this->render('question/showSuccess.html.twig',
-              array('question' => $question)
+      $data = new myAnswerValidator();
+      $data->question_id = $question->getId();
+      $form = $this->createForm(AnswerType::class, $data);
+
+      return $this->render('question/showSuccess.html.twig', [
+          'question' => $question,
+          'form' => $form->createView(),
+      ]
       );
     }
 }

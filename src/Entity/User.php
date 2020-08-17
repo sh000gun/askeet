@@ -30,7 +30,14 @@ class User extends BaseUser implements UserInterface
 
      return $this;
   }
-  
+
+    public function isInterestedIn($question)
+    {
+        $interest = new Interest();
+        $interest->setQuestion($question);
+        $interest->setUserId($this->getId());
+        $interest->save();
+    }
   
     /**
      * A visual identifier that represents this user.

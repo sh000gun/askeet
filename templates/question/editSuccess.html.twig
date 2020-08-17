@@ -2,9 +2,21 @@
 
 {% block body %}	
 	
-	<form action="{{ path('question_add') }}" method="post">
-	    {{ form_widget(form) }}
-	
-	    <input type="submit" />
-	</form>
+    {{ form_start(form, {'action': path('question_add'), 'method': 'POST', attr: {'novalidate': 'novalidate'}}) }}
+        <div class="form-row">
+            <div class="form_error">{{ form_errors(form.title) }}</div>
+            {{ form_label(form.title, 'Question title:') }}
+            {{ form_widget(form.title) }}
+        </div>
+    
+        <div class="form-row">
+            <div class="form_error">{{ form_errors(form.body) }}</div>
+            {{ form_label(form.body, 'Your question in details:') }}
+            {{ form_widget(form.body) }}
+        </div>
+
+        <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}" />
+        <input type="submit" value="ask it" />
+    {{ form_end(form) }}
+
 {% endblock %}

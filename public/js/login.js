@@ -1,6 +1,7 @@
-$(document).ready(function showLoginForm() {
-  var $container = $('.interested_block');
-  $container.find('a[id^="unauthenticated_interested_link"]').on('click', function(e) {
+function showLoginForm(container, element)
+{
+    var $container = $(container);
+    $container.find(element).on('click', function(e) {
     e.preventDefault();
     if ($('#login').is(':visible')) {
        $('#login').hide();
@@ -8,6 +9,14 @@ $(document).ready(function showLoginForm() {
 
     $('#login').show( 'slide', { direction: "down" } , 500);
   });
+};
+
+$(document).ready(function showLoginFromInterestedLink() {
+    showLoginForm('.interested_block', 'a[id^="unauthenticated_interested_link"]');
+});
+
+$(document).ready(function showLoginFromAnswer() {
+    showLoginForm('.answer', 'a[id^="answer_"]');
 });
 
 $(document).ready(function() {
