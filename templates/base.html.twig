@@ -4,6 +4,8 @@
         <meta charset="UTF-8">
         <title>{% block title %}Welcome!{% endblock %}</title>
         <link rel="shortcut icon" href="{{ asset('images/favicon.ico') }}" />
+        <link rel="alternate" type="application/rss+xml" title="Popular questions on askeet" href="{{ path('feed_popular') }}" />
+        
 
         {% block stylesheets %}
             <link href="{{ asset('css/main.css') }}" rel="stylesheet"/>

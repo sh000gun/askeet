@@ -38,4 +38,12 @@ class QuestionQuery extends BaseQuestionQuery
      return $query->paginate($page, 2);
   }
 
+    public static function getPopularQuestions($max)
+    {
+        return QuestionQuery::create()
+            ->orderByCreatedAt('desc')
+            ->limit($max)
+            ->find();
+    }
+
 }

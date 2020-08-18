@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0">
+  <channel>
+  <title>Popular questions on askeet</title>
+  <link>{{ path('question_list') }}</link>
+  <description>A list of the most popular questions asked on the askeet site, rated by the community.</description>
+  <language>en</language>
+{% for question in questions %}
+<item>
+  <title>{{ question.title }}</title>
+  <description>{{ question.body }}</description>
+  <link>{{url('question_show', {stripped_title: question.getStrippedTitle}) }}</link>
+  <guid>{{ guid }}</guid>
+  <pubDate>{{ time|date('D, d M Y G:i:s O') }}</pubDate>
+</item>
+{% endfor %}
+  </channel>
+</rss>
