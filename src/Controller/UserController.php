@@ -15,9 +15,6 @@ use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 use Symfony\Component\Security\Http\Event\InteractiveLoginEvent;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Form\FormError;
-use App\Entity\UserQuery;
-use App\Lib\myLoginValidator;
-use App\Form\Type\LoginType;
 use Symfony\Component\Security\Core\User\UserProviderInterface;
 use Symfony\Component\Security\Core\Authentication\AuthenticationProviderManager;
 use Symfony\Component\Security\Core\Authentication\Provider\DaoAuthenticationProvider;
@@ -26,10 +23,22 @@ use Symfony\Component\Security\Core\Encoder\EncoderFactory;
 use App\Security\AskeetPasswordEncoder;
 
 use Symfony\Component\Security\Core\Exception\InsufficientAuthenticationException;
+use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\Mime\Email;
+use Symfony\Component\Asset\Packages;
+use Symfony\Bridge\Twig\Mime\TemplatedEmail;
+use Symfony\Component\Mime\Address;
+use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
+use Symfony\Contracts\Translation\TranslatorInterface; 
 
 use App\Entity\InterestQuery;
 use App\Entity\Interest;
 use App\Entity\User;
+use App\Entity\UserQuery;
+use App\Lib\myLoginValidator;
+use App\Form\Type\LoginType;
+use App\Form\Type\ResetPasswordType;
+use App\Lib\myResetPasswordValidator;
 
 class UserController extends AbstractController
 { 
@@ -208,4 +217,84 @@ class UserController extends AbstractController
 
         return $response;
     }
+
+    /**
+     * @Route("/user/resetPassword", name="user_resetPassword")
+     */
+    public function resetPassword(Request $request, MailerInterface $mailer, Packages $assetPackage, TranslatorInterface $translator)
+    {
+        $data = new myResetPasswordValidator();
+    
+        $form = $this->createForm(ResetPasswordType::class, $data);
+        
+        if ($request->getMethod() == 'POST')
+        {
+            $form->handleRequest($request);
+
+            if ($form->isSubmitted() && $form->isValid())
+            {
+                $data = $form->getData();
+                $resetEmail = $data->email;
+
+                $user = UserQuery::create()
+                    ->filterByEmail($resetEmail)
+                    ->findOne();
+                if ($user)
+                {
+                    // reset password
+                    $newPassword = substr(rand(100000, 999999), 0, 6);
+                    $user->setPassword($newPassword);
+
+                    // send email
+                    $subject = 'Askeet password recovery';
+                    $email = (new TemplatedEmail())
+                        ->from(Address::fromString('Askeet <askeet@symfony-project.com>'))
+                        ->to(new Address($resetEmail))
+                        ->subject($subject)
+                        // path of the Twig template to render
+                        ->htmlTemplate('email/resetPassword.html.twig')
+                        // pass variables (name => value) to the template
+                        ->context([
+                            'subject' => $subject,
+                            'nickname' => $user->getNickname(),
+                            'password' => $newPassword,
+                    ]);
+                    
+                    try
+                    {
+                        $mailer->send($email);
+                    } catch (TransportExceptionInterface $e)
+                    {
+                        // TODO temporary
+                        $email->htmlTemplate('email/resetPassword.altbody.html.twig');
+                        try
+                        {
+                            $mailer->send($email);
+                        }
+                        catch (TransportExceptionInterface $e)
+                        {
+                            return $this->redirectToRoute('question_list');
+                        }
+                    }
+
+                    // save new password into database
+                    $user->save();
+
+                    return $this->redirectToRoute('user_login');
+                    
+                }
+                else
+                {
+                    $form->addError(new FormError($translator->trans('resetPassword.email.notfound')));
+                }
+            }
+         }
+
+        
+        return $this->render('user/resetPasswordSuccess.html.twig',
+            array('form' => $form->createView())
+        );
+
+    }
+
 }

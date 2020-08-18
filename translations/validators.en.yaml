@@ -3,5 +3,6 @@ question.body.not_blank: You must provide a brief context for your question
 question.body.length: Please, give some more details
 answer.body.not_blank: You must provide a brief context for your answer 
 anwer.body.length: Please, give some more details
-
-
+resetPassword.email.not_blank: You must provide an email
+resetPassword.email.valid: |
+    You didn''t enter a valid email address (for example: name@domain.com). Please try again.'
