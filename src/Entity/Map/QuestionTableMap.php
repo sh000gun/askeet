@@ -202,6 +202,13 @@ class QuestionTableMap extends TableMap
     1 => ':id',
   ),
 ), null, null, 'Interests', false);
+        $this->addRelation('QuestionTag', '\\App\\Entity\\QuestionTag', RelationMap::ONE_TO_MANY, array (
+  0 =>
+  array (
+    0 => ':question_id',
+    1 => ':id',
+  ),
+), null, null, 'QuestionTags', false);
     } // buildRelations()
 
     /**

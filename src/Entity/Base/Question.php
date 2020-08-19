@@ -11,11 +11,14 @@ use App\Entity\Interest as ChildInterest;
 use App\Entity\InterestQuery as ChildInterestQuery;
 use App\Entity\Question as ChildQuestion;
 use App\Entity\QuestionQuery as ChildQuestionQuery;
+use App\Entity\QuestionTag as ChildQuestionTag;
+use App\Entity\QuestionTagQuery as ChildQuestionTagQuery;
 use App\Entity\User as ChildUser;
 use App\Entity\UserQuery as ChildUserQuery;
 use App\Entity\Map\AnswerTableMap;
 use App\Entity\Map\InterestTableMap;
 use App\Entity\Map\QuestionTableMap;
+use App\Entity\Map\QuestionTagTableMap;
 use Propel\Runtime\Propel;
 use Propel\Runtime\ActiveQuery\Criteria;
 use Propel\Runtime\ActiveQuery\ModelCriteria;
@@ -153,6 +156,12 @@ abstract class Question implements ActiveRecordInterface
     protected $collInterestsPartial;
 
     /**
+     * @var        ObjectCollection|ChildQuestionTag[] Collection to store aggregation of ChildQuestionTag objects.
+     */
+    protected $collQuestionTags;
+    protected $collQuestionTagsPartial;
+
+    /**
      * Flag to prevent endless save loop, if this object is referenced
      * by another object which falls in this transaction.
      *
@@ -171,6 +180,12 @@ abstract class Question implements ActiveRecordInterface
      * @var ObjectCollection|ChildInterest[]
      */
     protected $interestsScheduledForDeletion = null;
+
+    /**
+     * An array of objects scheduled for deletion.
+     * @var ObjectCollection|ChildQuestionTag[]
+     */
+    protected $questionTagsScheduledForDeletion = null;
 
     /**
      * Applies default values to this object.
@@ -853,6 +868,8 @@ abstract class Question implements ActiveRecordInterface
 
             $this->collInterests = null;
 
+            $this->collQuestionTags = null;
+
         } // if (deep)
     }
 
@@ -1021,6 +1038,23 @@ abstract class Question implements ActiveRecordInterface
 
             if ($this->collInterests !== null) {
                 foreach ($this->collInterests as $referrerFK) {
+                    if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
+                        $affectedRows += $referrerFK->save($con);
+                    }
+                }
+            }
+
+            if ($this->questionTagsScheduledForDeletion !== null) {
+                if (!$this->questionTagsScheduledForDeletion->isEmpty()) {
+                    \App\Entity\QuestionTagQuery::create()
+                        ->filterByPrimaryKeys($this->questionTagsScheduledForDeletion->getPrimaryKeys(false))
+                        ->delete($con);
+                    $this->questionTagsScheduledForDeletion = null;
+                }
+            }
+
+            if ($this->collQuestionTags !== null) {
+                foreach ($this->collQuestionTags as $referrerFK) {
                     if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
                         $affectedRows += $referrerFK->save($con);
                     }
@@ -1305,6 +1339,21 @@ abstract class Question implements ActiveRecordInterface
                 }
 
                 $result[$key] = $this->collInterests->toArray(null, false, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
+            }
+            if (null !== $this->collQuestionTags) {
+
+                switch ($keyType) {
+                    case TableMap::TYPE_CAMELNAME:
+                        $key = 'questionTags';
+                        break;
+                    case TableMap::TYPE_FIELDNAME:
+                        $key = 'ask_question_tags';
+                        break;
+                    default:
+                        $key = 'QuestionTags';
+                }
+
+                $result[$key] = $this->collQuestionTags->toArray(null, false, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
             }
         }
 
@@ -1600,6 +1649,12 @@ abstract class Question implements ActiveRecordInterface
                 }
             }
 
+            foreach ($this->getQuestionTags() as $relObj) {
+                if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
+                    $copyObj->addQuestionTag($relObj->copy($deepCopy));
+                }
+            }
+
         } // if ($deepCopy)
 
         if ($makeNew) {
@@ -1698,6 +1753,10 @@ abstract class Question implements ActiveRecordInterface
         }
         if ('Interest' == $relationName) {
             $this->initInterests();
+            return;
+        }
+        if ('QuestionTag' == $relationName) {
+            $this->initQuestionTags();
             return;
         }
     }
@@ -2206,6 +2265,259 @@ abstract class Question implements ActiveRecordInterface
     }
 
     /**
+     * Clears out the collQuestionTags collection
+     *
+     * This does not modify the database; however, it will remove any associated objects, causing
+     * them to be refetched by subsequent calls to accessor method.
+     *
+     * @return void
+     * @see        addQuestionTags()
+     */
+    public function clearQuestionTags()
+    {
+        $this->collQuestionTags = null; // important to set this to NULL since that means it is uninitialized
+    }
+
+    /**
+     * Reset is the collQuestionTags collection loaded partially.
+     */
+    public function resetPartialQuestionTags($v = true)
+    {
+        $this->collQuestionTagsPartial = $v;
+    }
+
+    /**
+     * Initializes the collQuestionTags collection.
+     *
+     * By default this just sets the collQuestionTags collection to an empty array (like clearcollQuestionTags());
+     * however, you may wish to override this method in your stub class to provide setting appropriate
+     * to your application -- for example, setting the initial array to the values stored in database.
+     *
+     * @param      boolean $overrideExisting If set to true, the method call initializes
+     *                                        the collection even if it is not empty
+     *
+     * @return void
+     */
+    public function initQuestionTags($overrideExisting = true)
+    {
+        if (null !== $this->collQuestionTags && !$overrideExisting) {
+            return;
+        }
+
+        $collectionClassName = QuestionTagTableMap::getTableMap()->getCollectionClassName();
+
+        $this->collQuestionTags = new $collectionClassName;
+        $this->collQuestionTags->setModel('\App\Entity\QuestionTag');
+    }
+
+    /**
+     * Gets an array of ChildQuestionTag objects which contain a foreign key that references this object.
+     *
+     * If the $criteria is not null, it is used to always fetch the results from the database.
+     * Otherwise the results are fetched from the database the first time, then cached.
+     * Next time the same method is called without $criteria, the cached collection is returned.
+     * If this ChildQuestion is new, it will return
+     * an empty collection or the current collection; the criteria is ignored on a new object.
+     *
+     * @param      Criteria $criteria optional Criteria object to narrow the query
+     * @param      ConnectionInterface $con optional connection object
+     * @return ObjectCollection|ChildQuestionTag[] List of ChildQuestionTag objects
+     * @throws PropelException
+     */
+    public function getQuestionTags(Criteria $criteria = null, ConnectionInterface $con = null)
+    {
+        $partial = $this->collQuestionTagsPartial && !$this->isNew();
+        if (null === $this->collQuestionTags || null !== $criteria  || $partial) {
+            if ($this->isNew() && null === $this->collQuestionTags) {
+                // return empty collection
+                $this->initQuestionTags();
+            } else {
+                $collQuestionTags = ChildQuestionTagQuery::create(null, $criteria)
+                    ->filterByQuestion($this)
+                    ->find($con);
+
+                if (null !== $criteria) {
+                    if (false !== $this->collQuestionTagsPartial && count($collQuestionTags)) {
+                        $this->initQuestionTags(false);
+
+                        foreach ($collQuestionTags as $obj) {
+                            if (false == $this->collQuestionTags->contains($obj)) {
+                                $this->collQuestionTags->append($obj);
+                            }
+                        }
+
+                        $this->collQuestionTagsPartial = true;
+                    }
+
+                    return $collQuestionTags;
+                }
+
+                if ($partial && $this->collQuestionTags) {
+                    foreach ($this->collQuestionTags as $obj) {
+                        if ($obj->isNew()) {
+                            $collQuestionTags[] = $obj;
+                        }
+                    }
+                }
+
+                $this->collQuestionTags = $collQuestionTags;
+                $this->collQuestionTagsPartial = false;
+            }
+        }
+
+        return $this->collQuestionTags;
+    }
+
+    /**
+     * Sets a collection of ChildQuestionTag objects related by a one-to-many relationship
+     * to the current object.
+     * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
+     * and new objects from the given Propel collection.
+     *
+     * @param      Collection $questionTags A Propel collection.
+     * @param      ConnectionInterface $con Optional connection object
+     * @return $this|ChildQuestion The current object (for fluent API support)
+     */
+    public function setQuestionTags(Collection $questionTags, ConnectionInterface $con = null)
+    {
+        /** @var ChildQuestionTag[] $questionTagsToDelete */
+        $questionTagsToDelete = $this->getQuestionTags(new Criteria(), $con)->diff($questionTags);
+
+
+        //since at least one column in the foreign key is at the same time a PK
+        //we can not just set a PK to NULL in the lines below. We have to store
+        //a backup of all values, so we are able to manipulate these items based on the onDelete value later.
+        $this->questionTagsScheduledForDeletion = clone $questionTagsToDelete;
+
+        foreach ($questionTagsToDelete as $questionTagRemoved) {
+            $questionTagRemoved->setQuestion(null);
+        }
+
+        $this->collQuestionTags = null;
+        foreach ($questionTags as $questionTag) {
+            $this->addQuestionTag($questionTag);
+        }
+
+        $this->collQuestionTags = $questionTags;
+        $this->collQuestionTagsPartial = false;
+
+        return $this;
+    }
+
+    /**
+     * Returns the number of related QuestionTag objects.
+     *
+     * @param      Criteria $criteria
+     * @param      boolean $distinct
+     * @param      ConnectionInterface $con
+     * @return int             Count of related QuestionTag objects.
+     * @throws PropelException
+     */
+    public function countQuestionTags(Criteria $criteria = null, $distinct = false, ConnectionInterface $con = null)
+    {
+        $partial = $this->collQuestionTagsPartial && !$this->isNew();
+        if (null === $this->collQuestionTags || null !== $criteria || $partial) {
+            if ($this->isNew() && null === $this->collQuestionTags) {
+                return 0;
+            }
+
+            if ($partial && !$criteria) {
+                return count($this->getQuestionTags());
+            }
+
+            $query = ChildQuestionTagQuery::create(null, $criteria);
+            if ($distinct) {
+                $query->distinct();
+            }
+
+            return $query
+                ->filterByQuestion($this)
+                ->count($con);
+        }
+
+        return count($this->collQuestionTags);
+    }
+
+    /**
+     * Method called to associate a ChildQuestionTag object to this object
+     * through the ChildQuestionTag foreign key attribute.
+     *
+     * @param  ChildQuestionTag $l ChildQuestionTag
+     * @return $this|\App\Entity\Question The current object (for fluent API support)
+     */
+    public function addQuestionTag(ChildQuestionTag $l)
+    {
+        if ($this->collQuestionTags === null) {
+            $this->initQuestionTags();
+            $this->collQuestionTagsPartial = true;
+        }
+
+        if (!$this->collQuestionTags->contains($l)) {
+            $this->doAddQuestionTag($l);
+
+            if ($this->questionTagsScheduledForDeletion and $this->questionTagsScheduledForDeletion->contains($l)) {
+                $this->questionTagsScheduledForDeletion->remove($this->questionTagsScheduledForDeletion->search($l));
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param ChildQuestionTag $questionTag The ChildQuestionTag object to add.
+     */
+    protected function doAddQuestionTag(ChildQuestionTag $questionTag)
+    {
+        $this->collQuestionTags[]= $questionTag;
+        $questionTag->setQuestion($this);
+    }
+
+    /**
+     * @param  ChildQuestionTag $questionTag The ChildQuestionTag object to remove.
+     * @return $this|ChildQuestion The current object (for fluent API support)
+     */
+    public function removeQuestionTag(ChildQuestionTag $questionTag)
+    {
+        if ($this->getQuestionTags()->contains($questionTag)) {
+            $pos = $this->collQuestionTags->search($questionTag);
+            $this->collQuestionTags->remove($pos);
+            if (null === $this->questionTagsScheduledForDeletion) {
+                $this->questionTagsScheduledForDeletion = clone $this->collQuestionTags;
+                $this->questionTagsScheduledForDeletion->clear();
+            }
+            $this->questionTagsScheduledForDeletion[]= clone $questionTag;
+            $questionTag->setQuestion(null);
+        }
+
+        return $this;
+    }
+
+
+    /**
+     * If this collection has already been initialized with
+     * an identical criteria, it returns the collection.
+     * Otherwise if this Question is new, it will return
+     * an empty collection; or if this Question has previously
+     * been saved, it will retrieve related QuestionTags from storage.
+     *
+     * This method is protected by default in order to keep the public
+     * api reasonable.  You can provide public methods for those you
+     * actually need in Question.
+     *
+     * @param      Criteria $criteria optional Criteria object to narrow the query
+     * @param      ConnectionInterface $con optional connection object
+     * @param      string $joinBehavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return ObjectCollection|ChildQuestionTag[] List of ChildQuestionTag objects
+     */
+    public function getQuestionTagsJoinUser(Criteria $criteria = null, ConnectionInterface $con = null, $joinBehavior = Criteria::LEFT_JOIN)
+    {
+        $query = ChildQuestionTagQuery::create(null, $criteria);
+        $query->joinWith('User', $joinBehavior);
+
+        return $this->getQuestionTags($query, $con);
+    }
+
+    /**
      * Clears the current object, sets all attributes to their default values and removes
      * outgoing references as well as back-references (from other objects to this one. Results probably in a database
      * change of those foreign objects when you call `save` there).
@@ -2253,10 +2565,16 @@ abstract class Question implements ActiveRecordInterface
                     $o->clearAllReferences($deep);
                 }
             }
+            if ($this->collQuestionTags) {
+                foreach ($this->collQuestionTags as $o) {
+                    $o->clearAllReferences($deep);
+                }
+            }
         } // if ($deep)
 
         $this->collAnswers = null;
         $this->collInterests = null;
+        $this->collQuestionTags = null;
         $this->aUser = null;
     }
 

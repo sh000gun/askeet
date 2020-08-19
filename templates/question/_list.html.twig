@@ -7,11 +7,22 @@
     <h2><a href="{{ path('question_show', {stripped_title: question.getStrippedTitle}) }}" >{{ question.title }}</a></h2>
  
     <div class="question_body">
-      <div>asked by <a href="{{ path('user_show', {nickname: question.user.nickname}) }}">{{ question.user }}</a> on {{ question.createdAt|date('M d, Y g:i A') }}
+      <div>asked by <a href="{{ path('user_show', {nickname: question.user.nickname}) }}">{{ question.user }}</a> on {{ question.createdAt|date('M d, Y g:i 0') }}
       </div>
      {{ question.htmlBody|u.truncate(200)|raw }}
     </div>
+    {% set links = [] %}
+    {% for tag in question.getPopularTags %}
+        {% set href =  path('tag_popular', {'normalizedTag' : tag})  %}
+        {% set link = '<a href="' ~ href ~'">' ~ tag ~ '</a>' %}
+        {% set links = links|merge([link]) %}
+    {% endfor %}
+    {% autoescape false %}
+        tags: {{ links|join(' + ') }}
+    {% endautoescape %}
+
   </div>
+  <br />
 {% endfor %}
 
 <div id="question_pager">

@@ -47,3 +47,15 @@
 
 {% endblock %}
 
+{% block tag %}
+<h2>question tags</h2>
+
+<ul id="question_tags">
+{% for tag in question.tags %}
+    <li>
+        <a href="{{ path('tag_popular', {'normalizedTag' : tag}) }}">{{ tag }}</a>
+    </li>
+{% endfor %}
+</ul>
+{% endblock %}
+

@@ -6,6 +6,7 @@ use App\Entity\Base\Question as BaseQuestion;
 use App\Lib\myTools;
 
 use Michelf\Markdown;
+use App\Entity\QuestionTagQuery;
 
 /**
  * Skeleton subclass for representing a row from the 'ask_question' table.
@@ -32,4 +33,37 @@ class Question extends BaseQuestion
         $v = htmlentities($v, ENT_QUOTES, 'UTF-8');
         $this->setHtmlBody(Markdown::defaultTransform($v));
   }
+
+    public function getTags()
+    {
+        
+       return QuestionTagQuery::create()
+            ->filterByQuestionId($this->getId())
+            ->select('NormalizedTag')
+            ->distinct()
+            ->orderByNormalizedTag('asc')
+            ->find();    
+     }
+
+    public function getPopularTags($max = 5)
+    {
+
+        $popularTags = QuestionTagQuery::create()
+            ->filterByQuestionId($this->getId())
+            ->withColumn('count(QuestionTag.NormalizedTag)', 'popular')
+            ->select('NormalizedTag')
+            ->groupByNormalizedTag()
+            ->orderBy('popular','desc')
+            ->limit($max)
+            ->find();
+
+        $result = array();
+        foreach ($popularTags as $tag)
+        {
+            array_push($result, $tag['NormalizedTag']);
+        }
+
+        return $result;
+    }
+
 }

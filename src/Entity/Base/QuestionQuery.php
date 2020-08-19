@@ -78,7 +78,17 @@ use Propel\Runtime\Exception\PropelException;
  * @method     ChildQuestionQuery rightJoinWithInterest() Adds a RIGHT JOIN clause and with to the query using the Interest relation
  * @method     ChildQuestionQuery innerJoinWithInterest() Adds a INNER JOIN clause and with to the query using the Interest relation
  *
- * @method     \App\Entity\UserQuery|\App\Entity\AnswerQuery|\App\Entity\InterestQuery endUse() Finalizes a secondary criteria and merges it with its primary Criteria
+ * @method     ChildQuestionQuery leftJoinQuestionTag($relationAlias = null) Adds a LEFT JOIN clause to the query using the QuestionTag relation
+ * @method     ChildQuestionQuery rightJoinQuestionTag($relationAlias = null) Adds a RIGHT JOIN clause to the query using the QuestionTag relation
+ * @method     ChildQuestionQuery innerJoinQuestionTag($relationAlias = null) Adds a INNER JOIN clause to the query using the QuestionTag relation
+ *
+ * @method     ChildQuestionQuery joinWithQuestionTag($joinType = Criteria::INNER_JOIN) Adds a join clause and with to the query using the QuestionTag relation
+ *
+ * @method     ChildQuestionQuery leftJoinWithQuestionTag() Adds a LEFT JOIN clause and with to the query using the QuestionTag relation
+ * @method     ChildQuestionQuery rightJoinWithQuestionTag() Adds a RIGHT JOIN clause and with to the query using the QuestionTag relation
+ * @method     ChildQuestionQuery innerJoinWithQuestionTag() Adds a INNER JOIN clause and with to the query using the QuestionTag relation
+ *
+ * @method     \App\Entity\UserQuery|\App\Entity\AnswerQuery|\App\Entity\InterestQuery|\App\Entity\QuestionTagQuery endUse() Finalizes a secondary criteria and merges it with its primary Criteria
  *
  * @method     ChildQuestion findOne(ConnectionInterface $con = null) Return the first ChildQuestion matching the query
  * @method     ChildQuestion findOneOrCreate(ConnectionInterface $con = null) Return the first ChildQuestion matching the query, or a new ChildQuestion object populated from the query conditions when no match is found
@@ -836,6 +846,79 @@ abstract class QuestionQuery extends ModelCriteria
         return $this
             ->joinInterest($relationAlias, $joinType)
             ->useQuery($relationAlias ? $relationAlias : 'Interest', '\App\Entity\InterestQuery');
+    }
+
+    /**
+     * Filter the query by a related \App\Entity\QuestionTag object
+     *
+     * @param \App\Entity\QuestionTag|ObjectCollection $questionTag the related object to use as filter
+     * @param string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
+     *
+     * @return ChildQuestionQuery The current query, for fluid interface
+     */
+    public function filterByQuestionTag($questionTag, $comparison = null)
+    {
+        if ($questionTag instanceof \App\Entity\QuestionTag) {
+            return $this
+                ->addUsingAlias(QuestionTableMap::COL_ID, $questionTag->getQuestionId(), $comparison);
+        } elseif ($questionTag instanceof ObjectCollection) {
+            return $this
+                ->useQuestionTagQuery()
+                ->filterByPrimaryKeys($questionTag->getPrimaryKeys())
+                ->endUse();
+        } else {
+            throw new PropelException('filterByQuestionTag() only accepts arguments of type \App\Entity\QuestionTag or Collection');
+        }
+    }
+
+    /**
+     * Adds a JOIN clause to the query using the QuestionTag relation
+     *
+     * @param     string $relationAlias optional alias for the relation
+     * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
+     *
+     * @return $this|ChildQuestionQuery The current query, for fluid interface
+     */
+    public function joinQuestionTag($relationAlias = null, $joinType = Criteria::INNER_JOIN)
+    {
+        $tableMap = $this->getTableMap();
+        $relationMap = $tableMap->getRelation('QuestionTag');
+
+        // create a ModelJoin object for this join
+        $join = new ModelJoin();
+        $join->setJoinType($joinType);
+        $join->setRelationMap($relationMap, $this->useAliasInSQL ? $this->getModelAlias() : null, $relationAlias);
+        if ($previousJoin = $this->getPreviousJoin()) {
+            $join->setPreviousJoin($previousJoin);
+        }
+
+        // add the ModelJoin to the current object
+        if ($relationAlias) {
+            $this->addAlias($relationAlias, $relationMap->getRightTable()->getName());
+            $this->addJoinObject($join, $relationAlias);
+        } else {
+            $this->addJoinObject($join, 'QuestionTag');
+        }
+
+        return $this;
+    }
+
+    /**
+     * Use the QuestionTag relation QuestionTag object
+     *
+     * @see useQuery()
+     *
+     * @param     string $relationAlias optional alias for the relation,
+     *                                   to be used as main alias in the secondary query
+     * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
+     *
+     * @return \App\Entity\QuestionTagQuery A secondary query class using the current class as primary query
+     */
+    public function useQuestionTagQuery($relationAlias = null, $joinType = Criteria::INNER_JOIN)
+    {
+        return $this
+            ->joinQuestionTag($relationAlias, $joinType)
+            ->useQuery($relationAlias ? $relationAlias : 'QuestionTag', '\App\Entity\QuestionTagQuery');
     }
 
     /**

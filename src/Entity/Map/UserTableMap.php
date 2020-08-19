@@ -209,6 +209,13 @@ class UserTableMap extends TableMap
     1 => ':id',
   ),
 ), null, null, 'Relevancies', false);
+        $this->addRelation('QuestionTag', '\\App\\Entity\\QuestionTag', RelationMap::ONE_TO_MANY, array (
+  0 =>
+  array (
+    0 => ':user_id',
+    1 => ':id',
+  ),
+), null, null, 'QuestionTags', false);
     } // buildRelations()
 
     /**

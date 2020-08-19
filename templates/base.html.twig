@@ -47,9 +47,10 @@
  
             <div id="content_bar">
                 {% include '_sidebar.html.twig' %}
+                {% block tag %}{% endblock %}
                 <div class="verticalalign"></div>
             </div>
-        </div>        
+        </div>
  
         {% block javascripts %}
           <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>

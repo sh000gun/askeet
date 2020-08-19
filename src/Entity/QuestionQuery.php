@@ -46,4 +46,14 @@ class QuestionQuery extends BaseQuestionQuery
             ->find();
     }
 
+    public static function getPopularByTag($tag, $page)
+    {
+        $query = QuestionQuery::create()
+            ->useQuestionTagQuery('a', 'left join')
+                ->filterByNormalizedTag($tag)
+                ->endUse()
+            ->OrderBy('interested_users', 'desc');
+
+        return $query->paginate($page, 2);
+    } 
 }

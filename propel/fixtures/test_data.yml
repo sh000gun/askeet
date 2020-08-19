@@ -81,3 +81,13 @@ App\Entity\Answer:
     user_id:     fabien
     body:        |
       Build it with symfony - and people will love it.
+
+App\Entity\QuestionTag:
+  t1: { question_id: q1, user_id: fabien, tag: relatives }
+  t2: { question_id: q1, user_id: fabien, tag: girl }
+  t4: { question_id: q1, user_id: francois, tag: activities }
+  t6: { question_id: q2, user_id: francois, tag: 'real life' }
+  t3: { question_id: q2, user_id: fabien, tag: relatives }
+  t5: { question_id: q2, user_id: fabien, tag: present }
+  t7: { question_id: q3, user_id: francois, tag: blog }
+  t8: { question_id: q3, user_id: francois, tag: activities }
