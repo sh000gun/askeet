@@ -159,3 +159,33 @@ div#indicator
   z-index: 900;
 }
 
+ul#tag_cloud
+{
+  list-style: none;
+}
+ 
+ul#tag_cloud li
+{
+  list-style: none;
+  display: inline;
+}
+ 
+ul#tag_cloud li.tag_popularity_1
+{
+  font-size: 60%;
+}
+ 
+ul#tag_cloud li.tag_popularity_2
+{
+  font-size: 100%;
+}
+ 
+ul#tag_cloud li.tag_popularity_3
+{
+  font-size: 130%;
+}
+ 
+ul#tag_cloud li.tag_popularity_4
+{
+  font-size: 160%;
+}

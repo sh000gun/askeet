@@ -1,0 +1,13 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+
+<h1>popular tags</h1>
+ 
+<ul id="tag_cloud">
+  {% for tag, count in tags %}
+    <li class="tag_popularity_{{ count }}"><a href="{{ path('tag_recent', {'normalizedTag' : tag}) }}">{{ tag }}</a></li>
+  {% endfor %}
+</ul>
+
+{% endblock %}

@@ -7,6 +7,8 @@ use App\Lib\myTools;
 
 use Michelf\Markdown;
 use App\Entity\QuestionTagQuery;
+use App\Lib\Tag;
+use App\Entity\QuestionTag;
 
 /**
  * Skeleton subclass for representing a row from the 'ask_question' table.
@@ -64,6 +66,22 @@ class Question extends BaseQuestion
         }
 
         return $result;
+    }
+
+    public function addTagsForUser($phrase, $userId)
+    {
+        // split phrase into individual tags
+        $tags = Tag::splitPhrase($phrase);
+ 
+        // add tags
+         foreach ($tags as $tag)
+        {
+            $questionTag = new QuestionTag();
+            $questionTag->setQuestionId($this->getId());
+            $questionTag->setUserId($userId);
+            $questionTag->setTag($tag);
+            $questionTag->save();
+        }
     }
 
 }

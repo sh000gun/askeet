@@ -4,33 +4,31 @@ namespace App\Form\Type;
 
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
-use Symfony\Component\Form\Extension\Core\Type\TextareaType;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 
 use Symfony\Component\OptionsResolver\OptionsResolver;
-use Symfony\Component\Validator\Constraints as Assert;
 
-use App\Entity\Question;
-use App\Lib\myAnswerValidator;
+use App\Lib\myQuestionTagValidator;
 
-class AnswerType extends AbstractType
-{
+
+class QuestionTagType extends AbstractType
+{ 
 	public function buildForm(FormBuilderInterface $builder, array $options)
 	{
-        $builder->add('body', TextareaType::class)
-                ->add('question_id', HiddenType::class);
-	}
-	
+        $builder->add('tag', TextType::class)
+                ->add('question_id', HiddenType::class);;
+  }
+
   public function configureOptions(OptionsResolver $resolver)
   {
     $resolver->setDefaults([
-      'data_class' => myAnswerValidator::class,
+      'data_class' => myQuestionTagValidator::class 
     ]);
   }
 
 	public function getName()
 	{
-		return 'answer';
+		return 'questionTag';
 	}
 }
-

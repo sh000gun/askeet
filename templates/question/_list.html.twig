@@ -13,7 +13,7 @@
     </div>
     {% set links = [] %}
     {% for tag in question.getPopularTags %}
-        {% set href =  path('tag_popular', {'normalizedTag' : tag})  %}
+        {% set href =  path('tag_recent', {'normalizedTag' : tag})  %}
         {% set link = '<a href="' ~ href ~'">' ~ tag ~ '</a>' %}
         {% set links = links|merge([link]) %}
     {% endfor %}

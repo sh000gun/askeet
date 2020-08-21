@@ -1,5 +1,16 @@
 {% extends 'base.html.twig' %}
 
+{% block javascripts %}
+    {{ parent() }}
+    <script src="https://cdn.jsdelivr.net/autocomplete.js/0/autocomplete.jquery.min.js"></script>
+    <script src="{{ asset('js/algolia-autocomplete.js') }}"></script>
+{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('css/algolia-autocomplete.css') }}">
+{% endblock %}
+
 {% block body %}
  
 <div class="interested_block">
@@ -53,9 +64,23 @@
 <ul id="question_tags">
 {% for tag in question.tags %}
     <li>
-        <a href="{{ path('tag_popular', {'normalizedTag' : tag}) }}">{{ tag }}</a>
+        <a href="{{ path('tag_recent', {'normalizedTag' : tag}) }}">{{ tag }}</a>
     </li>
 {% endfor %}
 </ul>
-{% endblock %}
 
+Add your own:
+{{ form_start(tagForm, {'action': path('tag_add'), 'method': 'POST', attr: {'novalidate': 'novalidate'}}) }}
+        <div class="form-row">
+            <div class="form_error">{{ form_errors(tagForm.tag) }}</div>
+            {{ form_widget(tagForm.tag) }}
+            <input id="tag_it" type="submit" value="Tag" />
+        </div>
+         
+        {{ form_widget(tagForm.question_id) }}
+
+        <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}" /> 
+    {{ form_end(form) }}
+</div>
+
+{% endblock %}

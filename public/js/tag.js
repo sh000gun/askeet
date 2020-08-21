@@ -1,10 +1,11 @@
 $(document).ready(function() {
-  $('form[name="answer"]').submit(function(e) {
+  $('form[name="question_tag"]').submit(function(e) {
     e.preventDefault();
     var formSerialize = $(this).serialize();
+    var postUrl = '/tag/form/add';
 
     $.ajax({
-        url: '/answer/add',
+        url: postUrl,
         method: 'POST',
         data: formSerialize,
         beforeSend: function() {
@@ -17,6 +18,8 @@ $(document).ready(function() {
         {
             // TODO update on client instead of reloading page
             location.reload();
+        } else {
+             console.log(response);
         }
     });
   });

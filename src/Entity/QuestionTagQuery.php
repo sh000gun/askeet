@@ -24,4 +24,48 @@ class QuestionTagQuery extends BaseQuestionTagQuery
             ->orderByNormalizedTag('asc')
             ->find();
     }
+
+    public static function getTagsForUserLike($user_id, $tag, $max = 10)
+    {
+        return  QuestionTagQuery::create()
+            ->where('QuestionTag.UserId = ?', $user_id)
+            ->where('QuestionTag.Tag LIKE ?', $tag.'%')
+            ->select('Tag')
+            ->distinct()
+            ->setLimit($max)
+            ->find();
+
+    }
+    
+    public static function getPopularTags($max = 5)
+    {
+        $tags = array();
+
+        $popularTags = QuestionTagQuery::create()
+            ->withColumn('count(QuestionTag.NormalizedTag)', 'count')
+            ->select('NormalizedTag', 'count')
+            ->groupBy('NormalizedTag')
+            ->orderBy('count', 'desc')
+            ->setLimit($max)
+            ->find();
+ 
+
+        $max_popularity = 0;
+
+        foreach ($popularTags as $tag)
+        {
+
+            if (!$max_popularity)
+            {
+                $max_popularity = intval($tag['count']);
+            }
+ 
+            $tags[$tag['NormalizedTag']] = floor((intval($tag['count']) / $max_popularity * 3) + 1);
+         }
+ 
+        ksort($tags);
+ 
+        return $tags;
+    }
+
 }

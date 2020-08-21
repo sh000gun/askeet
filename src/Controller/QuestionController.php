@@ -14,6 +14,8 @@ use App\Form\Type\QuestionType;
 use App\Form\Type\AnswerType;
 use App\Lib\myQuestionValidator;
 use App\Lib\myAnswerValidator;
+use App\Lib\myQuestionTagValidator;
+use App\Form\Type\QuestionTagType;
 
 class QuestionController extends AbstractController
 { 
@@ -88,10 +90,15 @@ class QuestionController extends AbstractController
       $data = new myAnswerValidator();
       $data->question_id = $question->getId();
       $form = $this->createForm(AnswerType::class, $data);
+    
+      $tagData = new myQuestionTagValidator();
+      $tagData->question_id = $question->getId();
+      $tagForm = $this->createForm(QuestionTagType::class, $tagData);
 
       return $this->render('question/showSuccess.html.twig', [
           'question' => $question,
           'form' => $form->createView(),
+          'tagForm' => $tagForm->createView(),
       ]
       );
     }
