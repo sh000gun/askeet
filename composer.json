@@ -37,9 +37,9 @@
     "require-dev": {
         "symfony/debug-pack": "*",
         "symfony/maker-bundle": "^1.0",
+        "symfony/phpunit-bridge": "^5.1",
         "symfony/profiler-pack": "*",
-        "symfony/test-pack": "*",
-        "theofidry/alice-data-fixtures": "^1.2"
+        "symfony/test-pack": "*"
     },
     "config": {
         "optimize-autoloader": true,

@@ -1,0 +1,62 @@
+<html>
+<head><title>New Test</title></head>
+<body>
+<table cellpadding="1" cellspacing="1" border="1">
+<thead>
+<tr><td rowspan="1" colspan="3">New Test</td></tr>
+</thead><tbody>
+<tr>
+    <td>open</td>
+    <td>/question</td>
+    <td></td>
+</tr>
+<tr>
+    <td>clickAndWait</td>
+    <td>link=sign in</td>
+    <td></td>
+</tr>
+
+<tr>
+    <td>type</td>
+    <td>css=.form-row:nth-child(2) > #login_nickname</td>
+    <td>fabpot</td>
+</tr>
+<tr>
+    <td>type</td>
+    <td>css=.form-row:nth-child(3) > #login_password</td>
+    <td>symfony</td>
+</tr>
+<tr>
+    <td>clickAndWait</td>
+    <td>//input[@type='submit' and @value='sign in']</td>
+    <td></td>
+</tr>
+<tr>
+    <td>clickAndWait</td>
+    <td>link=2</td>
+    <td></td>
+</tr>
+<tr>
+    <td>click</td>
+    <td>link=interested?</td>
+    <td></td>
+</tr>
+<tr>
+    <td>pause</td>
+    <td>3000</td>
+    <td></td>
+</tr>
+<tr>
+    <td>verifyTextPresent</td>
+    <td>interested!</td>
+    <td></td>
+</tr>
+<tr>
+    <td>clickAndWait</td>
+    <td>link=sign out</td>
+    <td></td>
+</tr>
+ 
+</tbody></table>
+</body>
+</html>
