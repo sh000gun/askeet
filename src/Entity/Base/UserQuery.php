@@ -28,6 +28,7 @@ use Propel\Runtime\Exception\PropelException;
  * @method     ChildUserQuery orderByEmail($order = Criteria::ASC) Order by the email column
  * @method     ChildUserQuery orderBySha1Password($order = Criteria::ASC) Order by the sha1_password column
  * @method     ChildUserQuery orderBySalt($order = Criteria::ASC) Order by the salt column
+ * @method     ChildUserQuery orderByHasPaypal($order = Criteria::ASC) Order by the has_paypal column
  * @method     ChildUserQuery orderByUpdatedAt($order = Criteria::ASC) Order by the updated_at column
  *
  * @method     ChildUserQuery groupById() Group by the id column
@@ -38,6 +39,7 @@ use Propel\Runtime\Exception\PropelException;
  * @method     ChildUserQuery groupByEmail() Group by the email column
  * @method     ChildUserQuery groupBySha1Password() Group by the sha1_password column
  * @method     ChildUserQuery groupBySalt() Group by the salt column
+ * @method     ChildUserQuery groupByHasPaypal() Group by the has_paypal column
  * @method     ChildUserQuery groupByUpdatedAt() Group by the updated_at column
  *
  * @method     ChildUserQuery leftJoin($relation) Adds a LEFT JOIN clause to the query
@@ -111,6 +113,7 @@ use Propel\Runtime\Exception\PropelException;
  * @method     ChildUser findOneByEmail(string $email) Return the first ChildUser filtered by the email column
  * @method     ChildUser findOneBySha1Password(string $sha1_password) Return the first ChildUser filtered by the sha1_password column
  * @method     ChildUser findOneBySalt(string $salt) Return the first ChildUser filtered by the salt column
+ * @method     ChildUser findOneByHasPaypal(boolean $has_paypal) Return the first ChildUser filtered by the has_paypal column
  * @method     ChildUser findOneByUpdatedAt(string $updated_at) Return the first ChildUser filtered by the updated_at column *
 
  * @method     ChildUser requirePk($key, ConnectionInterface $con = null) Return the ChildUser by primary key and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
@@ -124,6 +127,7 @@ use Propel\Runtime\Exception\PropelException;
  * @method     ChildUser requireOneByEmail(string $email) Return the first ChildUser filtered by the email column and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
  * @method     ChildUser requireOneBySha1Password(string $sha1_password) Return the first ChildUser filtered by the sha1_password column and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
  * @method     ChildUser requireOneBySalt(string $salt) Return the first ChildUser filtered by the salt column and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
+ * @method     ChildUser requireOneByHasPaypal(boolean $has_paypal) Return the first ChildUser filtered by the has_paypal column and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
  * @method     ChildUser requireOneByUpdatedAt(string $updated_at) Return the first ChildUser filtered by the updated_at column and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
  *
  * @method     ChildUser[]|ObjectCollection find(ConnectionInterface $con = null) Return ChildUser objects based on current ModelCriteria
@@ -135,6 +139,7 @@ use Propel\Runtime\Exception\PropelException;
  * @method     ChildUser[]|ObjectCollection findByEmail(string $email) Return ChildUser objects filtered by the email column
  * @method     ChildUser[]|ObjectCollection findBySha1Password(string $sha1_password) Return ChildUser objects filtered by the sha1_password column
  * @method     ChildUser[]|ObjectCollection findBySalt(string $salt) Return ChildUser objects filtered by the salt column
+ * @method     ChildUser[]|ObjectCollection findByHasPaypal(boolean $has_paypal) Return ChildUser objects filtered by the has_paypal column
  * @method     ChildUser[]|ObjectCollection findByUpdatedAt(string $updated_at) Return ChildUser objects filtered by the updated_at column
  * @method     ChildUser[]|\Propel\Runtime\Util\PropelModelPager paginate($page = 1, $maxPerPage = 10, ConnectionInterface $con = null) Issue a SELECT query based on the current ModelCriteria and uses a page and a maximum number of results per page to compute an offset and a limit
  *
@@ -234,7 +239,7 @@ abstract class UserQuery extends ModelCriteria
      */
     protected function findPkSimple($key, ConnectionInterface $con)
     {
-        $sql = 'SELECT id, nickname, first_name, last_name, created_at, email, sha1_password, salt, updated_at FROM ask_user WHERE id = :p0';
+        $sql = 'SELECT id, nickname, first_name, last_name, created_at, email, sha1_password, salt, has_paypal, updated_at FROM ask_user WHERE id = :p0';
         try {
             $stmt = $con->prepare($sql);
             $stmt->bindValue(':p0', $key, PDO::PARAM_INT);
@@ -556,6 +561,33 @@ abstract class UserQuery extends ModelCriteria
         }
 
         return $this->addUsingAlias(UserTableMap::COL_SALT, $salt, $comparison);
+    }
+
+    /**
+     * Filter the query on the has_paypal column
+     *
+     * Example usage:
+     * <code>
+     * $query->filterByHasPaypal(true); // WHERE has_paypal = true
+     * $query->filterByHasPaypal('yes'); // WHERE has_paypal = true
+     * </code>
+     *
+     * @param     boolean|string $hasPaypal The value to use as filter.
+     *              Non-boolean arguments are converted using the following rules:
+     *                * 1, '1', 'true',  'on',  and 'yes' are converted to boolean true
+     *                * 0, '0', 'false', 'off', and 'no'  are converted to boolean false
+     *              Check on string values is case insensitive (so 'FaLsE' is seen as 'false').
+     * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
+     *
+     * @return $this|ChildUserQuery The current query, for fluid interface
+     */
+    public function filterByHasPaypal($hasPaypal = null, $comparison = null)
+    {
+        if (is_string($hasPaypal)) {
+            $hasPaypal = in_array(strtolower($hasPaypal), array('false', 'off', '-', 'no', 'n', '0', '')) ? false : true;
+        }
+
+        return $this->addUsingAlias(UserTableMap::COL_HAS_PAYPAL, $hasPaypal, $comparison);
     }
 
     /**

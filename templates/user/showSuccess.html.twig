@@ -29,5 +29,19 @@
 {% endfor %}
 </ul>
 
+{% if app.user.getHasPaypal is defined %}
+<p>If you appreciated this user's contributions, you can grant him a small donation.</p>
+<form action="https://www.paypal.com/cgi-bin/webscr" method="post">
+  <input type="hidden" name="cmd" value="_xclick">
+  <input type="hidden" name="business" value="{{ app.user.getEmail }}">
+  <input type="hidden" name="item_name" value="askeet">
+  <input type="hidden" name="return" value="http://www.askeet.com">
+  <input type="hidden" name="no_shipping" value="1">
+  <input type="hidden" name="no_note" value="1">
+  <input type="hidden" name="tax" value="0">
+  <input type="hidden" name="bn" value="PP-DonationsBF">
+  <input type="image" src="https://www.paypal.com/en_US/i/btn/btn_donate_LG.gif" border="0" name="submit" alt="Donate to this user">
+</form>
+{% endif %}
 
 {% endblock %}

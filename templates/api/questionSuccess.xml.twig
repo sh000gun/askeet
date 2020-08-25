@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rsp stat="ok" version="1.0">
+  <question href="{{ path('question_show', {stripped_title: question.getStrippedTitle}) }}" time="{{ question.createdAt|date('Y-m-d H:i:s') }}">
+    <title>{{ question.getTitle }}</title>
+    <tags>
+      {% for tag in question.getTags %}
+      <tag>{{ tag }}</tag>
+      {% endfor %} 
+    </tags>
+    <answers>
+      {% for  answer in question.getAnswers %}
+      <answer relevancy="{{ answer.getRelevancyUpPercent }}" time="{{ answer.createdAt|date('Y-m-d H:i:s') }}">{{ answer.getBody }}</answer>
+      {% endfor %}
+    </answers>
+  </question>
+</rsp>

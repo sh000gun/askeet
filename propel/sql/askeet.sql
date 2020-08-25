@@ -71,6 +71,7 @@ CREATE TABLE `ask_user`
     `email` VARCHAR(100),
     `sha1_password` VARCHAR(40),
     `salt` VARCHAR(32),
+    `has_paypal` TINYINT(1) DEFAULT 0,
     `updated_at` DATETIME,
     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB;

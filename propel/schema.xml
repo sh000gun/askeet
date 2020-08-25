@@ -53,6 +53,7 @@
      <column name="email" type="varchar" size="100" />
      <column name="sha1_password" type="varchar" size="40" />
      <column name="salt" type="varchar" size="32" />
+     <column name="has_paypal" type="boolean" default="0" />
    </table>
  
    <table name="ask_interest" phpName="Interest">

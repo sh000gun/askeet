@@ -45,16 +45,7 @@ class QuestionController extends AbstractController
      * @Route("/question/add", name="question_add")
      */
     public function add(Request $request)
-    {
-
-        try {
-            $this->denyAccessUnlessGranted('ROLE_SUBSCRIBER');
-        } catch(AccessDeniedException $exception)
-        {
-            return $this->redirectToRoute('user_login');
-            
-        }
-
+    { 
         $data = new myQuestionValidator();
         $form = $this->createForm(QuestionType::class, $data);
         $form->handleRequest($request);

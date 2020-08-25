@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Security\Core\Encoder\EncoderAwareInterface;
 
 use App\Entity\Base\User as BaseUser;
 
@@ -15,7 +16,7 @@ use App\Entity\Base\User as BaseUser;
  * application requirements.  This class will only be generated as
  * long as it does not already exist in the output directory.
  */
-class User extends BaseUser implements UserInterface
+class User extends BaseUser implements UserInterface, EncoderAwareInterface
 {
   public function __toString()
   {
@@ -37,6 +38,11 @@ class User extends BaseUser implements UserInterface
         $interest->setQuestion($question);
         $interest->setUserId($this->getId());
         $interest->save();
+    }
+
+    public function getEncoderName()
+    {
+        return 'askeet_encoder'; // use the default encoder
     }
   
     /**

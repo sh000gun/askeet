@@ -20,6 +20,7 @@ use Symfony\Component\Security\Core\Authentication\AuthenticationProviderManager
 use Symfony\Component\Security\Core\Authentication\Provider\DaoAuthenticationProvider;
 use Symfony\Component\Security\Core\User\UserChecker;
 use Symfony\Component\Security\Core\Encoder\EncoderFactory;
+use Symfony\Component\Security\Core\Encoder\EncoderFactoryInterface;
 use App\Security\AskeetPasswordEncoder;
 
 use Symfony\Component\Security\Core\Exception\InsufficientAuthenticationException;
@@ -43,10 +44,12 @@ use App\Lib\myResetPasswordValidator;
 class UserController extends AbstractController
 { 
     private $userProvider;
+    private $encoderFactory;
 
-    public function __construct(UserProviderInterface $userProvider)
+    public function __construct(UserProviderInterface $userProvider, EncoderFactoryInterface $encoderFactory)
     {
         $this->userProvider = $userProvider;
+        $this->encoderFactory = $encoderFactory;
     }
     
     /**
@@ -108,16 +111,16 @@ class UserController extends AbstractController
                 $token = new UsernamePasswordToken($nickname, $password, 'main', ['ROLE_SUBSCRIBER']);
 
 
-                $encoderFactory = new EncoderFactory([
+                /*$encoderFactory = new EncoderFactory([
                     User::class => new AskeetPasswordEncoder(),
-                ]);
+                ]);*/
                 
                 $authenticationManager = new AuthenticationProviderManager([
                     new DaoAuthenticationProvider(
                     $this->userProvider,
                     new UserChecker(),
                     'main',
-                    $encoderFactory 
+                    $this->encoderFactory 
                     ),
                 ]);
 

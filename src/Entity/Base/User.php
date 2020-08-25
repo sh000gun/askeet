@@ -135,6 +135,14 @@ abstract class User implements ActiveRecordInterface
     protected $salt;
 
     /**
+     * The value for the has_paypal field.
+     *
+     * Note: this column has a database default value of: false
+     * @var        boolean
+     */
+    protected $has_paypal;
+
+    /**
      * The value for the updated_at field.
      *
      * @var        DateTime
@@ -210,10 +218,23 @@ abstract class User implements ActiveRecordInterface
     protected $questionTagsScheduledForDeletion = null;
 
     /**
+     * Applies default values to this object.
+     * This method should be called from the object's constructor (or
+     * equivalent initialization method).
+     * @see __construct()
+     */
+    public function applyDefaultValues()
+    {
+        $this->has_paypal = false;
+    }
+
+    /**
      * Initializes internal state of App\Entity\Base\User object.
+     * @see applyDefaults()
      */
     public function __construct()
     {
+        $this->applyDefaultValues();
     }
 
     /**
@@ -525,6 +546,26 @@ abstract class User implements ActiveRecordInterface
     }
 
     /**
+     * Get the [has_paypal] column value.
+     *
+     * @return boolean
+     */
+    public function getHasPaypal()
+    {
+        return $this->has_paypal;
+    }
+
+    /**
+     * Get the [has_paypal] column value.
+     *
+     * @return boolean
+     */
+    public function hasPaypal()
+    {
+        return $this->getHasPaypal();
+    }
+
+    /**
      * Get the [optionally formatted] temporal [updated_at] column value.
      *
      *
@@ -705,6 +746,34 @@ abstract class User implements ActiveRecordInterface
     } // setSalt()
 
     /**
+     * Sets the value of the [has_paypal] column.
+     * Non-boolean arguments are converted using the following rules:
+     *   * 1, '1', 'true',  'on',  and 'yes' are converted to boolean true
+     *   * 0, '0', 'false', 'off', and 'no'  are converted to boolean false
+     * Check on string values is case insensitive (so 'FaLsE' is seen as 'false').
+     *
+     * @param  boolean|integer|string $v The new value
+     * @return $this|\App\Entity\User The current object (for fluent API support)
+     */
+    public function setHasPaypal($v)
+    {
+        if ($v !== null) {
+            if (is_string($v)) {
+                $v = in_array(strtolower($v), array('false', 'off', '-', 'no', 'n', '0', '')) ? false : true;
+            } else {
+                $v = (boolean) $v;
+            }
+        }
+
+        if ($this->has_paypal !== $v) {
+            $this->has_paypal = $v;
+            $this->modifiedColumns[UserTableMap::COL_HAS_PAYPAL] = true;
+        }
+
+        return $this;
+    } // setHasPaypal()
+
+    /**
      * Sets the value of [updated_at] column to a normalized version of the date/time value specified.
      *
      * @param  mixed $v string, integer (timestamp), or \DateTimeInterface value.
@@ -734,6 +803,10 @@ abstract class User implements ActiveRecordInterface
      */
     public function hasOnlyDefaultValues()
     {
+            if ($this->has_paypal !== false) {
+                return false;
+            }
+
         // otherwise, everything was equal, so return TRUE
         return true;
     } // hasOnlyDefaultValues()
@@ -787,7 +860,10 @@ abstract class User implements ActiveRecordInterface
             $col = $row[TableMap::TYPE_NUM == $indexType ? 7 + $startcol : UserTableMap::translateFieldName('Salt', TableMap::TYPE_PHPNAME, $indexType)];
             $this->salt = (null !== $col) ? (string) $col : null;
 
-            $col = $row[TableMap::TYPE_NUM == $indexType ? 8 + $startcol : UserTableMap::translateFieldName('UpdatedAt', TableMap::TYPE_PHPNAME, $indexType)];
+            $col = $row[TableMap::TYPE_NUM == $indexType ? 8 + $startcol : UserTableMap::translateFieldName('HasPaypal', TableMap::TYPE_PHPNAME, $indexType)];
+            $this->has_paypal = (null !== $col) ? (boolean) $col : null;
+
+            $col = $row[TableMap::TYPE_NUM == $indexType ? 9 + $startcol : UserTableMap::translateFieldName('UpdatedAt', TableMap::TYPE_PHPNAME, $indexType)];
             if ($col === '0000-00-00 00:00:00') {
                 $col = null;
             }
@@ -800,7 +876,7 @@ abstract class User implements ActiveRecordInterface
                 $this->ensureConsistency();
             }
 
-            return $startcol + 9; // 9 = UserTableMap::NUM_HYDRATE_COLUMNS.
+            return $startcol + 10; // 10 = UserTableMap::NUM_HYDRATE_COLUMNS.
 
         } catch (Exception $e) {
             throw new PropelException(sprintf('Error populating %s object', '\\App\\Entity\\User'), 0, $e);
@@ -1135,6 +1211,9 @@ abstract class User implements ActiveRecordInterface
         if ($this->isColumnModified(UserTableMap::COL_SALT)) {
             $modifiedColumns[':p' . $index++]  = 'salt';
         }
+        if ($this->isColumnModified(UserTableMap::COL_HAS_PAYPAL)) {
+            $modifiedColumns[':p' . $index++]  = 'has_paypal';
+        }
         if ($this->isColumnModified(UserTableMap::COL_UPDATED_AT)) {
             $modifiedColumns[':p' . $index++]  = 'updated_at';
         }
@@ -1172,6 +1251,9 @@ abstract class User implements ActiveRecordInterface
                         break;
                     case 'salt':
                         $stmt->bindValue($identifier, $this->salt, PDO::PARAM_STR);
+                        break;
+                    case 'has_paypal':
+                        $stmt->bindValue($identifier, (int) $this->has_paypal, PDO::PARAM_INT);
                         break;
                     case 'updated_at':
                         $stmt->bindValue($identifier, $this->updated_at ? $this->updated_at->format("Y-m-d H:i:s.u") : null, PDO::PARAM_STR);
@@ -1263,6 +1345,9 @@ abstract class User implements ActiveRecordInterface
                 return $this->getSalt();
                 break;
             case 8:
+                return $this->getHasPaypal();
+                break;
+            case 9:
                 return $this->getUpdatedAt();
                 break;
             default:
@@ -1303,14 +1388,15 @@ abstract class User implements ActiveRecordInterface
             $keys[5] => $this->getEmail(),
             $keys[6] => $this->getSha1Password(),
             $keys[7] => $this->getSalt(),
-            $keys[8] => $this->getUpdatedAt(),
+            $keys[8] => $this->getHasPaypal(),
+            $keys[9] => $this->getUpdatedAt(),
         );
         if ($result[$keys[4]] instanceof \DateTimeInterface) {
             $result[$keys[4]] = $result[$keys[4]]->format('c');
         }
 
-        if ($result[$keys[8]] instanceof \DateTimeInterface) {
-            $result[$keys[8]] = $result[$keys[8]]->format('c');
+        if ($result[$keys[9]] instanceof \DateTimeInterface) {
+            $result[$keys[9]] = $result[$keys[9]]->format('c');
         }
 
         $virtualColumns = $this->virtualColumns;
@@ -1453,6 +1539,9 @@ abstract class User implements ActiveRecordInterface
                 $this->setSalt($value);
                 break;
             case 8:
+                $this->setHasPaypal($value);
+                break;
+            case 9:
                 $this->setUpdatedAt($value);
                 break;
         } // switch()
@@ -1506,7 +1595,10 @@ abstract class User implements ActiveRecordInterface
             $this->setSalt($arr[$keys[7]]);
         }
         if (array_key_exists($keys[8], $arr)) {
-            $this->setUpdatedAt($arr[$keys[8]]);
+            $this->setHasPaypal($arr[$keys[8]]);
+        }
+        if (array_key_exists($keys[9], $arr)) {
+            $this->setUpdatedAt($arr[$keys[9]]);
         }
     }
 
@@ -1572,6 +1664,9 @@ abstract class User implements ActiveRecordInterface
         }
         if ($this->isColumnModified(UserTableMap::COL_SALT)) {
             $criteria->add(UserTableMap::COL_SALT, $this->salt);
+        }
+        if ($this->isColumnModified(UserTableMap::COL_HAS_PAYPAL)) {
+            $criteria->add(UserTableMap::COL_HAS_PAYPAL, $this->has_paypal);
         }
         if ($this->isColumnModified(UserTableMap::COL_UPDATED_AT)) {
             $criteria->add(UserTableMap::COL_UPDATED_AT, $this->updated_at);
@@ -1669,6 +1764,7 @@ abstract class User implements ActiveRecordInterface
         $copyObj->setEmail($this->getEmail());
         $copyObj->setSha1Password($this->getSha1Password());
         $copyObj->setSalt($this->getSalt());
+        $copyObj->setHasPaypal($this->getHasPaypal());
         $copyObj->setUpdatedAt($this->getUpdatedAt());
 
         if ($deepCopy) {
@@ -3018,9 +3114,11 @@ abstract class User implements ActiveRecordInterface
         $this->email = null;
         $this->sha1_password = null;
         $this->salt = null;
+        $this->has_paypal = null;
         $this->updated_at = null;
         $this->alreadyInSave = false;
         $this->clearAllReferences();
+        $this->applyDefaultValues();
         $this->resetModified();
         $this->setNew(true);
         $this->setDeleted(false);
