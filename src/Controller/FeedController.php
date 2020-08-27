@@ -16,7 +16,7 @@ class FeedController extends AbstractController
      */
     public function popular(Request $request)
     {
-        $questions = QuestionQuery::getPopularQuestions(10);
+        $questions = QuestionQuery::getPopularQuestions(10, $request->attributes->get('app_permanent_tag'));
 
         $response = new Response();
         $response->headers->set('Content-Type', 'text/xml');

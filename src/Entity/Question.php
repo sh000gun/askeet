@@ -36,23 +36,28 @@ class Question extends BaseQuestion
         $this->setHtmlBody(Markdown::defaultTransform($v));
   }
 
-    public function getTags()
+    public function getTags($permanentTag = null)
     {
-        
        return QuestionTagQuery::create()
-            ->filterByQuestionId($this->getId())
-            ->select('NormalizedTag')
+           ->filterByQuestionId($this->getId())
+           ->_if($permanentTag)
+               ->where('QuestionTag.Tag != ?', $permanentTag)
+            ->_endif()
+           ->select('NormalizedTag')
             ->distinct()
             ->orderByNormalizedTag('asc')
             ->find();    
      }
 
-    public function getPopularTags($max = 5)
+    public function getPopularTags($max = 5, $permanentTag = null)
     {
 
         $popularTags = QuestionTagQuery::create()
             ->filterByQuestionId($this->getId())
             ->withColumn('count(QuestionTag.NormalizedTag)', 'popular')
+            ->_if($permanentTag)
+               ->where('QuestionTag.Tag != ?', $permanentTag)
+            ->_endif()
             ->select('NormalizedTag')
             ->groupByNormalizedTag()
             ->orderBy('popular','desc')
@@ -68,7 +73,7 @@ class Question extends BaseQuestion
         return $result;
     }
 
-    public function addTagsForUser($phrase, $userId)
+    public function addTagsForUser($phrase, $userId, $tag = null)
     {
         // split phrase into individual tags
         $tags = Tag::splitPhrase($phrase);

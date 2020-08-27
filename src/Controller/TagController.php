@@ -6,6 +6,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 
 use App\Entity\QuestionQuery;
 use App\Entity\QuestionTagQuery;
@@ -14,12 +15,19 @@ use App\Form\Type\QuestionTagType;
 
 class TagController extends AbstractController
 { 
+    private $params;
+    
+    public function __construct(ParameterBagInterface $params)
+    {
+        $this->params = $params;
+    }
+
     /**
      * @Route("tag/{normalizedTag}", name="tag_recent")
      */
-    public function recent($normalizedTag, $page = 1)
+    public function recent(Request $request, $normalizedTag, $page = 1)
     {
-      $pager = QuestionQuery::getPopularByTag($normalizedTag, $page);
+        $pager = QuestionQuery::getHomepagePager($page, $this->params->get('app_pager_homepage_max'), $normalizedTag);
 
       return $this->render('tag/listSuccess.html.twig', [
           'question_pager' => $pager,
@@ -83,7 +91,7 @@ class TagController extends AbstractController
      */
     public function popular(Request $request)
     {
-        $tags = QuestionTagQuery::getPopularTags(40);
+        $tags = QuestionTagQuery::getPopularTags(40, $request->attributes->get('app_permanent_tag'));
       
         return $this->render('tag/popularSuccess.html.twig', [
             'tags' => $tags,

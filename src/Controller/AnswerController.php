@@ -6,6 +6,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 
 use App\Entity\AnswerQuery;
 use App\Entity\Answer;
@@ -17,12 +18,22 @@ use App\Lib\myAnswerValidator;
 
 class AnswerController extends AbstractController
 { 
+    private $params;
+    
+    public function __construct(ParameterBagInterface $params)
+    {
+        $this->params = $params;
+    }
+
     /**
      * @Route("answer/recent/{page}", name="answer_recent", requirements={"page"="\d+"})
      */
-    public function recent($page = 1)
+    public function recent(Request $request, $page = 1)
     {
-      $pager = AnswerQuery::getRecentPager($page);
+      $pager = AnswerQuery::getRecentPager($page, $this->params->get('app_pager_homepage_max'), $request->attributes->get('app_permanent_tag'));
+
+    //dd($pager);
+
 
       return $this->render('answer/recentSuccess.html.twig',
               array('answer_pager' => $pager));

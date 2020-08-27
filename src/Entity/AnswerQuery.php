@@ -15,11 +15,33 @@ use App\Entity\Base\AnswerQuery as BaseAnswerQuery;
  */
 class AnswerQuery extends BaseAnswerQuery
 {
-  public static function getRecentPager($page)
-  {
-    $query = AnswerQuery::create()
-      ->orderByCreatedAt('desc');
+    private static function addPermanentTagToCriteria($query, $tag = null)
+    {
+        if ($tag) {
+            $query->useQuestionTagQuery('a', 'left join')
+                ->filterByNormalizedTag($tag)
+                ->endUse();
+        }
 
-    return $query->paginate($page, 2);
+        return $query;
+
+    }
+
+
+  public static function getRecentPager($page,  $maxPage = 2, $tag = null)
+  {
+    $query = AnswerQuery::create();
+      
+    if ($tag)
+    {
+        $query
+            ->joinWith('Question')
+            ->joinWith('Question.QuestionTag')
+            ->where('QuestionTag.Tag = ?', $tag);
+ 
+        
+    }
+
+    return $query->find();
   }
 }

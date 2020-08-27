@@ -62,7 +62,7 @@
 <h2>question tags</h2>
 
 <ul id="question_tags">
-{% for tag in question.tags %}
+{% for tag in question.getTags(app.request.attributes.get('app_permanent_tag')) %}
     <li>
         <a href="{{ path('tag_recent', {'normalizedTag' : tag}) }}">{{ tag }}</a>
     </li>

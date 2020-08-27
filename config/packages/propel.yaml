@@ -3,7 +3,7 @@ propel:
       connections:
           askeet:
               adapter: mysql
-              classname: Propel\Runtime\Connection\ConnectionWrapper
+              classname: Propel\Runtime\Connection\DebugPDO
               dsn: "mysql:host=localhost;dbname=askeet"
               user: root
               password:

@@ -6,6 +6,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
+use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 
 use App\Entity\Question;
 use App\Entity\QuestionQuery;
@@ -19,12 +20,19 @@ use App\Form\Type\QuestionTagType;
 
 class QuestionController extends AbstractController
 { 
+    private $params;
+    
+    public function __construct(ParameterBagInterface $params)
+    {
+        $this->params = $params;
+    }
+
     /**
      * @Route("/question/{page}", name="question_list", requirements={"page"="\d+"})
      */
-    public function list($page = 1)
+    public function list(Request $request, $page = 1)
     {
-      $pager = QuestionQuery::getHomepagePager($page);
+      $pager = QuestionQuery::getHomepagePager($page, $this->params->get('app_pager_homepage_max'), $request->attributes->get('app_permanent_tag'));
       
       return $this->render('question/listSuccess.html.twig',
                 array('question_pager' => $pager));
@@ -33,9 +41,9 @@ class QuestionController extends AbstractController
     /**
      * @Route("question/recent/{page}", name="question_recent", requirements={"page"="\d+"})
      */
-    public function recent($page = 1)
+    public function recent(Request $request, $page = 1)
     {
-      $pager = QuestionQuery::getRecentPager($page);
+      $pager = QuestionQuery::getRecentPager($page, $this->params->get('app_pager_homepage_max'), $request->attributes->get('app_permanent_tag'));
 
       return $this->render('question/recentSuccess.html.twig',
               array('question_pager' => $pager));
@@ -62,6 +70,11 @@ class QuestionController extends AbstractController
             $question->save();
 
             $this->getUser()->isInterestedIn($question);
+
+            if ($request->attributes->get('app_permanent_tag'))
+            {
+                 $question->addTagsForUser($request->attributes->get('app_permanent_tag'), $this->getUser()->getId());
+            }
 
             return $this->redirectToRoute('question_show', array('stripped_title' => $question->getStrippedTitle()));
         }

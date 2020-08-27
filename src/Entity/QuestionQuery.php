@@ -2,6 +2,8 @@
 
 namespace App\Entity;
 
+use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
+
 use App\Entity\Base\QuestionQuery as BaseQuestionQuery;
 
 /**
@@ -15,13 +17,27 @@ use App\Entity\Base\QuestionQuery as BaseQuestionQuery;
  */
 class QuestionQuery extends BaseQuestionQuery
 {
-  public static function getHomepagePager($page)
-  {
-     $query = QuestionQuery::create()
-        ->orderByInterestedUsers('desc');
+    private static function addPermanentTagToCriteria($query, $tag = null)
+    {
+        if ($tag) {
+            $query->useQuestionTagQuery('a', 'left join')
+                ->filterByNormalizedTag($tag)
+                ->endUse();
+        }
 
-     return $query->paginate($page, 2);
-  }
+        return $query;
+
+    }
+
+    public static function getHomepagePager($page, $maxPage = 2, $tag = null)
+    {
+        $query = QuestionQuery::create()
+            ->OrderBy('interested_users', 'desc');
+
+        $query = self::addPermanentTagToCriteria($query, $tag);
+
+        return $query->paginate($page, $maxPage);
+    }
 
   public static function getQuestionFromTitle($title)
   {
@@ -30,30 +46,24 @@ class QuestionQuery extends BaseQuestionQuery
         ->findOne();
   }
 
-   public static function getRecentPager($page)
-  {
-     $query = QuestionQuery::create()
-        ->orderByCreatedAt('desc');
-
-     return $query->paginate($page, 2);
-  }
-
-    public static function getPopularQuestions($max)
-    {
-        return QuestionQuery::create()
-            ->orderByCreatedAt('desc')
-            ->limit($max)
-            ->find();
-    }
-
-    public static function getPopularByTag($tag, $page)
+    public static function getRecentPager($page, $maxPage = 2, $tag = null)
     {
         $query = QuestionQuery::create()
-            ->useQuestionTagQuery('a', 'left join')
-                ->filterByNormalizedTag($tag)
-                ->endUse()
-            ->OrderBy('interested_users', 'desc');
+            ->orderByCreatedAt('desc');
 
-        return $query->paginate($page, 2);
-    } 
+        $query = self::addPermanentTagToCriteria($query, $tag);
+
+        return $query->paginate($page, $maxPage);
+    }
+
+    public static function getPopularQuestions($max, $tag = null)
+    {
+
+        $query = QuestionQuery::create()
+            ->orderByCreatedAt('desc')
+            ->limit($max);
+        $query = self:: addPermanentTagToCriteria($query, $tag);
+
+        return $query->find();
+    }
 }

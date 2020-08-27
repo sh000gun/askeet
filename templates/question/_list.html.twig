@@ -12,13 +12,15 @@
      {{ question.htmlBody|u.truncate(200)|raw }}
     </div>
     {% set links = [] %}
-    {% for tag in question.getPopularTags %}
+    {% for tag in question.getPopularTags(5, app.request.attributes.get('app_permanent_tag')) %}
         {% set href =  path('tag_recent', {'normalizedTag' : tag})  %}
         {% set link = '<a href="' ~ href ~'">' ~ tag ~ '</a>' %}
         {% set links = links|merge([link]) %}
     {% endfor %}
     {% autoescape false %}
+        {% if links is not empty %}
         tags: {{ links|join(' + ') }}
+        {% endif %}
     {% endautoescape %}
 
   </div>

@@ -37,14 +37,17 @@ class QuestionTagQuery extends BaseQuestionTagQuery
 
     }
     
-    public static function getPopularTags($max = 5)
+    public static function getPopularTags($max = 5, $permanentTag = null)
     {
         $tags = array();
 
         $popularTags = QuestionTagQuery::create()
             ->withColumn('count(QuestionTag.NormalizedTag)', 'count')
+            ->_if($permanentTag)
+               ->where('QuestionTag.Tag != ?', $permanentTag)
+           ->_endif()
             ->select('NormalizedTag', 'count')
-            ->groupBy('NormalizedTag')
+            ->groupByNormalizedTag('NormalizedTag')
             ->orderBy('count', 'desc')
             ->setLimit($max)
             ->find();
