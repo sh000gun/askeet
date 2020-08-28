@@ -93,8 +93,17 @@ class TagController extends AbstractController
     {
         $tags = QuestionTagQuery::getPopularTags(40, $request->attributes->get('app_permanent_tag'));
       
-        return $this->render('tag/popularSuccess.html.twig', [
+        $response = $this->render('tag/popularSuccess.html.twig', [
             'tags' => $tags,
       ]);
+
+        // cache publicly for 600 seconds
+        $response->setPublic();
+        $response->setMaxAge(600);
+
+        // (optional) set a custom Cache-Control directive
+        $response->headers->addCacheControlDirective('must-revalidate', true);
+
+        return $response;
     }
 }
