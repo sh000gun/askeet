@@ -1,0 +1,7 @@
+{% if is_granted('ROLE_SUBSCRIBER') %}
+    {% if static_call('App\\Entity\\UserQuery', 'isModeratorCandidate', [subscriber.id]) %}
+            [moderator requested]
+    {%  else %}
+        <a id="{{ 'request_moderator' ~ subscriber.id }}" href="">[request moderator]</a>
+    {% endif %}
+{% endif %}

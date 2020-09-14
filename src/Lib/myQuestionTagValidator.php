@@ -10,6 +10,7 @@ class myQuestionTagValidator
 
     /**
      * @Assert\NotBlank(message="tag.not_blank")
+     *
      * @var string
      */
     public $tag;

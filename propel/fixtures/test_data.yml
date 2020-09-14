@@ -5,6 +5,8 @@ App\Entity\User:
     last_name:  Coward
     password:   anonymous
     email:      anonymous@example.com
+    is_administrator: 0
+    is_moderator: 0
 
   fabien:
     nickname:   fabpot
@@ -12,6 +14,8 @@ App\Entity\User:
     last_name:  Potencier
     password:   symfony
     email:      fp@example.com
+    is_administrator: 1
+    is_moderator: 0
 
   francois:
     nickname:   francoisz
@@ -19,6 +23,8 @@ App\Entity\User:
     last_name:  Zaninotto
     password:   adventcal
     email:      fz@example.com
+    is_administrator: 0
+    is_moderator: 2
 
 App\Entity\Question:
   q1:

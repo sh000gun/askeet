@@ -21,3 +21,26 @@ $(document).ready(function() {
     });
   });
 });
+
+$(document).ready(function() {
+  $('a[id^="request_moderator"]').on('click', function(e) {
+    e.preventDefault();
+    var $link = $(e.currentTarget);
+
+    $.ajax({
+        url: '/user/request_moderator',
+        method: 'POST',
+        beforeSend: function() {
+          $('#indicator').css("background", "url(../images/indicator.gif) no-repeat 0 0"); 
+          $("#indicator").show();
+        }
+    }).then(function(response) {
+       $("#indicator").hide();
+         if (response == 'success')
+        {
+            // TODO update on client instead of reloading page
+            location.reload();
+        }
+    });
+  });
+});

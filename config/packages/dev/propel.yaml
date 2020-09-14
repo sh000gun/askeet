@@ -8,3 +8,10 @@ propel:
               user: root
               password:
               attributes:
+
+  runtime:
+      log:
+          defaultLogger:
+              type: stream
+              path: "%kernel.logs_dir%/%kernel.environment%.log"
+              level: 300

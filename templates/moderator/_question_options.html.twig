@@ -1,0 +1,8 @@
+{% if is_granted('ROLE_MODERATOR') %}
+    {% if question.reports %}
+        &nbsp;[<strong>{{ question.reports }}</strong> reports]
+        &nbsp;<a id="{{ 'reset_question_report' ~ question.id }}" href="" data-question="{{ question.id }}">[reset reports]</a>
+    {% endif %}
+  &nbsp;<a id="{{ 'delete_question' ~ question.id }}" href="" data-question="{{ question.id }}">[delete question]</a>
+{% endif %}
+

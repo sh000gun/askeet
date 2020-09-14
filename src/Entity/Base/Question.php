@@ -13,12 +13,15 @@ use App\Entity\Question as ChildQuestion;
 use App\Entity\QuestionQuery as ChildQuestionQuery;
 use App\Entity\QuestionTag as ChildQuestionTag;
 use App\Entity\QuestionTagQuery as ChildQuestionTagQuery;
+use App\Entity\ReportQuestion as ChildReportQuestion;
+use App\Entity\ReportQuestionQuery as ChildReportQuestionQuery;
 use App\Entity\User as ChildUser;
 use App\Entity\UserQuery as ChildUserQuery;
 use App\Entity\Map\AnswerTableMap;
 use App\Entity\Map\InterestTableMap;
 use App\Entity\Map\QuestionTableMap;
 use App\Entity\Map\QuestionTagTableMap;
+use App\Entity\Map\ReportQuestionTableMap;
 use Propel\Runtime\Propel;
 use Propel\Runtime\ActiveQuery\Criteria;
 use Propel\Runtime\ActiveQuery\ModelCriteria;
@@ -139,6 +142,14 @@ abstract class Question implements ActiveRecordInterface
     protected $html_body;
 
     /**
+     * The value for the reports field.
+     *
+     * Note: this column has a database default value of: 0
+     * @var        int
+     */
+    protected $reports;
+
+    /**
      * @var        ChildUser
      */
     protected $aUser;
@@ -160,6 +171,12 @@ abstract class Question implements ActiveRecordInterface
      */
     protected $collQuestionTags;
     protected $collQuestionTagsPartial;
+
+    /**
+     * @var        ObjectCollection|ChildReportQuestion[] Collection to store aggregation of ChildReportQuestion objects.
+     */
+    protected $collReportQuestions;
+    protected $collReportQuestionsPartial;
 
     /**
      * Flag to prevent endless save loop, if this object is referenced
@@ -188,6 +205,12 @@ abstract class Question implements ActiveRecordInterface
     protected $questionTagsScheduledForDeletion = null;
 
     /**
+     * An array of objects scheduled for deletion.
+     * @var ObjectCollection|ChildReportQuestion[]
+     */
+    protected $reportQuestionsScheduledForDeletion = null;
+
+    /**
      * Applies default values to this object.
      * This method should be called from the object's constructor (or
      * equivalent initialization method).
@@ -196,6 +219,7 @@ abstract class Question implements ActiveRecordInterface
     public function applyDefaultValues()
     {
         $this->interested_users = 0;
+        $this->reports = 0;
     }
 
     /**
@@ -536,6 +560,16 @@ abstract class Question implements ActiveRecordInterface
     }
 
     /**
+     * Get the [reports] column value.
+     *
+     * @return int
+     */
+    public function getReports()
+    {
+        return $this->reports;
+    }
+
+    /**
      * Set the value of [id] column.
      *
      * @param int $v new value
@@ -720,6 +754,26 @@ abstract class Question implements ActiveRecordInterface
     } // setHtmlBody()
 
     /**
+     * Set the value of [reports] column.
+     *
+     * @param int $v new value
+     * @return $this|\App\Entity\Question The current object (for fluent API support)
+     */
+    public function setReports($v)
+    {
+        if ($v !== null) {
+            $v = (int) $v;
+        }
+
+        if ($this->reports !== $v) {
+            $this->reports = $v;
+            $this->modifiedColumns[QuestionTableMap::COL_REPORTS] = true;
+        }
+
+        return $this;
+    } // setReports()
+
+    /**
      * Indicates whether the columns in this object are only set to default values.
      *
      * This method can be used in conjunction with isModified() to indicate whether an object is both
@@ -730,6 +784,10 @@ abstract class Question implements ActiveRecordInterface
     public function hasOnlyDefaultValues()
     {
             if ($this->interested_users !== 0) {
+                return false;
+            }
+
+            if ($this->reports !== 0) {
                 return false;
             }
 
@@ -791,6 +849,9 @@ abstract class Question implements ActiveRecordInterface
 
             $col = $row[TableMap::TYPE_NUM == $indexType ? 8 + $startcol : QuestionTableMap::translateFieldName('HtmlBody', TableMap::TYPE_PHPNAME, $indexType)];
             $this->html_body = (null !== $col) ? (string) $col : null;
+
+            $col = $row[TableMap::TYPE_NUM == $indexType ? 9 + $startcol : QuestionTableMap::translateFieldName('Reports', TableMap::TYPE_PHPNAME, $indexType)];
+            $this->reports = (null !== $col) ? (int) $col : null;
             $this->resetModified();
 
             $this->setNew(false);
@@ -799,7 +860,7 @@ abstract class Question implements ActiveRecordInterface
                 $this->ensureConsistency();
             }
 
-            return $startcol + 9; // 9 = QuestionTableMap::NUM_HYDRATE_COLUMNS.
+            return $startcol + 10; // 10 = QuestionTableMap::NUM_HYDRATE_COLUMNS.
 
         } catch (Exception $e) {
             throw new PropelException(sprintf('Error populating %s object', '\\App\\Entity\\Question'), 0, $e);
@@ -869,6 +930,8 @@ abstract class Question implements ActiveRecordInterface
             $this->collInterests = null;
 
             $this->collQuestionTags = null;
+
+            $this->collReportQuestions = null;
 
         } // if (deep)
     }
@@ -1011,10 +1074,9 @@ abstract class Question implements ActiveRecordInterface
 
             if ($this->answersScheduledForDeletion !== null) {
                 if (!$this->answersScheduledForDeletion->isEmpty()) {
-                    foreach ($this->answersScheduledForDeletion as $answer) {
-                        // need to save related object because we set the relation to null
-                        $answer->save($con);
-                    }
+                    \App\Entity\AnswerQuery::create()
+                        ->filterByPrimaryKeys($this->answersScheduledForDeletion->getPrimaryKeys(false))
+                        ->delete($con);
                     $this->answersScheduledForDeletion = null;
                 }
             }
@@ -1055,6 +1117,23 @@ abstract class Question implements ActiveRecordInterface
 
             if ($this->collQuestionTags !== null) {
                 foreach ($this->collQuestionTags as $referrerFK) {
+                    if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
+                        $affectedRows += $referrerFK->save($con);
+                    }
+                }
+            }
+
+            if ($this->reportQuestionsScheduledForDeletion !== null) {
+                if (!$this->reportQuestionsScheduledForDeletion->isEmpty()) {
+                    \App\Entity\ReportQuestionQuery::create()
+                        ->filterByPrimaryKeys($this->reportQuestionsScheduledForDeletion->getPrimaryKeys(false))
+                        ->delete($con);
+                    $this->reportQuestionsScheduledForDeletion = null;
+                }
+            }
+
+            if ($this->collReportQuestions !== null) {
+                foreach ($this->collReportQuestions as $referrerFK) {
                     if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
                         $affectedRows += $referrerFK->save($con);
                     }
@@ -1114,6 +1193,9 @@ abstract class Question implements ActiveRecordInterface
         if ($this->isColumnModified(QuestionTableMap::COL_HTML_BODY)) {
             $modifiedColumns[':p' . $index++]  = 'html_body';
         }
+        if ($this->isColumnModified(QuestionTableMap::COL_REPORTS)) {
+            $modifiedColumns[':p' . $index++]  = 'reports';
+        }
 
         $sql = sprintf(
             'INSERT INTO ask_question (%s) VALUES (%s)',
@@ -1151,6 +1233,9 @@ abstract class Question implements ActiveRecordInterface
                         break;
                     case 'html_body':
                         $stmt->bindValue($identifier, $this->html_body, PDO::PARAM_STR);
+                        break;
+                    case 'reports':
+                        $stmt->bindValue($identifier, $this->reports, PDO::PARAM_INT);
                         break;
                 }
             }
@@ -1241,6 +1326,9 @@ abstract class Question implements ActiveRecordInterface
             case 8:
                 return $this->getHtmlBody();
                 break;
+            case 9:
+                return $this->getReports();
+                break;
             default:
                 return null;
                 break;
@@ -1280,6 +1368,7 @@ abstract class Question implements ActiveRecordInterface
             $keys[6] => $this->getInterestedUsers(),
             $keys[7] => $this->getStrippedTitle(),
             $keys[8] => $this->getHtmlBody(),
+            $keys[9] => $this->getReports(),
         );
         if ($result[$keys[4]] instanceof \DateTimeInterface) {
             $result[$keys[4]] = $result[$keys[4]]->format('c');
@@ -1355,6 +1444,21 @@ abstract class Question implements ActiveRecordInterface
 
                 $result[$key] = $this->collQuestionTags->toArray(null, false, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
             }
+            if (null !== $this->collReportQuestions) {
+
+                switch ($keyType) {
+                    case TableMap::TYPE_CAMELNAME:
+                        $key = 'reportQuestions';
+                        break;
+                    case TableMap::TYPE_FIELDNAME:
+                        $key = 'ask_report_questions';
+                        break;
+                    default:
+                        $key = 'ReportQuestions';
+                }
+
+                $result[$key] = $this->collReportQuestions->toArray(null, false, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
+            }
         }
 
         return $result;
@@ -1416,6 +1520,9 @@ abstract class Question implements ActiveRecordInterface
             case 8:
                 $this->setHtmlBody($value);
                 break;
+            case 9:
+                $this->setReports($value);
+                break;
         } // switch()
 
         return $this;
@@ -1468,6 +1575,9 @@ abstract class Question implements ActiveRecordInterface
         }
         if (array_key_exists($keys[8], $arr)) {
             $this->setHtmlBody($arr[$keys[8]]);
+        }
+        if (array_key_exists($keys[9], $arr)) {
+            $this->setReports($arr[$keys[9]]);
         }
     }
 
@@ -1536,6 +1646,9 @@ abstract class Question implements ActiveRecordInterface
         }
         if ($this->isColumnModified(QuestionTableMap::COL_HTML_BODY)) {
             $criteria->add(QuestionTableMap::COL_HTML_BODY, $this->html_body);
+        }
+        if ($this->isColumnModified(QuestionTableMap::COL_REPORTS)) {
+            $criteria->add(QuestionTableMap::COL_REPORTS, $this->reports);
         }
 
         return $criteria;
@@ -1631,6 +1744,7 @@ abstract class Question implements ActiveRecordInterface
         $copyObj->setInterestedUsers($this->getInterestedUsers());
         $copyObj->setStrippedTitle($this->getStrippedTitle());
         $copyObj->setHtmlBody($this->getHtmlBody());
+        $copyObj->setReports($this->getReports());
 
         if ($deepCopy) {
             // important: temporarily setNew(false) because this affects the behavior of
@@ -1652,6 +1766,12 @@ abstract class Question implements ActiveRecordInterface
             foreach ($this->getQuestionTags() as $relObj) {
                 if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
                     $copyObj->addQuestionTag($relObj->copy($deepCopy));
+                }
+            }
+
+            foreach ($this->getReportQuestions() as $relObj) {
+                if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
+                    $copyObj->addReportQuestion($relObj->copy($deepCopy));
                 }
             }
 
@@ -1757,6 +1877,10 @@ abstract class Question implements ActiveRecordInterface
         }
         if ('QuestionTag' == $relationName) {
             $this->initQuestionTags();
+            return;
+        }
+        if ('ReportQuestion' == $relationName) {
+            $this->initReportQuestions();
             return;
         }
     }
@@ -2518,6 +2642,259 @@ abstract class Question implements ActiveRecordInterface
     }
 
     /**
+     * Clears out the collReportQuestions collection
+     *
+     * This does not modify the database; however, it will remove any associated objects, causing
+     * them to be refetched by subsequent calls to accessor method.
+     *
+     * @return void
+     * @see        addReportQuestions()
+     */
+    public function clearReportQuestions()
+    {
+        $this->collReportQuestions = null; // important to set this to NULL since that means it is uninitialized
+    }
+
+    /**
+     * Reset is the collReportQuestions collection loaded partially.
+     */
+    public function resetPartialReportQuestions($v = true)
+    {
+        $this->collReportQuestionsPartial = $v;
+    }
+
+    /**
+     * Initializes the collReportQuestions collection.
+     *
+     * By default this just sets the collReportQuestions collection to an empty array (like clearcollReportQuestions());
+     * however, you may wish to override this method in your stub class to provide setting appropriate
+     * to your application -- for example, setting the initial array to the values stored in database.
+     *
+     * @param      boolean $overrideExisting If set to true, the method call initializes
+     *                                        the collection even if it is not empty
+     *
+     * @return void
+     */
+    public function initReportQuestions($overrideExisting = true)
+    {
+        if (null !== $this->collReportQuestions && !$overrideExisting) {
+            return;
+        }
+
+        $collectionClassName = ReportQuestionTableMap::getTableMap()->getCollectionClassName();
+
+        $this->collReportQuestions = new $collectionClassName;
+        $this->collReportQuestions->setModel('\App\Entity\ReportQuestion');
+    }
+
+    /**
+     * Gets an array of ChildReportQuestion objects which contain a foreign key that references this object.
+     *
+     * If the $criteria is not null, it is used to always fetch the results from the database.
+     * Otherwise the results are fetched from the database the first time, then cached.
+     * Next time the same method is called without $criteria, the cached collection is returned.
+     * If this ChildQuestion is new, it will return
+     * an empty collection or the current collection; the criteria is ignored on a new object.
+     *
+     * @param      Criteria $criteria optional Criteria object to narrow the query
+     * @param      ConnectionInterface $con optional connection object
+     * @return ObjectCollection|ChildReportQuestion[] List of ChildReportQuestion objects
+     * @throws PropelException
+     */
+    public function getReportQuestions(Criteria $criteria = null, ConnectionInterface $con = null)
+    {
+        $partial = $this->collReportQuestionsPartial && !$this->isNew();
+        if (null === $this->collReportQuestions || null !== $criteria  || $partial) {
+            if ($this->isNew() && null === $this->collReportQuestions) {
+                // return empty collection
+                $this->initReportQuestions();
+            } else {
+                $collReportQuestions = ChildReportQuestionQuery::create(null, $criteria)
+                    ->filterByQuestion($this)
+                    ->find($con);
+
+                if (null !== $criteria) {
+                    if (false !== $this->collReportQuestionsPartial && count($collReportQuestions)) {
+                        $this->initReportQuestions(false);
+
+                        foreach ($collReportQuestions as $obj) {
+                            if (false == $this->collReportQuestions->contains($obj)) {
+                                $this->collReportQuestions->append($obj);
+                            }
+                        }
+
+                        $this->collReportQuestionsPartial = true;
+                    }
+
+                    return $collReportQuestions;
+                }
+
+                if ($partial && $this->collReportQuestions) {
+                    foreach ($this->collReportQuestions as $obj) {
+                        if ($obj->isNew()) {
+                            $collReportQuestions[] = $obj;
+                        }
+                    }
+                }
+
+                $this->collReportQuestions = $collReportQuestions;
+                $this->collReportQuestionsPartial = false;
+            }
+        }
+
+        return $this->collReportQuestions;
+    }
+
+    /**
+     * Sets a collection of ChildReportQuestion objects related by a one-to-many relationship
+     * to the current object.
+     * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
+     * and new objects from the given Propel collection.
+     *
+     * @param      Collection $reportQuestions A Propel collection.
+     * @param      ConnectionInterface $con Optional connection object
+     * @return $this|ChildQuestion The current object (for fluent API support)
+     */
+    public function setReportQuestions(Collection $reportQuestions, ConnectionInterface $con = null)
+    {
+        /** @var ChildReportQuestion[] $reportQuestionsToDelete */
+        $reportQuestionsToDelete = $this->getReportQuestions(new Criteria(), $con)->diff($reportQuestions);
+
+
+        //since at least one column in the foreign key is at the same time a PK
+        //we can not just set a PK to NULL in the lines below. We have to store
+        //a backup of all values, so we are able to manipulate these items based on the onDelete value later.
+        $this->reportQuestionsScheduledForDeletion = clone $reportQuestionsToDelete;
+
+        foreach ($reportQuestionsToDelete as $reportQuestionRemoved) {
+            $reportQuestionRemoved->setQuestion(null);
+        }
+
+        $this->collReportQuestions = null;
+        foreach ($reportQuestions as $reportQuestion) {
+            $this->addReportQuestion($reportQuestion);
+        }
+
+        $this->collReportQuestions = $reportQuestions;
+        $this->collReportQuestionsPartial = false;
+
+        return $this;
+    }
+
+    /**
+     * Returns the number of related ReportQuestion objects.
+     *
+     * @param      Criteria $criteria
+     * @param      boolean $distinct
+     * @param      ConnectionInterface $con
+     * @return int             Count of related ReportQuestion objects.
+     * @throws PropelException
+     */
+    public function countReportQuestions(Criteria $criteria = null, $distinct = false, ConnectionInterface $con = null)
+    {
+        $partial = $this->collReportQuestionsPartial && !$this->isNew();
+        if (null === $this->collReportQuestions || null !== $criteria || $partial) {
+            if ($this->isNew() && null === $this->collReportQuestions) {
+                return 0;
+            }
+
+            if ($partial && !$criteria) {
+                return count($this->getReportQuestions());
+            }
+
+            $query = ChildReportQuestionQuery::create(null, $criteria);
+            if ($distinct) {
+                $query->distinct();
+            }
+
+            return $query
+                ->filterByQuestion($this)
+                ->count($con);
+        }
+
+        return count($this->collReportQuestions);
+    }
+
+    /**
+     * Method called to associate a ChildReportQuestion object to this object
+     * through the ChildReportQuestion foreign key attribute.
+     *
+     * @param  ChildReportQuestion $l ChildReportQuestion
+     * @return $this|\App\Entity\Question The current object (for fluent API support)
+     */
+    public function addReportQuestion(ChildReportQuestion $l)
+    {
+        if ($this->collReportQuestions === null) {
+            $this->initReportQuestions();
+            $this->collReportQuestionsPartial = true;
+        }
+
+        if (!$this->collReportQuestions->contains($l)) {
+            $this->doAddReportQuestion($l);
+
+            if ($this->reportQuestionsScheduledForDeletion and $this->reportQuestionsScheduledForDeletion->contains($l)) {
+                $this->reportQuestionsScheduledForDeletion->remove($this->reportQuestionsScheduledForDeletion->search($l));
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param ChildReportQuestion $reportQuestion The ChildReportQuestion object to add.
+     */
+    protected function doAddReportQuestion(ChildReportQuestion $reportQuestion)
+    {
+        $this->collReportQuestions[]= $reportQuestion;
+        $reportQuestion->setQuestion($this);
+    }
+
+    /**
+     * @param  ChildReportQuestion $reportQuestion The ChildReportQuestion object to remove.
+     * @return $this|ChildQuestion The current object (for fluent API support)
+     */
+    public function removeReportQuestion(ChildReportQuestion $reportQuestion)
+    {
+        if ($this->getReportQuestions()->contains($reportQuestion)) {
+            $pos = $this->collReportQuestions->search($reportQuestion);
+            $this->collReportQuestions->remove($pos);
+            if (null === $this->reportQuestionsScheduledForDeletion) {
+                $this->reportQuestionsScheduledForDeletion = clone $this->collReportQuestions;
+                $this->reportQuestionsScheduledForDeletion->clear();
+            }
+            $this->reportQuestionsScheduledForDeletion[]= clone $reportQuestion;
+            $reportQuestion->setQuestion(null);
+        }
+
+        return $this;
+    }
+
+
+    /**
+     * If this collection has already been initialized with
+     * an identical criteria, it returns the collection.
+     * Otherwise if this Question is new, it will return
+     * an empty collection; or if this Question has previously
+     * been saved, it will retrieve related ReportQuestions from storage.
+     *
+     * This method is protected by default in order to keep the public
+     * api reasonable.  You can provide public methods for those you
+     * actually need in Question.
+     *
+     * @param      Criteria $criteria optional Criteria object to narrow the query
+     * @param      ConnectionInterface $con optional connection object
+     * @param      string $joinBehavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return ObjectCollection|ChildReportQuestion[] List of ChildReportQuestion objects
+     */
+    public function getReportQuestionsJoinUser(Criteria $criteria = null, ConnectionInterface $con = null, $joinBehavior = Criteria::LEFT_JOIN)
+    {
+        $query = ChildReportQuestionQuery::create(null, $criteria);
+        $query->joinWith('User', $joinBehavior);
+
+        return $this->getReportQuestions($query, $con);
+    }
+
+    /**
      * Clears the current object, sets all attributes to their default values and removes
      * outgoing references as well as back-references (from other objects to this one. Results probably in a database
      * change of those foreign objects when you call `save` there).
@@ -2536,6 +2913,7 @@ abstract class Question implements ActiveRecordInterface
         $this->interested_users = null;
         $this->stripped_title = null;
         $this->html_body = null;
+        $this->reports = null;
         $this->alreadyInSave = false;
         $this->clearAllReferences();
         $this->applyDefaultValues();
@@ -2570,11 +2948,17 @@ abstract class Question implements ActiveRecordInterface
                     $o->clearAllReferences($deep);
                 }
             }
+            if ($this->collReportQuestions) {
+                foreach ($this->collReportQuestions as $o) {
+                    $o->clearAllReferences($deep);
+                }
+            }
         } // if ($deep)
 
         $this->collAnswers = null;
         $this->collInterests = null;
         $this->collQuestionTags = null;
+        $this->collReportQuestions = null;
         $this->aUser = null;
     }
 

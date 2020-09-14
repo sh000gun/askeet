@@ -29,6 +29,7 @@ use Propel\Runtime\Exception\PropelException;
  * @method     ChildQuestionQuery orderByInterestedUsers($order = Criteria::ASC) Order by the interested_users column
  * @method     ChildQuestionQuery orderByStrippedTitle($order = Criteria::ASC) Order by the stripped_title column
  * @method     ChildQuestionQuery orderByHtmlBody($order = Criteria::ASC) Order by the html_body column
+ * @method     ChildQuestionQuery orderByReports($order = Criteria::ASC) Order by the reports column
  *
  * @method     ChildQuestionQuery groupById() Group by the id column
  * @method     ChildQuestionQuery groupByUserId() Group by the user_id column
@@ -39,6 +40,7 @@ use Propel\Runtime\Exception\PropelException;
  * @method     ChildQuestionQuery groupByInterestedUsers() Group by the interested_users column
  * @method     ChildQuestionQuery groupByStrippedTitle() Group by the stripped_title column
  * @method     ChildQuestionQuery groupByHtmlBody() Group by the html_body column
+ * @method     ChildQuestionQuery groupByReports() Group by the reports column
  *
  * @method     ChildQuestionQuery leftJoin($relation) Adds a LEFT JOIN clause to the query
  * @method     ChildQuestionQuery rightJoin($relation) Adds a RIGHT JOIN clause to the query
@@ -88,7 +90,17 @@ use Propel\Runtime\Exception\PropelException;
  * @method     ChildQuestionQuery rightJoinWithQuestionTag() Adds a RIGHT JOIN clause and with to the query using the QuestionTag relation
  * @method     ChildQuestionQuery innerJoinWithQuestionTag() Adds a INNER JOIN clause and with to the query using the QuestionTag relation
  *
- * @method     \App\Entity\UserQuery|\App\Entity\AnswerQuery|\App\Entity\InterestQuery|\App\Entity\QuestionTagQuery endUse() Finalizes a secondary criteria and merges it with its primary Criteria
+ * @method     ChildQuestionQuery leftJoinReportQuestion($relationAlias = null) Adds a LEFT JOIN clause to the query using the ReportQuestion relation
+ * @method     ChildQuestionQuery rightJoinReportQuestion($relationAlias = null) Adds a RIGHT JOIN clause to the query using the ReportQuestion relation
+ * @method     ChildQuestionQuery innerJoinReportQuestion($relationAlias = null) Adds a INNER JOIN clause to the query using the ReportQuestion relation
+ *
+ * @method     ChildQuestionQuery joinWithReportQuestion($joinType = Criteria::INNER_JOIN) Adds a join clause and with to the query using the ReportQuestion relation
+ *
+ * @method     ChildQuestionQuery leftJoinWithReportQuestion() Adds a LEFT JOIN clause and with to the query using the ReportQuestion relation
+ * @method     ChildQuestionQuery rightJoinWithReportQuestion() Adds a RIGHT JOIN clause and with to the query using the ReportQuestion relation
+ * @method     ChildQuestionQuery innerJoinWithReportQuestion() Adds a INNER JOIN clause and with to the query using the ReportQuestion relation
+ *
+ * @method     \App\Entity\UserQuery|\App\Entity\AnswerQuery|\App\Entity\InterestQuery|\App\Entity\QuestionTagQuery|\App\Entity\ReportQuestionQuery endUse() Finalizes a secondary criteria and merges it with its primary Criteria
  *
  * @method     ChildQuestion findOne(ConnectionInterface $con = null) Return the first ChildQuestion matching the query
  * @method     ChildQuestion findOneOrCreate(ConnectionInterface $con = null) Return the first ChildQuestion matching the query, or a new ChildQuestion object populated from the query conditions when no match is found
@@ -101,7 +113,8 @@ use Propel\Runtime\Exception\PropelException;
  * @method     ChildQuestion findOneByUpdatedAt(string $updated_at) Return the first ChildQuestion filtered by the updated_at column
  * @method     ChildQuestion findOneByInterestedUsers(int $interested_users) Return the first ChildQuestion filtered by the interested_users column
  * @method     ChildQuestion findOneByStrippedTitle(string $stripped_title) Return the first ChildQuestion filtered by the stripped_title column
- * @method     ChildQuestion findOneByHtmlBody(string $html_body) Return the first ChildQuestion filtered by the html_body column *
+ * @method     ChildQuestion findOneByHtmlBody(string $html_body) Return the first ChildQuestion filtered by the html_body column
+ * @method     ChildQuestion findOneByReports(int $reports) Return the first ChildQuestion filtered by the reports column *
 
  * @method     ChildQuestion requirePk($key, ConnectionInterface $con = null) Return the ChildQuestion by primary key and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
  * @method     ChildQuestion requireOne(ConnectionInterface $con = null) Return the first ChildQuestion matching the query and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
@@ -115,6 +128,7 @@ use Propel\Runtime\Exception\PropelException;
  * @method     ChildQuestion requireOneByInterestedUsers(int $interested_users) Return the first ChildQuestion filtered by the interested_users column and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
  * @method     ChildQuestion requireOneByStrippedTitle(string $stripped_title) Return the first ChildQuestion filtered by the stripped_title column and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
  * @method     ChildQuestion requireOneByHtmlBody(string $html_body) Return the first ChildQuestion filtered by the html_body column and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
+ * @method     ChildQuestion requireOneByReports(int $reports) Return the first ChildQuestion filtered by the reports column and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
  *
  * @method     ChildQuestion[]|ObjectCollection find(ConnectionInterface $con = null) Return ChildQuestion objects based on current ModelCriteria
  * @method     ChildQuestion[]|ObjectCollection findById(int $id) Return ChildQuestion objects filtered by the id column
@@ -126,6 +140,7 @@ use Propel\Runtime\Exception\PropelException;
  * @method     ChildQuestion[]|ObjectCollection findByInterestedUsers(int $interested_users) Return ChildQuestion objects filtered by the interested_users column
  * @method     ChildQuestion[]|ObjectCollection findByStrippedTitle(string $stripped_title) Return ChildQuestion objects filtered by the stripped_title column
  * @method     ChildQuestion[]|ObjectCollection findByHtmlBody(string $html_body) Return ChildQuestion objects filtered by the html_body column
+ * @method     ChildQuestion[]|ObjectCollection findByReports(int $reports) Return ChildQuestion objects filtered by the reports column
  * @method     ChildQuestion[]|\Propel\Runtime\Util\PropelModelPager paginate($page = 1, $maxPerPage = 10, ConnectionInterface $con = null) Issue a SELECT query based on the current ModelCriteria and uses a page and a maximum number of results per page to compute an offset and a limit
  *
  */
@@ -224,7 +239,7 @@ abstract class QuestionQuery extends ModelCriteria
      */
     protected function findPkSimple($key, ConnectionInterface $con)
     {
-        $sql = 'SELECT id, user_id, title, body, created_at, updated_at, interested_users, stripped_title, html_body FROM ask_question WHERE id = :p0';
+        $sql = 'SELECT id, user_id, title, body, created_at, updated_at, interested_users, stripped_title, html_body, reports FROM ask_question WHERE id = :p0';
         try {
             $stmt = $con->prepare($sql);
             $stmt->bindValue(':p0', $key, PDO::PARAM_INT);
@@ -626,6 +641,47 @@ abstract class QuestionQuery extends ModelCriteria
     }
 
     /**
+     * Filter the query on the reports column
+     *
+     * Example usage:
+     * <code>
+     * $query->filterByReports(1234); // WHERE reports = 1234
+     * $query->filterByReports(array(12, 34)); // WHERE reports IN (12, 34)
+     * $query->filterByReports(array('min' => 12)); // WHERE reports > 12
+     * </code>
+     *
+     * @param     mixed $reports The value to use as filter.
+     *              Use scalar values for equality.
+     *              Use array values for in_array() equivalent.
+     *              Use associative array('min' => $minValue, 'max' => $maxValue) for intervals.
+     * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
+     *
+     * @return $this|ChildQuestionQuery The current query, for fluid interface
+     */
+    public function filterByReports($reports = null, $comparison = null)
+    {
+        if (is_array($reports)) {
+            $useMinMax = false;
+            if (isset($reports['min'])) {
+                $this->addUsingAlias(QuestionTableMap::COL_REPORTS, $reports['min'], Criteria::GREATER_EQUAL);
+                $useMinMax = true;
+            }
+            if (isset($reports['max'])) {
+                $this->addUsingAlias(QuestionTableMap::COL_REPORTS, $reports['max'], Criteria::LESS_EQUAL);
+                $useMinMax = true;
+            }
+            if ($useMinMax) {
+                return $this;
+            }
+            if (null === $comparison) {
+                $comparison = Criteria::IN;
+            }
+        }
+
+        return $this->addUsingAlias(QuestionTableMap::COL_REPORTS, $reports, $comparison);
+    }
+
+    /**
      * Filter the query by a related \App\Entity\User object
      *
      * @param \App\Entity\User|ObjectCollection $user The related object(s) to use as filter
@@ -919,6 +975,79 @@ abstract class QuestionQuery extends ModelCriteria
         return $this
             ->joinQuestionTag($relationAlias, $joinType)
             ->useQuery($relationAlias ? $relationAlias : 'QuestionTag', '\App\Entity\QuestionTagQuery');
+    }
+
+    /**
+     * Filter the query by a related \App\Entity\ReportQuestion object
+     *
+     * @param \App\Entity\ReportQuestion|ObjectCollection $reportQuestion the related object to use as filter
+     * @param string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
+     *
+     * @return ChildQuestionQuery The current query, for fluid interface
+     */
+    public function filterByReportQuestion($reportQuestion, $comparison = null)
+    {
+        if ($reportQuestion instanceof \App\Entity\ReportQuestion) {
+            return $this
+                ->addUsingAlias(QuestionTableMap::COL_ID, $reportQuestion->getQuestionId(), $comparison);
+        } elseif ($reportQuestion instanceof ObjectCollection) {
+            return $this
+                ->useReportQuestionQuery()
+                ->filterByPrimaryKeys($reportQuestion->getPrimaryKeys())
+                ->endUse();
+        } else {
+            throw new PropelException('filterByReportQuestion() only accepts arguments of type \App\Entity\ReportQuestion or Collection');
+        }
+    }
+
+    /**
+     * Adds a JOIN clause to the query using the ReportQuestion relation
+     *
+     * @param     string $relationAlias optional alias for the relation
+     * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
+     *
+     * @return $this|ChildQuestionQuery The current query, for fluid interface
+     */
+    public function joinReportQuestion($relationAlias = null, $joinType = Criteria::INNER_JOIN)
+    {
+        $tableMap = $this->getTableMap();
+        $relationMap = $tableMap->getRelation('ReportQuestion');
+
+        // create a ModelJoin object for this join
+        $join = new ModelJoin();
+        $join->setJoinType($joinType);
+        $join->setRelationMap($relationMap, $this->useAliasInSQL ? $this->getModelAlias() : null, $relationAlias);
+        if ($previousJoin = $this->getPreviousJoin()) {
+            $join->setPreviousJoin($previousJoin);
+        }
+
+        // add the ModelJoin to the current object
+        if ($relationAlias) {
+            $this->addAlias($relationAlias, $relationMap->getRightTable()->getName());
+            $this->addJoinObject($join, $relationAlias);
+        } else {
+            $this->addJoinObject($join, 'ReportQuestion');
+        }
+
+        return $this;
+    }
+
+    /**
+     * Use the ReportQuestion relation ReportQuestion object
+     *
+     * @see useQuery()
+     *
+     * @param     string $relationAlias optional alias for the relation,
+     *                                   to be used as main alias in the secondary query
+     * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
+     *
+     * @return \App\Entity\ReportQuestionQuery A secondary query class using the current class as primary query
+     */
+    public function useReportQuestionQuery($relationAlias = null, $joinType = Criteria::INNER_JOIN)
+    {
+        return $this
+            ->joinReportQuestion($relationAlias, $joinType)
+            ->useQuery($relationAlias ? $relationAlias : 'ReportQuestion', '\App\Entity\ReportQuestionQuery');
     }
 
     /**

@@ -1,0 +1,10 @@
+{% if is_granted("ROLE_ADMINISTRATOR") %}
+    <h2>administration</h2>
+
+    <ul>
+        <li><a href="{{ path('administrator_moderatorCandidates') }}">moderator candidates ({{ static_call('App\\Entity\\UserQuery', 'getModeratorCandidatesCount', []) }})</a></li>
+        <li><a href="{{ path('administrator_moderators') }}">moderator list</a></li>
+        <li><a href="{{ path('administrator_administrators') }}">administrator list</a></li>
+        <li><a href="{{ path('administrator_problematicUsers') }}">problematic users ({{ static_call('App\\Entity\\UserQuery', 'getProblematicUsersCount', []) }})</a></li>
+    </ul>
+{% endif %}

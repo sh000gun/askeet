@@ -4,12 +4,9 @@ namespace App\Entity;
 
 use App\Entity\Base\Relevancy as BaseRelevancy;
 use Propel\Runtime\Propel;
-use App\Entity\Answer;
 
 /**
  * Skeleton subclass for representing a row from the 'ask_relevancy' table.
- *
- *
  *
  * You should add additional methods to this class to meet the
  * application requirements.  This class will only be generated as
@@ -17,35 +14,28 @@ use App\Entity\Answer;
  */
 class Relevancy extends BaseRelevancy
 {
-  public function save($con = null)
-  {
-    $con = Propel::getConnection();
-
-    try
+    public function save($con = null)
     {
-      $con->beginTransaction();
+        $con = Propel::getConnection();
 
-      $this->doSave($con);
+        try {
+            $con->beginTransaction();
 
-      // update relevrancy in answer table
-      $answer = $this->getAnswer();
-      if ($this->getScore() == 1)
-      {
-        $answer->setRelevancyUp($answer->getRelevancyUp() + 1);
-      }
-      else
-      {
+            $this->doSave($con);
 
-        $answer->setRelevancyDown($answer->getRelevancyDown() + 1);
-      }
-      $answer->save($con);
+            // update relevrancy in answer table
+            $answer = $this->getAnswer();
+            if (1 == $this->getScore()) {
+                $answer->setRelevancyUp($answer->getRelevancyUp() + 1);
+            } else {
+                $answer->setRelevancyDown($answer->getRelevancyDown() + 1);
+            }
+            $answer->save($con);
 
-      $con->commit();
+            $con->commit();
+        } catch (Exception $e) {
+            $con->rollback();
+            throw $e;
+        }
     }
-    catch (Exception $e)
-    {
-      $con->rollback();
-      throw $e;
-    }
-  }
 }

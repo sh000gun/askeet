@@ -23,6 +23,9 @@
   {{ question.htmlBody|raw }}
 </div>
 
+{% include 'question/_options.html.twig' %}
+<br />
+
 <div id="answers">
   {% for answer in question.answers  %}
     <div class="answer">

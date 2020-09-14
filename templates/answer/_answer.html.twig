@@ -4,5 +4,9 @@ posted by <a href="{{ path('user_show', {nickname: answer.user.nickname}) }}">{{
 <div>        
   {{ answer.body }}
 </div>
+<div class="options"> 
+    {% include 'answer/_options.html.twig' %}
+     {% include 'moderator/_answer_options.html.twig' %}
+</div>
 
 <br />

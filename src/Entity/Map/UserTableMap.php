@@ -58,7 +58,7 @@ class UserTableMap extends TableMap
     /**
      * The total number of columns
      */
-    const NUM_COLUMNS = 10;
+    const NUM_COLUMNS = 13;
 
     /**
      * The number of lazy-loaded columns
@@ -68,7 +68,7 @@ class UserTableMap extends TableMap
     /**
      * The number of columns to hydrate (NUM_COLUMNS - NUM_LAZY_LOAD_COLUMNS)
      */
-    const NUM_HYDRATE_COLUMNS = 10;
+    const NUM_HYDRATE_COLUMNS = 13;
 
     /**
      * the column name for the id field
@@ -116,6 +116,21 @@ class UserTableMap extends TableMap
     const COL_HAS_PAYPAL = 'ask_user.has_paypal';
 
     /**
+     * the column name for the is_administrator field
+     */
+    const COL_IS_ADMINISTRATOR = 'ask_user.is_administrator';
+
+    /**
+     * the column name for the is_moderator field
+     */
+    const COL_IS_MODERATOR = 'ask_user.is_moderator';
+
+    /**
+     * the column name for the deletions field
+     */
+    const COL_DELETIONS = 'ask_user.deletions';
+
+    /**
      * the column name for the updated_at field
      */
     const COL_UPDATED_AT = 'ask_user.updated_at';
@@ -132,11 +147,11 @@ class UserTableMap extends TableMap
      * e.g. self::$fieldNames[self::TYPE_PHPNAME][0] = 'Id'
      */
     protected static $fieldNames = array (
-        self::TYPE_PHPNAME       => array('Id', 'Nickname', 'FirstName', 'LastName', 'CreatedAt', 'Email', 'Sha1Password', 'Salt', 'HasPaypal', 'UpdatedAt', ),
-        self::TYPE_CAMELNAME     => array('id', 'nickname', 'firstName', 'lastName', 'createdAt', 'email', 'sha1Password', 'salt', 'hasPaypal', 'updatedAt', ),
-        self::TYPE_COLNAME       => array(UserTableMap::COL_ID, UserTableMap::COL_NICKNAME, UserTableMap::COL_FIRST_NAME, UserTableMap::COL_LAST_NAME, UserTableMap::COL_CREATED_AT, UserTableMap::COL_EMAIL, UserTableMap::COL_SHA1_PASSWORD, UserTableMap::COL_SALT, UserTableMap::COL_HAS_PAYPAL, UserTableMap::COL_UPDATED_AT, ),
-        self::TYPE_FIELDNAME     => array('id', 'nickname', 'first_name', 'last_name', 'created_at', 'email', 'sha1_password', 'salt', 'has_paypal', 'updated_at', ),
-        self::TYPE_NUM           => array(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, )
+        self::TYPE_PHPNAME       => array('Id', 'Nickname', 'FirstName', 'LastName', 'CreatedAt', 'Email', 'Sha1Password', 'Salt', 'HasPaypal', 'IsAdministrator', 'IsModerator', 'Deletions', 'UpdatedAt', ),
+        self::TYPE_CAMELNAME     => array('id', 'nickname', 'firstName', 'lastName', 'createdAt', 'email', 'sha1Password', 'salt', 'hasPaypal', 'isAdministrator', 'isModerator', 'deletions', 'updatedAt', ),
+        self::TYPE_COLNAME       => array(UserTableMap::COL_ID, UserTableMap::COL_NICKNAME, UserTableMap::COL_FIRST_NAME, UserTableMap::COL_LAST_NAME, UserTableMap::COL_CREATED_AT, UserTableMap::COL_EMAIL, UserTableMap::COL_SHA1_PASSWORD, UserTableMap::COL_SALT, UserTableMap::COL_HAS_PAYPAL, UserTableMap::COL_IS_ADMINISTRATOR, UserTableMap::COL_IS_MODERATOR, UserTableMap::COL_DELETIONS, UserTableMap::COL_UPDATED_AT, ),
+        self::TYPE_FIELDNAME     => array('id', 'nickname', 'first_name', 'last_name', 'created_at', 'email', 'sha1_password', 'salt', 'has_paypal', 'is_administrator', 'is_moderator', 'deletions', 'updated_at', ),
+        self::TYPE_NUM           => array(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, )
     );
 
     /**
@@ -146,11 +161,11 @@ class UserTableMap extends TableMap
      * e.g. self::$fieldKeys[self::TYPE_PHPNAME]['Id'] = 0
      */
     protected static $fieldKeys = array (
-        self::TYPE_PHPNAME       => array('Id' => 0, 'Nickname' => 1, 'FirstName' => 2, 'LastName' => 3, 'CreatedAt' => 4, 'Email' => 5, 'Sha1Password' => 6, 'Salt' => 7, 'HasPaypal' => 8, 'UpdatedAt' => 9, ),
-        self::TYPE_CAMELNAME     => array('id' => 0, 'nickname' => 1, 'firstName' => 2, 'lastName' => 3, 'createdAt' => 4, 'email' => 5, 'sha1Password' => 6, 'salt' => 7, 'hasPaypal' => 8, 'updatedAt' => 9, ),
-        self::TYPE_COLNAME       => array(UserTableMap::COL_ID => 0, UserTableMap::COL_NICKNAME => 1, UserTableMap::COL_FIRST_NAME => 2, UserTableMap::COL_LAST_NAME => 3, UserTableMap::COL_CREATED_AT => 4, UserTableMap::COL_EMAIL => 5, UserTableMap::COL_SHA1_PASSWORD => 6, UserTableMap::COL_SALT => 7, UserTableMap::COL_HAS_PAYPAL => 8, UserTableMap::COL_UPDATED_AT => 9, ),
-        self::TYPE_FIELDNAME     => array('id' => 0, 'nickname' => 1, 'first_name' => 2, 'last_name' => 3, 'created_at' => 4, 'email' => 5, 'sha1_password' => 6, 'salt' => 7, 'has_paypal' => 8, 'updated_at' => 9, ),
-        self::TYPE_NUM           => array(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, )
+        self::TYPE_PHPNAME       => array('Id' => 0, 'Nickname' => 1, 'FirstName' => 2, 'LastName' => 3, 'CreatedAt' => 4, 'Email' => 5, 'Sha1Password' => 6, 'Salt' => 7, 'HasPaypal' => 8, 'IsAdministrator' => 9, 'IsModerator' => 10, 'Deletions' => 11, 'UpdatedAt' => 12, ),
+        self::TYPE_CAMELNAME     => array('id' => 0, 'nickname' => 1, 'firstName' => 2, 'lastName' => 3, 'createdAt' => 4, 'email' => 5, 'sha1Password' => 6, 'salt' => 7, 'hasPaypal' => 8, 'isAdministrator' => 9, 'isModerator' => 10, 'deletions' => 11, 'updatedAt' => 12, ),
+        self::TYPE_COLNAME       => array(UserTableMap::COL_ID => 0, UserTableMap::COL_NICKNAME => 1, UserTableMap::COL_FIRST_NAME => 2, UserTableMap::COL_LAST_NAME => 3, UserTableMap::COL_CREATED_AT => 4, UserTableMap::COL_EMAIL => 5, UserTableMap::COL_SHA1_PASSWORD => 6, UserTableMap::COL_SALT => 7, UserTableMap::COL_HAS_PAYPAL => 8, UserTableMap::COL_IS_ADMINISTRATOR => 9, UserTableMap::COL_IS_MODERATOR => 10, UserTableMap::COL_DELETIONS => 11, UserTableMap::COL_UPDATED_AT => 12, ),
+        self::TYPE_FIELDNAME     => array('id' => 0, 'nickname' => 1, 'first_name' => 2, 'last_name' => 3, 'created_at' => 4, 'email' => 5, 'sha1_password' => 6, 'salt' => 7, 'has_paypal' => 8, 'is_administrator' => 9, 'is_moderator' => 10, 'deletions' => 11, 'updated_at' => 12, ),
+        self::TYPE_NUM           => array(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, )
     );
 
     /**
@@ -179,6 +194,9 @@ class UserTableMap extends TableMap
         $this->addColumn('sha1_password', 'Sha1Password', 'VARCHAR', false, 40, null);
         $this->addColumn('salt', 'Salt', 'VARCHAR', false, 32, null);
         $this->addColumn('has_paypal', 'HasPaypal', 'BOOLEAN', false, 1, false);
+        $this->addColumn('is_administrator', 'IsAdministrator', 'BOOLEAN', false, 1, false);
+        $this->addColumn('is_moderator', 'IsModerator', 'TINYINT', false, null, 0);
+        $this->addColumn('deletions', 'Deletions', 'INTEGER', false, null, 0);
         $this->addColumn('updated_at', 'UpdatedAt', 'TIMESTAMP', false, null, null);
     } // initialize()
 
@@ -193,35 +211,49 @@ class UserTableMap extends TableMap
     0 => ':user_id',
     1 => ':id',
   ),
-), null, null, 'Questions', false);
+), 'CASCADE', null, 'Questions', false);
         $this->addRelation('Answer', '\\App\\Entity\\Answer', RelationMap::ONE_TO_MANY, array (
   0 =>
   array (
     0 => ':user_id',
     1 => ':id',
   ),
-), null, null, 'Answers', false);
+), 'CASCADE', null, 'Answers', false);
         $this->addRelation('Interest', '\\App\\Entity\\Interest', RelationMap::ONE_TO_MANY, array (
   0 =>
   array (
     0 => ':user_id',
     1 => ':id',
   ),
-), null, null, 'Interests', false);
+), 'CASCADE', null, 'Interests', false);
         $this->addRelation('Relevancy', '\\App\\Entity\\Relevancy', RelationMap::ONE_TO_MANY, array (
   0 =>
   array (
     0 => ':user_id',
     1 => ':id',
   ),
-), null, null, 'Relevancies', false);
+), 'CASCADE', null, 'Relevancies', false);
         $this->addRelation('QuestionTag', '\\App\\Entity\\QuestionTag', RelationMap::ONE_TO_MANY, array (
   0 =>
   array (
     0 => ':user_id',
     1 => ':id',
   ),
-), null, null, 'QuestionTags', false);
+), 'CASCADE', null, 'QuestionTags', false);
+        $this->addRelation('ReportQuestion', '\\App\\Entity\\ReportQuestion', RelationMap::ONE_TO_MANY, array (
+  0 =>
+  array (
+    0 => ':user_id',
+    1 => ':id',
+  ),
+), 'CASCADE', null, 'ReportQuestions', false);
+        $this->addRelation('ReportAnswer', '\\App\\Entity\\ReportAnswer', RelationMap::ONE_TO_MANY, array (
+  0 =>
+  array (
+    0 => ':user_id',
+    1 => ':id',
+  ),
+), 'CASCADE', null, 'ReportAnswers', false);
     } // buildRelations()
 
     /**
@@ -236,6 +268,21 @@ class UserTableMap extends TableMap
             'timestampable' => array('create_column' => 'created_at', 'update_column' => 'updated_at', 'disable_created_at' => 'false', 'disable_updated_at' => 'false', ),
         );
     } // getBehaviors()
+    /**
+     * Method to invalidate the instance pool of all tables related to ask_user     * by a foreign key with ON DELETE CASCADE
+     */
+    public static function clearRelatedInstancePool()
+    {
+        // Invalidate objects in related instance pools,
+        // since one or more of them may be deleted by ON DELETE CASCADE/SETNULL rule.
+        QuestionTableMap::clearInstancePool();
+        AnswerTableMap::clearInstancePool();
+        InterestTableMap::clearInstancePool();
+        RelevancyTableMap::clearInstancePool();
+        QuestionTagTableMap::clearInstancePool();
+        ReportQuestionTableMap::clearInstancePool();
+        ReportAnswerTableMap::clearInstancePool();
+    }
 
     /**
      * Retrieves a string version of the primary key from the DB resultset row that can be used to uniquely identify a row in this table.
@@ -387,6 +434,9 @@ class UserTableMap extends TableMap
             $criteria->addSelectColumn(UserTableMap::COL_SHA1_PASSWORD);
             $criteria->addSelectColumn(UserTableMap::COL_SALT);
             $criteria->addSelectColumn(UserTableMap::COL_HAS_PAYPAL);
+            $criteria->addSelectColumn(UserTableMap::COL_IS_ADMINISTRATOR);
+            $criteria->addSelectColumn(UserTableMap::COL_IS_MODERATOR);
+            $criteria->addSelectColumn(UserTableMap::COL_DELETIONS);
             $criteria->addSelectColumn(UserTableMap::COL_UPDATED_AT);
         } else {
             $criteria->addSelectColumn($alias . '.id');
@@ -398,6 +448,9 @@ class UserTableMap extends TableMap
             $criteria->addSelectColumn($alias . '.sha1_password');
             $criteria->addSelectColumn($alias . '.salt');
             $criteria->addSelectColumn($alias . '.has_paypal');
+            $criteria->addSelectColumn($alias . '.is_administrator');
+            $criteria->addSelectColumn($alias . '.is_moderator');
+            $criteria->addSelectColumn($alias . '.deletions');
             $criteria->addSelectColumn($alias . '.updated_at');
         }
     }

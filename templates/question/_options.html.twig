@@ -1,0 +1,8 @@
+    {% if is_granted('IS_AUTHENTICATED_FULLY') %}
+        {% if static_call('App\\Entity\\ReportQuestionQuery', 'isQuestionReportedByUser', [question.id, app.user.id]) %}
+            [reported]
+        {%  else %}
+            <a id="{{ 'report_to_moderator' ~ question.id }}" href="" data-question="{{ question.id }}">[report to moderator]</a>
+        {% endif %}
+    {% endif %}
+

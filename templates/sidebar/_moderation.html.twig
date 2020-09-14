@@ -1,0 +1,9 @@
+{% if is_granted("ROLE_MODERATOR") %}
+    <h2>moderation</h2>
+
+    <ul>
+        <li><a id="'moderator_reportedQuestions" href="{{ path('moderator_reportedQuestions') }}">reported questions ({{ static_call('App\\Entity\\QuestionQuery', 'getReportCount', []) }})</a></li>
+        <li><a href="{{ path('moderator_reportedAnswers') }}">reported answers ({{ static_call('App\\Entity\\AnswerQuery', 'getReportCount', []) }})</a></li>
+        <li><a href="{{ path('moderator_unpopularTags') }}">unpopular tags</a></li>
+    </ul>
+{% endif %}

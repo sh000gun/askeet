@@ -46,7 +46,9 @@
             </div>
  
             <div id="content_bar">
-                {% include '_sidebar.html.twig' %}
+                {% include 'sidebar/_sidebar.html.twig' %}
+                {% include 'sidebar/_moderation.html.twig' %}
+                {% include 'sidebar/_administration.html.twig' %}
                 {% block tag %}{% endblock %}
                 <div class="verticalalign"></div>
             </div>
@@ -58,7 +60,9 @@
           <script src="{{ asset('js/login.js') }}"></script> 
           <script src="{{ asset('js/answer.js') }}"></script>
           <script src="{{ asset('js/tag.js') }}"></script>
-          <script src="{{ asset('js/user_interested.js') }}"></script>
+          <script src="{{ asset('js/user.js') }}"></script>
+          <script src="{{ asset('js/moderator.js') }}"></script>
+          <script src="{{ asset('js/administrator.js') }}"></script>
         {% endblock %}
 
     </body>

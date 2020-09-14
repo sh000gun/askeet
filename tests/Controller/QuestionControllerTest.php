@@ -25,9 +25,9 @@ class QuestionControllerTest extends WebTestCase
         $this->assertStringContainsString('Nickname', $client->getResponse()->getContent());
         $crawler = $client->submitForm('sign in', [
             'login[nickname]' => 'fabpot',
-            'login[password]' => 'symfony'
+            'login[password]' => 'symfony',
         ]);
         $crawler = $client->followRedirect();
         $this->assertStringContainsString('fabpot profile', $client->getResponse()->getContent());
     }
-}   
+}

@@ -2,14 +2,10 @@
 
 namespace App\Entity;
 
-use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
-
 use App\Entity\Base\QuestionQuery as BaseQuestionQuery;
 
 /**
  * Skeleton subclass for performing query and update operations on the 'ask_question' table.
- *
- *
  *
  * You should add additional methods to this class to meet the
  * application requirements.  This class will only be generated as
@@ -26,7 +22,6 @@ class QuestionQuery extends BaseQuestionQuery
         }
 
         return $query;
-
     }
 
     public static function getHomepagePager($page, $maxPage = 2, $tag = null)
@@ -39,12 +34,12 @@ class QuestionQuery extends BaseQuestionQuery
         return $query->paginate($page, $maxPage);
     }
 
-  public static function getQuestionFromTitle($title)
-  {
-    return QuestionQuery::create()
+    public static function getQuestionFromTitle($title)
+    {
+        return QuestionQuery::create()
         ->filterByStrippedTitle($title)
         ->findOne();
-  }
+    }
 
     public static function getRecentPager($page, $maxPage = 2, $tag = null)
     {
@@ -58,12 +53,33 @@ class QuestionQuery extends BaseQuestionQuery
 
     public static function getPopularQuestions($max, $tag = null)
     {
-
         $query = QuestionQuery::create()
             ->orderByCreatedAt('desc')
             ->limit($max);
         $query = self:: addPermanentTagToCriteria($query, $tag);
 
         return $query->find();
+    }
+
+    public static function getReportCount()
+    {
+        return QuestionQuery::create()
+            ->where('Question.Reports > ?', 0)
+            ->count();
+    }
+
+    public static function getReportPager()
+    {
+        $query = QuestionQuery::create()
+             ->where('Question.Reports > ?', 0);
+
+        return $query->paginate();
+    }
+
+    public static function deleteQuestion($questionId)
+    {
+        return QuestionQuery::create()
+            ->filterById($questionId)
+            ->delete();
     }
 }

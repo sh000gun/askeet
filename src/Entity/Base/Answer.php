@@ -11,10 +11,13 @@ use App\Entity\Question as ChildQuestion;
 use App\Entity\QuestionQuery as ChildQuestionQuery;
 use App\Entity\Relevancy as ChildRelevancy;
 use App\Entity\RelevancyQuery as ChildRelevancyQuery;
+use App\Entity\ReportAnswer as ChildReportAnswer;
+use App\Entity\ReportAnswerQuery as ChildReportAnswerQuery;
 use App\Entity\User as ChildUser;
 use App\Entity\UserQuery as ChildUserQuery;
 use App\Entity\Map\AnswerTableMap;
 use App\Entity\Map\RelevancyTableMap;
+use App\Entity\Map\ReportAnswerTableMap;
 use Propel\Runtime\Propel;
 use Propel\Runtime\ActiveQuery\Criteria;
 use Propel\Runtime\ActiveQuery\ModelCriteria;
@@ -122,6 +125,14 @@ abstract class Answer implements ActiveRecordInterface
     protected $relevancy_down;
 
     /**
+     * The value for the reports field.
+     *
+     * Note: this column has a database default value of: 0
+     * @var        int
+     */
+    protected $reports;
+
+    /**
      * The value for the updated_at field.
      *
      * @var        DateTime
@@ -145,6 +156,12 @@ abstract class Answer implements ActiveRecordInterface
     protected $collRelevanciesPartial;
 
     /**
+     * @var        ObjectCollection|ChildReportAnswer[] Collection to store aggregation of ChildReportAnswer objects.
+     */
+    protected $collReportAnswers;
+    protected $collReportAnswersPartial;
+
+    /**
      * Flag to prevent endless save loop, if this object is referenced
      * by another object which falls in this transaction.
      *
@@ -159,6 +176,12 @@ abstract class Answer implements ActiveRecordInterface
     protected $relevanciesScheduledForDeletion = null;
 
     /**
+     * An array of objects scheduled for deletion.
+     * @var ObjectCollection|ChildReportAnswer[]
+     */
+    protected $reportAnswersScheduledForDeletion = null;
+
+    /**
      * Applies default values to this object.
      * This method should be called from the object's constructor (or
      * equivalent initialization method).
@@ -168,6 +191,7 @@ abstract class Answer implements ActiveRecordInterface
     {
         $this->relevancy_up = 0;
         $this->relevancy_down = 0;
+        $this->reports = 0;
     }
 
     /**
@@ -478,6 +502,16 @@ abstract class Answer implements ActiveRecordInterface
     }
 
     /**
+     * Get the [reports] column value.
+     *
+     * @return int
+     */
+    public function getReports()
+    {
+        return $this->reports;
+    }
+
+    /**
      * Get the [optionally formatted] temporal [updated_at] column value.
      *
      *
@@ -646,6 +680,26 @@ abstract class Answer implements ActiveRecordInterface
     } // setRelevancyDown()
 
     /**
+     * Set the value of [reports] column.
+     *
+     * @param int $v new value
+     * @return $this|\App\Entity\Answer The current object (for fluent API support)
+     */
+    public function setReports($v)
+    {
+        if ($v !== null) {
+            $v = (int) $v;
+        }
+
+        if ($this->reports !== $v) {
+            $this->reports = $v;
+            $this->modifiedColumns[AnswerTableMap::COL_REPORTS] = true;
+        }
+
+        return $this;
+    } // setReports()
+
+    /**
      * Sets the value of [updated_at] column to a normalized version of the date/time value specified.
      *
      * @param  mixed $v string, integer (timestamp), or \DateTimeInterface value.
@@ -680,6 +734,10 @@ abstract class Answer implements ActiveRecordInterface
             }
 
             if ($this->relevancy_down !== 0) {
+                return false;
+            }
+
+            if ($this->reports !== 0) {
                 return false;
             }
 
@@ -733,7 +791,10 @@ abstract class Answer implements ActiveRecordInterface
             $col = $row[TableMap::TYPE_NUM == $indexType ? 6 + $startcol : AnswerTableMap::translateFieldName('RelevancyDown', TableMap::TYPE_PHPNAME, $indexType)];
             $this->relevancy_down = (null !== $col) ? (int) $col : null;
 
-            $col = $row[TableMap::TYPE_NUM == $indexType ? 7 + $startcol : AnswerTableMap::translateFieldName('UpdatedAt', TableMap::TYPE_PHPNAME, $indexType)];
+            $col = $row[TableMap::TYPE_NUM == $indexType ? 7 + $startcol : AnswerTableMap::translateFieldName('Reports', TableMap::TYPE_PHPNAME, $indexType)];
+            $this->reports = (null !== $col) ? (int) $col : null;
+
+            $col = $row[TableMap::TYPE_NUM == $indexType ? 8 + $startcol : AnswerTableMap::translateFieldName('UpdatedAt', TableMap::TYPE_PHPNAME, $indexType)];
             if ($col === '0000-00-00 00:00:00') {
                 $col = null;
             }
@@ -746,7 +807,7 @@ abstract class Answer implements ActiveRecordInterface
                 $this->ensureConsistency();
             }
 
-            return $startcol + 8; // 8 = AnswerTableMap::NUM_HYDRATE_COLUMNS.
+            return $startcol + 9; // 9 = AnswerTableMap::NUM_HYDRATE_COLUMNS.
 
         } catch (Exception $e) {
             throw new PropelException(sprintf('Error populating %s object', '\\App\\Entity\\Answer'), 0, $e);
@@ -816,6 +877,8 @@ abstract class Answer implements ActiveRecordInterface
             $this->aQuestion = null;
             $this->aUser = null;
             $this->collRelevancies = null;
+
+            $this->collReportAnswers = null;
 
         } // if (deep)
     }
@@ -980,6 +1043,23 @@ abstract class Answer implements ActiveRecordInterface
                 }
             }
 
+            if ($this->reportAnswersScheduledForDeletion !== null) {
+                if (!$this->reportAnswersScheduledForDeletion->isEmpty()) {
+                    \App\Entity\ReportAnswerQuery::create()
+                        ->filterByPrimaryKeys($this->reportAnswersScheduledForDeletion->getPrimaryKeys(false))
+                        ->delete($con);
+                    $this->reportAnswersScheduledForDeletion = null;
+                }
+            }
+
+            if ($this->collReportAnswers !== null) {
+                foreach ($this->collReportAnswers as $referrerFK) {
+                    if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
+                        $affectedRows += $referrerFK->save($con);
+                    }
+                }
+            }
+
             $this->alreadyInSave = false;
 
         }
@@ -1027,6 +1107,9 @@ abstract class Answer implements ActiveRecordInterface
         if ($this->isColumnModified(AnswerTableMap::COL_RELEVANCY_DOWN)) {
             $modifiedColumns[':p' . $index++]  = 'relevancy_down';
         }
+        if ($this->isColumnModified(AnswerTableMap::COL_REPORTS)) {
+            $modifiedColumns[':p' . $index++]  = 'reports';
+        }
         if ($this->isColumnModified(AnswerTableMap::COL_UPDATED_AT)) {
             $modifiedColumns[':p' . $index++]  = 'updated_at';
         }
@@ -1061,6 +1144,9 @@ abstract class Answer implements ActiveRecordInterface
                         break;
                     case 'relevancy_down':
                         $stmt->bindValue($identifier, $this->relevancy_down, PDO::PARAM_INT);
+                        break;
+                    case 'reports':
+                        $stmt->bindValue($identifier, $this->reports, PDO::PARAM_INT);
                         break;
                     case 'updated_at':
                         $stmt->bindValue($identifier, $this->updated_at ? $this->updated_at->format("Y-m-d H:i:s.u") : null, PDO::PARAM_STR);
@@ -1149,6 +1235,9 @@ abstract class Answer implements ActiveRecordInterface
                 return $this->getRelevancyDown();
                 break;
             case 7:
+                return $this->getReports();
+                break;
+            case 8:
                 return $this->getUpdatedAt();
                 break;
             default:
@@ -1188,14 +1277,15 @@ abstract class Answer implements ActiveRecordInterface
             $keys[4] => $this->getCreatedAt(),
             $keys[5] => $this->getRelevancyUp(),
             $keys[6] => $this->getRelevancyDown(),
-            $keys[7] => $this->getUpdatedAt(),
+            $keys[7] => $this->getReports(),
+            $keys[8] => $this->getUpdatedAt(),
         );
         if ($result[$keys[4]] instanceof \DateTimeInterface) {
             $result[$keys[4]] = $result[$keys[4]]->format('c');
         }
 
-        if ($result[$keys[7]] instanceof \DateTimeInterface) {
-            $result[$keys[7]] = $result[$keys[7]]->format('c');
+        if ($result[$keys[8]] instanceof \DateTimeInterface) {
+            $result[$keys[8]] = $result[$keys[8]]->format('c');
         }
 
         $virtualColumns = $this->virtualColumns;
@@ -1248,6 +1338,21 @@ abstract class Answer implements ActiveRecordInterface
                 }
 
                 $result[$key] = $this->collRelevancies->toArray(null, false, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
+            }
+            if (null !== $this->collReportAnswers) {
+
+                switch ($keyType) {
+                    case TableMap::TYPE_CAMELNAME:
+                        $key = 'reportAnswers';
+                        break;
+                    case TableMap::TYPE_FIELDNAME:
+                        $key = 'ask_report_answers';
+                        break;
+                    default:
+                        $key = 'ReportAnswers';
+                }
+
+                $result[$key] = $this->collReportAnswers->toArray(null, false, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
             }
         }
 
@@ -1305,6 +1410,9 @@ abstract class Answer implements ActiveRecordInterface
                 $this->setRelevancyDown($value);
                 break;
             case 7:
+                $this->setReports($value);
+                break;
+            case 8:
                 $this->setUpdatedAt($value);
                 break;
         } // switch()
@@ -1355,7 +1463,10 @@ abstract class Answer implements ActiveRecordInterface
             $this->setRelevancyDown($arr[$keys[6]]);
         }
         if (array_key_exists($keys[7], $arr)) {
-            $this->setUpdatedAt($arr[$keys[7]]);
+            $this->setReports($arr[$keys[7]]);
+        }
+        if (array_key_exists($keys[8], $arr)) {
+            $this->setUpdatedAt($arr[$keys[8]]);
         }
     }
 
@@ -1418,6 +1529,9 @@ abstract class Answer implements ActiveRecordInterface
         }
         if ($this->isColumnModified(AnswerTableMap::COL_RELEVANCY_DOWN)) {
             $criteria->add(AnswerTableMap::COL_RELEVANCY_DOWN, $this->relevancy_down);
+        }
+        if ($this->isColumnModified(AnswerTableMap::COL_REPORTS)) {
+            $criteria->add(AnswerTableMap::COL_REPORTS, $this->reports);
         }
         if ($this->isColumnModified(AnswerTableMap::COL_UPDATED_AT)) {
             $criteria->add(AnswerTableMap::COL_UPDATED_AT, $this->updated_at);
@@ -1514,6 +1628,7 @@ abstract class Answer implements ActiveRecordInterface
         $copyObj->setCreatedAt($this->getCreatedAt());
         $copyObj->setRelevancyUp($this->getRelevancyUp());
         $copyObj->setRelevancyDown($this->getRelevancyDown());
+        $copyObj->setReports($this->getReports());
         $copyObj->setUpdatedAt($this->getUpdatedAt());
 
         if ($deepCopy) {
@@ -1524,6 +1639,12 @@ abstract class Answer implements ActiveRecordInterface
             foreach ($this->getRelevancies() as $relObj) {
                 if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
                     $copyObj->addRelevancy($relObj->copy($deepCopy));
+                }
+            }
+
+            foreach ($this->getReportAnswers() as $relObj) {
+                if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
+                    $copyObj->addReportAnswer($relObj->copy($deepCopy));
                 }
             }
 
@@ -1672,6 +1793,10 @@ abstract class Answer implements ActiveRecordInterface
     {
         if ('Relevancy' == $relationName) {
             $this->initRelevancies();
+            return;
+        }
+        if ('ReportAnswer' == $relationName) {
+            $this->initReportAnswers();
             return;
         }
     }
@@ -1930,6 +2055,259 @@ abstract class Answer implements ActiveRecordInterface
     }
 
     /**
+     * Clears out the collReportAnswers collection
+     *
+     * This does not modify the database; however, it will remove any associated objects, causing
+     * them to be refetched by subsequent calls to accessor method.
+     *
+     * @return void
+     * @see        addReportAnswers()
+     */
+    public function clearReportAnswers()
+    {
+        $this->collReportAnswers = null; // important to set this to NULL since that means it is uninitialized
+    }
+
+    /**
+     * Reset is the collReportAnswers collection loaded partially.
+     */
+    public function resetPartialReportAnswers($v = true)
+    {
+        $this->collReportAnswersPartial = $v;
+    }
+
+    /**
+     * Initializes the collReportAnswers collection.
+     *
+     * By default this just sets the collReportAnswers collection to an empty array (like clearcollReportAnswers());
+     * however, you may wish to override this method in your stub class to provide setting appropriate
+     * to your application -- for example, setting the initial array to the values stored in database.
+     *
+     * @param      boolean $overrideExisting If set to true, the method call initializes
+     *                                        the collection even if it is not empty
+     *
+     * @return void
+     */
+    public function initReportAnswers($overrideExisting = true)
+    {
+        if (null !== $this->collReportAnswers && !$overrideExisting) {
+            return;
+        }
+
+        $collectionClassName = ReportAnswerTableMap::getTableMap()->getCollectionClassName();
+
+        $this->collReportAnswers = new $collectionClassName;
+        $this->collReportAnswers->setModel('\App\Entity\ReportAnswer');
+    }
+
+    /**
+     * Gets an array of ChildReportAnswer objects which contain a foreign key that references this object.
+     *
+     * If the $criteria is not null, it is used to always fetch the results from the database.
+     * Otherwise the results are fetched from the database the first time, then cached.
+     * Next time the same method is called without $criteria, the cached collection is returned.
+     * If this ChildAnswer is new, it will return
+     * an empty collection or the current collection; the criteria is ignored on a new object.
+     *
+     * @param      Criteria $criteria optional Criteria object to narrow the query
+     * @param      ConnectionInterface $con optional connection object
+     * @return ObjectCollection|ChildReportAnswer[] List of ChildReportAnswer objects
+     * @throws PropelException
+     */
+    public function getReportAnswers(Criteria $criteria = null, ConnectionInterface $con = null)
+    {
+        $partial = $this->collReportAnswersPartial && !$this->isNew();
+        if (null === $this->collReportAnswers || null !== $criteria  || $partial) {
+            if ($this->isNew() && null === $this->collReportAnswers) {
+                // return empty collection
+                $this->initReportAnswers();
+            } else {
+                $collReportAnswers = ChildReportAnswerQuery::create(null, $criteria)
+                    ->filterByAnswer($this)
+                    ->find($con);
+
+                if (null !== $criteria) {
+                    if (false !== $this->collReportAnswersPartial && count($collReportAnswers)) {
+                        $this->initReportAnswers(false);
+
+                        foreach ($collReportAnswers as $obj) {
+                            if (false == $this->collReportAnswers->contains($obj)) {
+                                $this->collReportAnswers->append($obj);
+                            }
+                        }
+
+                        $this->collReportAnswersPartial = true;
+                    }
+
+                    return $collReportAnswers;
+                }
+
+                if ($partial && $this->collReportAnswers) {
+                    foreach ($this->collReportAnswers as $obj) {
+                        if ($obj->isNew()) {
+                            $collReportAnswers[] = $obj;
+                        }
+                    }
+                }
+
+                $this->collReportAnswers = $collReportAnswers;
+                $this->collReportAnswersPartial = false;
+            }
+        }
+
+        return $this->collReportAnswers;
+    }
+
+    /**
+     * Sets a collection of ChildReportAnswer objects related by a one-to-many relationship
+     * to the current object.
+     * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
+     * and new objects from the given Propel collection.
+     *
+     * @param      Collection $reportAnswers A Propel collection.
+     * @param      ConnectionInterface $con Optional connection object
+     * @return $this|ChildAnswer The current object (for fluent API support)
+     */
+    public function setReportAnswers(Collection $reportAnswers, ConnectionInterface $con = null)
+    {
+        /** @var ChildReportAnswer[] $reportAnswersToDelete */
+        $reportAnswersToDelete = $this->getReportAnswers(new Criteria(), $con)->diff($reportAnswers);
+
+
+        //since at least one column in the foreign key is at the same time a PK
+        //we can not just set a PK to NULL in the lines below. We have to store
+        //a backup of all values, so we are able to manipulate these items based on the onDelete value later.
+        $this->reportAnswersScheduledForDeletion = clone $reportAnswersToDelete;
+
+        foreach ($reportAnswersToDelete as $reportAnswerRemoved) {
+            $reportAnswerRemoved->setAnswer(null);
+        }
+
+        $this->collReportAnswers = null;
+        foreach ($reportAnswers as $reportAnswer) {
+            $this->addReportAnswer($reportAnswer);
+        }
+
+        $this->collReportAnswers = $reportAnswers;
+        $this->collReportAnswersPartial = false;
+
+        return $this;
+    }
+
+    /**
+     * Returns the number of related ReportAnswer objects.
+     *
+     * @param      Criteria $criteria
+     * @param      boolean $distinct
+     * @param      ConnectionInterface $con
+     * @return int             Count of related ReportAnswer objects.
+     * @throws PropelException
+     */
+    public function countReportAnswers(Criteria $criteria = null, $distinct = false, ConnectionInterface $con = null)
+    {
+        $partial = $this->collReportAnswersPartial && !$this->isNew();
+        if (null === $this->collReportAnswers || null !== $criteria || $partial) {
+            if ($this->isNew() && null === $this->collReportAnswers) {
+                return 0;
+            }
+
+            if ($partial && !$criteria) {
+                return count($this->getReportAnswers());
+            }
+
+            $query = ChildReportAnswerQuery::create(null, $criteria);
+            if ($distinct) {
+                $query->distinct();
+            }
+
+            return $query
+                ->filterByAnswer($this)
+                ->count($con);
+        }
+
+        return count($this->collReportAnswers);
+    }
+
+    /**
+     * Method called to associate a ChildReportAnswer object to this object
+     * through the ChildReportAnswer foreign key attribute.
+     *
+     * @param  ChildReportAnswer $l ChildReportAnswer
+     * @return $this|\App\Entity\Answer The current object (for fluent API support)
+     */
+    public function addReportAnswer(ChildReportAnswer $l)
+    {
+        if ($this->collReportAnswers === null) {
+            $this->initReportAnswers();
+            $this->collReportAnswersPartial = true;
+        }
+
+        if (!$this->collReportAnswers->contains($l)) {
+            $this->doAddReportAnswer($l);
+
+            if ($this->reportAnswersScheduledForDeletion and $this->reportAnswersScheduledForDeletion->contains($l)) {
+                $this->reportAnswersScheduledForDeletion->remove($this->reportAnswersScheduledForDeletion->search($l));
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param ChildReportAnswer $reportAnswer The ChildReportAnswer object to add.
+     */
+    protected function doAddReportAnswer(ChildReportAnswer $reportAnswer)
+    {
+        $this->collReportAnswers[]= $reportAnswer;
+        $reportAnswer->setAnswer($this);
+    }
+
+    /**
+     * @param  ChildReportAnswer $reportAnswer The ChildReportAnswer object to remove.
+     * @return $this|ChildAnswer The current object (for fluent API support)
+     */
+    public function removeReportAnswer(ChildReportAnswer $reportAnswer)
+    {
+        if ($this->getReportAnswers()->contains($reportAnswer)) {
+            $pos = $this->collReportAnswers->search($reportAnswer);
+            $this->collReportAnswers->remove($pos);
+            if (null === $this->reportAnswersScheduledForDeletion) {
+                $this->reportAnswersScheduledForDeletion = clone $this->collReportAnswers;
+                $this->reportAnswersScheduledForDeletion->clear();
+            }
+            $this->reportAnswersScheduledForDeletion[]= clone $reportAnswer;
+            $reportAnswer->setAnswer(null);
+        }
+
+        return $this;
+    }
+
+
+    /**
+     * If this collection has already been initialized with
+     * an identical criteria, it returns the collection.
+     * Otherwise if this Answer is new, it will return
+     * an empty collection; or if this Answer has previously
+     * been saved, it will retrieve related ReportAnswers from storage.
+     *
+     * This method is protected by default in order to keep the public
+     * api reasonable.  You can provide public methods for those you
+     * actually need in Answer.
+     *
+     * @param      Criteria $criteria optional Criteria object to narrow the query
+     * @param      ConnectionInterface $con optional connection object
+     * @param      string $joinBehavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return ObjectCollection|ChildReportAnswer[] List of ChildReportAnswer objects
+     */
+    public function getReportAnswersJoinUser(Criteria $criteria = null, ConnectionInterface $con = null, $joinBehavior = Criteria::LEFT_JOIN)
+    {
+        $query = ChildReportAnswerQuery::create(null, $criteria);
+        $query->joinWith('User', $joinBehavior);
+
+        return $this->getReportAnswers($query, $con);
+    }
+
+    /**
      * Clears the current object, sets all attributes to their default values and removes
      * outgoing references as well as back-references (from other objects to this one. Results probably in a database
      * change of those foreign objects when you call `save` there).
@@ -1949,6 +2327,7 @@ abstract class Answer implements ActiveRecordInterface
         $this->created_at = null;
         $this->relevancy_up = null;
         $this->relevancy_down = null;
+        $this->reports = null;
         $this->updated_at = null;
         $this->alreadyInSave = false;
         $this->clearAllReferences();
@@ -1974,9 +2353,15 @@ abstract class Answer implements ActiveRecordInterface
                     $o->clearAllReferences($deep);
                 }
             }
+            if ($this->collReportAnswers) {
+                foreach ($this->collReportAnswers as $o) {
+                    $o->clearAllReferences($deep);
+                }
+            }
         } // if ($deep)
 
         $this->collRelevancies = null;
+        $this->collReportAnswers = null;
         $this->aQuestion = null;
         $this->aUser = null;
     }

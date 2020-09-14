@@ -9,7 +9,7 @@
     <div class="answer">
       <h2><a href="{{ path('question_show', {stripped_title: answer.question.strippedTitle}) }}">{{ answer.getQuestion.getTitle }}</a></h2>
        {% include 'answer/_answer.html.twig' %}
-    </div>
+    </div>    
   {% endfor %}
 </div>
 

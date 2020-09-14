@@ -27,6 +27,7 @@ use Propel\Runtime\Exception\PropelException;
  * @method     ChildAnswerQuery orderByCreatedAt($order = Criteria::ASC) Order by the created_at column
  * @method     ChildAnswerQuery orderByRelevancyUp($order = Criteria::ASC) Order by the relevancy_up column
  * @method     ChildAnswerQuery orderByRelevancyDown($order = Criteria::ASC) Order by the relevancy_down column
+ * @method     ChildAnswerQuery orderByReports($order = Criteria::ASC) Order by the reports column
  * @method     ChildAnswerQuery orderByUpdatedAt($order = Criteria::ASC) Order by the updated_at column
  *
  * @method     ChildAnswerQuery groupById() Group by the id column
@@ -36,6 +37,7 @@ use Propel\Runtime\Exception\PropelException;
  * @method     ChildAnswerQuery groupByCreatedAt() Group by the created_at column
  * @method     ChildAnswerQuery groupByRelevancyUp() Group by the relevancy_up column
  * @method     ChildAnswerQuery groupByRelevancyDown() Group by the relevancy_down column
+ * @method     ChildAnswerQuery groupByReports() Group by the reports column
  * @method     ChildAnswerQuery groupByUpdatedAt() Group by the updated_at column
  *
  * @method     ChildAnswerQuery leftJoin($relation) Adds a LEFT JOIN clause to the query
@@ -76,7 +78,17 @@ use Propel\Runtime\Exception\PropelException;
  * @method     ChildAnswerQuery rightJoinWithRelevancy() Adds a RIGHT JOIN clause and with to the query using the Relevancy relation
  * @method     ChildAnswerQuery innerJoinWithRelevancy() Adds a INNER JOIN clause and with to the query using the Relevancy relation
  *
- * @method     \App\Entity\QuestionQuery|\App\Entity\UserQuery|\App\Entity\RelevancyQuery endUse() Finalizes a secondary criteria and merges it with its primary Criteria
+ * @method     ChildAnswerQuery leftJoinReportAnswer($relationAlias = null) Adds a LEFT JOIN clause to the query using the ReportAnswer relation
+ * @method     ChildAnswerQuery rightJoinReportAnswer($relationAlias = null) Adds a RIGHT JOIN clause to the query using the ReportAnswer relation
+ * @method     ChildAnswerQuery innerJoinReportAnswer($relationAlias = null) Adds a INNER JOIN clause to the query using the ReportAnswer relation
+ *
+ * @method     ChildAnswerQuery joinWithReportAnswer($joinType = Criteria::INNER_JOIN) Adds a join clause and with to the query using the ReportAnswer relation
+ *
+ * @method     ChildAnswerQuery leftJoinWithReportAnswer() Adds a LEFT JOIN clause and with to the query using the ReportAnswer relation
+ * @method     ChildAnswerQuery rightJoinWithReportAnswer() Adds a RIGHT JOIN clause and with to the query using the ReportAnswer relation
+ * @method     ChildAnswerQuery innerJoinWithReportAnswer() Adds a INNER JOIN clause and with to the query using the ReportAnswer relation
+ *
+ * @method     \App\Entity\QuestionQuery|\App\Entity\UserQuery|\App\Entity\RelevancyQuery|\App\Entity\ReportAnswerQuery endUse() Finalizes a secondary criteria and merges it with its primary Criteria
  *
  * @method     ChildAnswer findOne(ConnectionInterface $con = null) Return the first ChildAnswer matching the query
  * @method     ChildAnswer findOneOrCreate(ConnectionInterface $con = null) Return the first ChildAnswer matching the query, or a new ChildAnswer object populated from the query conditions when no match is found
@@ -88,6 +100,7 @@ use Propel\Runtime\Exception\PropelException;
  * @method     ChildAnswer findOneByCreatedAt(string $created_at) Return the first ChildAnswer filtered by the created_at column
  * @method     ChildAnswer findOneByRelevancyUp(int $relevancy_up) Return the first ChildAnswer filtered by the relevancy_up column
  * @method     ChildAnswer findOneByRelevancyDown(int $relevancy_down) Return the first ChildAnswer filtered by the relevancy_down column
+ * @method     ChildAnswer findOneByReports(int $reports) Return the first ChildAnswer filtered by the reports column
  * @method     ChildAnswer findOneByUpdatedAt(string $updated_at) Return the first ChildAnswer filtered by the updated_at column *
 
  * @method     ChildAnswer requirePk($key, ConnectionInterface $con = null) Return the ChildAnswer by primary key and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
@@ -100,6 +113,7 @@ use Propel\Runtime\Exception\PropelException;
  * @method     ChildAnswer requireOneByCreatedAt(string $created_at) Return the first ChildAnswer filtered by the created_at column and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
  * @method     ChildAnswer requireOneByRelevancyUp(int $relevancy_up) Return the first ChildAnswer filtered by the relevancy_up column and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
  * @method     ChildAnswer requireOneByRelevancyDown(int $relevancy_down) Return the first ChildAnswer filtered by the relevancy_down column and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
+ * @method     ChildAnswer requireOneByReports(int $reports) Return the first ChildAnswer filtered by the reports column and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
  * @method     ChildAnswer requireOneByUpdatedAt(string $updated_at) Return the first ChildAnswer filtered by the updated_at column and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
  *
  * @method     ChildAnswer[]|ObjectCollection find(ConnectionInterface $con = null) Return ChildAnswer objects based on current ModelCriteria
@@ -110,6 +124,7 @@ use Propel\Runtime\Exception\PropelException;
  * @method     ChildAnswer[]|ObjectCollection findByCreatedAt(string $created_at) Return ChildAnswer objects filtered by the created_at column
  * @method     ChildAnswer[]|ObjectCollection findByRelevancyUp(int $relevancy_up) Return ChildAnswer objects filtered by the relevancy_up column
  * @method     ChildAnswer[]|ObjectCollection findByRelevancyDown(int $relevancy_down) Return ChildAnswer objects filtered by the relevancy_down column
+ * @method     ChildAnswer[]|ObjectCollection findByReports(int $reports) Return ChildAnswer objects filtered by the reports column
  * @method     ChildAnswer[]|ObjectCollection findByUpdatedAt(string $updated_at) Return ChildAnswer objects filtered by the updated_at column
  * @method     ChildAnswer[]|\Propel\Runtime\Util\PropelModelPager paginate($page = 1, $maxPerPage = 10, ConnectionInterface $con = null) Issue a SELECT query based on the current ModelCriteria and uses a page and a maximum number of results per page to compute an offset and a limit
  *
@@ -209,7 +224,7 @@ abstract class AnswerQuery extends ModelCriteria
      */
     protected function findPkSimple($key, ConnectionInterface $con)
     {
-        $sql = 'SELECT id, question_id, user_id, body, created_at, relevancy_up, relevancy_down, updated_at FROM ask_answer WHERE id = :p0';
+        $sql = 'SELECT id, question_id, user_id, body, created_at, relevancy_up, relevancy_down, reports, updated_at FROM ask_answer WHERE id = :p0';
         try {
             $stmt = $con->prepare($sql);
             $stmt->bindValue(':p0', $key, PDO::PARAM_INT);
@@ -577,6 +592,47 @@ abstract class AnswerQuery extends ModelCriteria
     }
 
     /**
+     * Filter the query on the reports column
+     *
+     * Example usage:
+     * <code>
+     * $query->filterByReports(1234); // WHERE reports = 1234
+     * $query->filterByReports(array(12, 34)); // WHERE reports IN (12, 34)
+     * $query->filterByReports(array('min' => 12)); // WHERE reports > 12
+     * </code>
+     *
+     * @param     mixed $reports The value to use as filter.
+     *              Use scalar values for equality.
+     *              Use array values for in_array() equivalent.
+     *              Use associative array('min' => $minValue, 'max' => $maxValue) for intervals.
+     * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
+     *
+     * @return $this|ChildAnswerQuery The current query, for fluid interface
+     */
+    public function filterByReports($reports = null, $comparison = null)
+    {
+        if (is_array($reports)) {
+            $useMinMax = false;
+            if (isset($reports['min'])) {
+                $this->addUsingAlias(AnswerTableMap::COL_REPORTS, $reports['min'], Criteria::GREATER_EQUAL);
+                $useMinMax = true;
+            }
+            if (isset($reports['max'])) {
+                $this->addUsingAlias(AnswerTableMap::COL_REPORTS, $reports['max'], Criteria::LESS_EQUAL);
+                $useMinMax = true;
+            }
+            if ($useMinMax) {
+                return $this;
+            }
+            if (null === $comparison) {
+                $comparison = Criteria::IN;
+            }
+        }
+
+        return $this->addUsingAlias(AnswerTableMap::COL_REPORTS, $reports, $comparison);
+    }
+
+    /**
      * Filter the query on the updated_at column
      *
      * Example usage:
@@ -844,6 +900,79 @@ abstract class AnswerQuery extends ModelCriteria
         return $this
             ->joinRelevancy($relationAlias, $joinType)
             ->useQuery($relationAlias ? $relationAlias : 'Relevancy', '\App\Entity\RelevancyQuery');
+    }
+
+    /**
+     * Filter the query by a related \App\Entity\ReportAnswer object
+     *
+     * @param \App\Entity\ReportAnswer|ObjectCollection $reportAnswer the related object to use as filter
+     * @param string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
+     *
+     * @return ChildAnswerQuery The current query, for fluid interface
+     */
+    public function filterByReportAnswer($reportAnswer, $comparison = null)
+    {
+        if ($reportAnswer instanceof \App\Entity\ReportAnswer) {
+            return $this
+                ->addUsingAlias(AnswerTableMap::COL_ID, $reportAnswer->getAnswerId(), $comparison);
+        } elseif ($reportAnswer instanceof ObjectCollection) {
+            return $this
+                ->useReportAnswerQuery()
+                ->filterByPrimaryKeys($reportAnswer->getPrimaryKeys())
+                ->endUse();
+        } else {
+            throw new PropelException('filterByReportAnswer() only accepts arguments of type \App\Entity\ReportAnswer or Collection');
+        }
+    }
+
+    /**
+     * Adds a JOIN clause to the query using the ReportAnswer relation
+     *
+     * @param     string $relationAlias optional alias for the relation
+     * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
+     *
+     * @return $this|ChildAnswerQuery The current query, for fluid interface
+     */
+    public function joinReportAnswer($relationAlias = null, $joinType = Criteria::INNER_JOIN)
+    {
+        $tableMap = $this->getTableMap();
+        $relationMap = $tableMap->getRelation('ReportAnswer');
+
+        // create a ModelJoin object for this join
+        $join = new ModelJoin();
+        $join->setJoinType($joinType);
+        $join->setRelationMap($relationMap, $this->useAliasInSQL ? $this->getModelAlias() : null, $relationAlias);
+        if ($previousJoin = $this->getPreviousJoin()) {
+            $join->setPreviousJoin($previousJoin);
+        }
+
+        // add the ModelJoin to the current object
+        if ($relationAlias) {
+            $this->addAlias($relationAlias, $relationMap->getRightTable()->getName());
+            $this->addJoinObject($join, $relationAlias);
+        } else {
+            $this->addJoinObject($join, 'ReportAnswer');
+        }
+
+        return $this;
+    }
+
+    /**
+     * Use the ReportAnswer relation ReportAnswer object
+     *
+     * @see useQuery()
+     *
+     * @param     string $relationAlias optional alias for the relation,
+     *                                   to be used as main alias in the secondary query
+     * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
+     *
+     * @return \App\Entity\ReportAnswerQuery A secondary query class using the current class as primary query
+     */
+    public function useReportAnswerQuery($relationAlias = null, $joinType = Criteria::INNER_JOIN)
+    {
+        return $this
+            ->joinReportAnswer($relationAlias, $joinType)
+            ->useQuery($relationAlias ? $relationAlias : 'ReportAnswer', '\App\Entity\ReportAnswerQuery');
     }
 
     /**

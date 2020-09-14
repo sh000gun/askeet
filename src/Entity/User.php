@@ -2,15 +2,12 @@
 
 namespace App\Entity;
 
-use Symfony\Component\Security\Core\User\UserInterface;
-use Symfony\Component\Security\Core\Encoder\EncoderAwareInterface;
-
 use App\Entity\Base\User as BaseUser;
+use Symfony\Component\Security\Core\Encoder\EncoderAwareInterface;
+use Symfony\Component\Security\Core\User\UserInterface;
 
 /**
  * Skeleton subclass for representing a row from the 'ask_user' table.
- *
- *
  *
  * You should add additional methods to this class to meet the
  * application requirements.  This class will only be generated as
@@ -18,19 +15,19 @@ use App\Entity\Base\User as BaseUser;
  */
 class User extends BaseUser implements UserInterface, EncoderAwareInterface
 {
-  public function __toString()
-  {
-    return $this->getFirstName().' '.$this->getLastName();
-  }
+    public function __toString()
+    {
+        return $this->getFirstName().' '.$this->getLastName();
+    }
 
-  public function setPassword($password)
-  {
-    $salt = md5(rand(100000, 999999).$this->getNickname().$this->getEmail());
-    $this->setSalt($salt);
-    $this->setSha1Password(sha1($salt.$password));
+    public function setPassword($password)
+    {
+        $salt = md5(rand(100000, 999999).$this->getNickname().$this->getEmail());
+        $this->setSalt($salt);
+        $this->setSha1Password(sha1($salt.$password));
 
-     return $this;
-  }
+        return $this;
+    }
 
     public function isInterestedIn($question)
     {
@@ -44,7 +41,7 @@ class User extends BaseUser implements UserInterface, EncoderAwareInterface
     {
         return 'askeet_encoder'; // use the default encoder
     }
-  
+
     /**
      * A visual identifier that represents this user.
      *
@@ -62,6 +59,14 @@ class User extends BaseUser implements UserInterface, EncoderAwareInterface
     {
         // guarantee every user at least has ROLE_USER
         $roles[] = 'ROLE_SUBSCRIBER';
+
+        if ($this->getIsAdministrator()) {
+            array_push($roles, 'ROLE_ADMINISTRATOR');
+        }
+
+        if (2 == $this->getIsModerator()) {
+            array_push($roles, 'ROLE_MODERATOR');
+        }
 
         return array_unique($roles);
     }

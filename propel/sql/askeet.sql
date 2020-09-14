@@ -20,12 +20,14 @@ CREATE TABLE `ask_question`
     `interested_users` INTEGER DEFAULT 0,
     `stripped_title` VARCHAR(255),
     `html_body` TEXT,
+    `reports` INTEGER DEFAULT 0,
     PRIMARY KEY (`id`),
     UNIQUE INDEX `unique_stripped_title` (`stripped_title`),
     INDEX `ask_question_fi_c9f24d` (`user_id`),
     CONSTRAINT `ask_question_fk_c9f24d`
         FOREIGN KEY (`user_id`)
         REFERENCES `ask_user` (`id`)
+        ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
 -- ---------------------------------------------------------------------
@@ -43,16 +45,19 @@ CREATE TABLE `ask_answer`
     `created_at` DATETIME,
     `relevancy_up` INTEGER DEFAULT 0,
     `relevancy_down` INTEGER DEFAULT 0,
+    `reports` INTEGER DEFAULT 0,
     `updated_at` DATETIME,
     PRIMARY KEY (`id`),
     INDEX `ask_answer_fi_3a3644` (`question_id`),
     INDEX `ask_answer_fi_c9f24d` (`user_id`),
     CONSTRAINT `ask_answer_fk_3a3644`
         FOREIGN KEY (`question_id`)
-        REFERENCES `ask_question` (`id`),
+        REFERENCES `ask_question` (`id`)
+        ON DELETE CASCADE,
     CONSTRAINT `ask_answer_fk_c9f24d`
         FOREIGN KEY (`user_id`)
         REFERENCES `ask_user` (`id`)
+        ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
 -- ---------------------------------------------------------------------
@@ -72,6 +77,9 @@ CREATE TABLE `ask_user`
     `sha1_password` VARCHAR(40),
     `salt` VARCHAR(32),
     `has_paypal` TINYINT(1) DEFAULT 0,
+    `is_administrator` TINYINT(1) DEFAULT 0,
+    `is_moderator` TINYINT DEFAULT 0,
+    `deletions` INTEGER DEFAULT 0,
     `updated_at` DATETIME,
     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB;
@@ -92,10 +100,12 @@ CREATE TABLE `ask_interest`
     INDEX `ask_interest_fi_c9f24d` (`user_id`),
     CONSTRAINT `ask_interest_fk_3a3644`
         FOREIGN KEY (`question_id`)
-        REFERENCES `ask_question` (`id`),
+        REFERENCES `ask_question` (`id`)
+        ON DELETE CASCADE,
     CONSTRAINT `ask_interest_fk_c9f24d`
         FOREIGN KEY (`user_id`)
         REFERENCES `ask_user` (`id`)
+        ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
 -- ---------------------------------------------------------------------
@@ -115,10 +125,12 @@ CREATE TABLE `ask_relevancy`
     INDEX `ask_relevancy_fi_c9f24d` (`user_id`),
     CONSTRAINT `ask_relevancy_fk_763f3f`
         FOREIGN KEY (`answer_id`)
-        REFERENCES `ask_answer` (`id`),
+        REFERENCES `ask_answer` (`id`)
+        ON DELETE CASCADE,
     CONSTRAINT `ask_relevancy_fk_c9f24d`
         FOREIGN KEY (`user_id`)
         REFERENCES `ask_user` (`id`)
+        ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
 -- ---------------------------------------------------------------------
@@ -139,10 +151,58 @@ CREATE TABLE `ask_question_tag`
     INDEX `ask_question_tag_fi_c9f24d` (`user_id`),
     CONSTRAINT `ask_question_tag_fk_3a3644`
         FOREIGN KEY (`question_id`)
-        REFERENCES `ask_question` (`id`),
+        REFERENCES `ask_question` (`id`)
+        ON DELETE CASCADE,
     CONSTRAINT `ask_question_tag_fk_c9f24d`
         FOREIGN KEY (`user_id`)
         REFERENCES `ask_user` (`id`)
+        ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- ---------------------------------------------------------------------
+-- ask_report_question
+-- ---------------------------------------------------------------------
+
+DROP TABLE IF EXISTS `ask_report_question`;
+
+CREATE TABLE `ask_report_question`
+(
+    `question_id` INTEGER NOT NULL,
+    `user_id` INTEGER NOT NULL,
+    `created_at` DATETIME,
+    PRIMARY KEY (`question_id`,`user_id`),
+    INDEX `ask_report_question_fi_c9f24d` (`user_id`),
+    CONSTRAINT `ask_report_question_fk_3a3644`
+        FOREIGN KEY (`question_id`)
+        REFERENCES `ask_question` (`id`)
+        ON DELETE CASCADE,
+    CONSTRAINT `ask_report_question_fk_c9f24d`
+        FOREIGN KEY (`user_id`)
+        REFERENCES `ask_user` (`id`)
+        ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- ---------------------------------------------------------------------
+-- ask_report_answer
+-- ---------------------------------------------------------------------
+
+DROP TABLE IF EXISTS `ask_report_answer`;
+
+CREATE TABLE `ask_report_answer`
+(
+    `answer_id` INTEGER NOT NULL,
+    `user_id` INTEGER NOT NULL,
+    `created_at` DATETIME,
+    PRIMARY KEY (`answer_id`,`user_id`),
+    INDEX `ask_report_answer_fi_c9f24d` (`user_id`),
+    CONSTRAINT `ask_report_answer_fk_763f3f`
+        FOREIGN KEY (`answer_id`)
+        REFERENCES `ask_answer` (`id`)
+        ON DELETE CASCADE,
+    CONSTRAINT `ask_report_answer_fk_c9f24d`
+        FOREIGN KEY (`user_id`)
+        REFERENCES `ask_user` (`id`)
+        ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
 # This restores the fkey checks, after having unset them earlier

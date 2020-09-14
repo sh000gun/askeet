@@ -4,12 +4,9 @@ namespace App\Entity;
 
 use App\Entity\Base\Interest as BaseInterest;
 use Propel\Runtime\Propel;
-use App\Entity\Question;
 
 /**
  * Skeleton subclass for representing a row from the 'ask_interest' table.
- *
- *
  *
  * You should add additional methods to this class to meet the
  * application requirements.  This class will only be generated as
@@ -17,29 +14,25 @@ use App\Entity\Question;
  */
 class Interest extends BaseInterest
 {
-  public function save($con = null)
-  {
-    $con = Propel::getConnection();
-
-    try
+    public function save($con = null)
     {
-      $con->beginTransaction();
+        $con = Propel::getConnection();
 
-      $this->doSave($con);
+        try {
+            $con->beginTransaction();
 
-      // update interested_users in question table
-      $question = $this->getQuestion();
-      $interested_users = $question->getInterestedUsers();
-      $question->setInterestedUsers($interested_users + 1);
-      $question->save($con);
+            $this->doSave($con);
 
-      $con->commit();
+            // update interested_users in question table
+            $question = $this->getQuestion();
+            $interested_users = $question->getInterestedUsers();
+            $question->setInterestedUsers($interested_users + 1);
+            $question->save($con);
 
+            $con->commit();
+        } catch (Exception $e) {
+            $con->rollback();
+            throw $e;
+        }
     }
-    catch (Exception $e)
-    {
-      $con->rollback();
-      throw $e;
-    }
-  }
 }

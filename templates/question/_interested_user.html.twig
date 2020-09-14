@@ -2,8 +2,13 @@
     {{ question.interestedUsers }}
 </div>
 
-{% if app.user.id is defined %}
-  {{ render(path('user_is_interested', {'userId':  app.user.id, 'questionId': question.id})) }}
+{% if is_granted('IS_AUTHENTICATED_FULLY') %}
+    {% if static_call('App\\Entity\\InterestQuery', 'isQuestionInterestedByUser', [question.id, app.user.id]) %}
+        interested
+    {% else %}
+        <a id="{{ 'interested_link' ~ question.id }}" href="#" data-question="{{ question.id }}" >interested?</a>
+    {% endif %}
+
 {% else %}
   <a id="unauthenticated_interested_link_{{ question.id }}" href="#">interested?</a>
 {% endif %}

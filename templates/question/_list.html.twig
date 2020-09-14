@@ -24,7 +24,11 @@
     {% endautoescape %}
 
   </div>
-  <br />
+  <div class="options">  
+    {% include 'question/_options.html.twig' %}
+    {% include 'moderator/_question_options.html.twig' %}
+  </div>
+    <br />
 {% endfor %}
 
 <div id="question_pager">

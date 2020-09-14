@@ -29,6 +29,9 @@ use Propel\Runtime\Exception\PropelException;
  * @method     ChildUserQuery orderBySha1Password($order = Criteria::ASC) Order by the sha1_password column
  * @method     ChildUserQuery orderBySalt($order = Criteria::ASC) Order by the salt column
  * @method     ChildUserQuery orderByHasPaypal($order = Criteria::ASC) Order by the has_paypal column
+ * @method     ChildUserQuery orderByIsAdministrator($order = Criteria::ASC) Order by the is_administrator column
+ * @method     ChildUserQuery orderByIsModerator($order = Criteria::ASC) Order by the is_moderator column
+ * @method     ChildUserQuery orderByDeletions($order = Criteria::ASC) Order by the deletions column
  * @method     ChildUserQuery orderByUpdatedAt($order = Criteria::ASC) Order by the updated_at column
  *
  * @method     ChildUserQuery groupById() Group by the id column
@@ -40,6 +43,9 @@ use Propel\Runtime\Exception\PropelException;
  * @method     ChildUserQuery groupBySha1Password() Group by the sha1_password column
  * @method     ChildUserQuery groupBySalt() Group by the salt column
  * @method     ChildUserQuery groupByHasPaypal() Group by the has_paypal column
+ * @method     ChildUserQuery groupByIsAdministrator() Group by the is_administrator column
+ * @method     ChildUserQuery groupByIsModerator() Group by the is_moderator column
+ * @method     ChildUserQuery groupByDeletions() Group by the deletions column
  * @method     ChildUserQuery groupByUpdatedAt() Group by the updated_at column
  *
  * @method     ChildUserQuery leftJoin($relation) Adds a LEFT JOIN clause to the query
@@ -100,7 +106,27 @@ use Propel\Runtime\Exception\PropelException;
  * @method     ChildUserQuery rightJoinWithQuestionTag() Adds a RIGHT JOIN clause and with to the query using the QuestionTag relation
  * @method     ChildUserQuery innerJoinWithQuestionTag() Adds a INNER JOIN clause and with to the query using the QuestionTag relation
  *
- * @method     \App\Entity\QuestionQuery|\App\Entity\AnswerQuery|\App\Entity\InterestQuery|\App\Entity\RelevancyQuery|\App\Entity\QuestionTagQuery endUse() Finalizes a secondary criteria and merges it with its primary Criteria
+ * @method     ChildUserQuery leftJoinReportQuestion($relationAlias = null) Adds a LEFT JOIN clause to the query using the ReportQuestion relation
+ * @method     ChildUserQuery rightJoinReportQuestion($relationAlias = null) Adds a RIGHT JOIN clause to the query using the ReportQuestion relation
+ * @method     ChildUserQuery innerJoinReportQuestion($relationAlias = null) Adds a INNER JOIN clause to the query using the ReportQuestion relation
+ *
+ * @method     ChildUserQuery joinWithReportQuestion($joinType = Criteria::INNER_JOIN) Adds a join clause and with to the query using the ReportQuestion relation
+ *
+ * @method     ChildUserQuery leftJoinWithReportQuestion() Adds a LEFT JOIN clause and with to the query using the ReportQuestion relation
+ * @method     ChildUserQuery rightJoinWithReportQuestion() Adds a RIGHT JOIN clause and with to the query using the ReportQuestion relation
+ * @method     ChildUserQuery innerJoinWithReportQuestion() Adds a INNER JOIN clause and with to the query using the ReportQuestion relation
+ *
+ * @method     ChildUserQuery leftJoinReportAnswer($relationAlias = null) Adds a LEFT JOIN clause to the query using the ReportAnswer relation
+ * @method     ChildUserQuery rightJoinReportAnswer($relationAlias = null) Adds a RIGHT JOIN clause to the query using the ReportAnswer relation
+ * @method     ChildUserQuery innerJoinReportAnswer($relationAlias = null) Adds a INNER JOIN clause to the query using the ReportAnswer relation
+ *
+ * @method     ChildUserQuery joinWithReportAnswer($joinType = Criteria::INNER_JOIN) Adds a join clause and with to the query using the ReportAnswer relation
+ *
+ * @method     ChildUserQuery leftJoinWithReportAnswer() Adds a LEFT JOIN clause and with to the query using the ReportAnswer relation
+ * @method     ChildUserQuery rightJoinWithReportAnswer() Adds a RIGHT JOIN clause and with to the query using the ReportAnswer relation
+ * @method     ChildUserQuery innerJoinWithReportAnswer() Adds a INNER JOIN clause and with to the query using the ReportAnswer relation
+ *
+ * @method     \App\Entity\QuestionQuery|\App\Entity\AnswerQuery|\App\Entity\InterestQuery|\App\Entity\RelevancyQuery|\App\Entity\QuestionTagQuery|\App\Entity\ReportQuestionQuery|\App\Entity\ReportAnswerQuery endUse() Finalizes a secondary criteria and merges it with its primary Criteria
  *
  * @method     ChildUser findOne(ConnectionInterface $con = null) Return the first ChildUser matching the query
  * @method     ChildUser findOneOrCreate(ConnectionInterface $con = null) Return the first ChildUser matching the query, or a new ChildUser object populated from the query conditions when no match is found
@@ -114,6 +140,9 @@ use Propel\Runtime\Exception\PropelException;
  * @method     ChildUser findOneBySha1Password(string $sha1_password) Return the first ChildUser filtered by the sha1_password column
  * @method     ChildUser findOneBySalt(string $salt) Return the first ChildUser filtered by the salt column
  * @method     ChildUser findOneByHasPaypal(boolean $has_paypal) Return the first ChildUser filtered by the has_paypal column
+ * @method     ChildUser findOneByIsAdministrator(boolean $is_administrator) Return the first ChildUser filtered by the is_administrator column
+ * @method     ChildUser findOneByIsModerator(int $is_moderator) Return the first ChildUser filtered by the is_moderator column
+ * @method     ChildUser findOneByDeletions(int $deletions) Return the first ChildUser filtered by the deletions column
  * @method     ChildUser findOneByUpdatedAt(string $updated_at) Return the first ChildUser filtered by the updated_at column *
 
  * @method     ChildUser requirePk($key, ConnectionInterface $con = null) Return the ChildUser by primary key and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
@@ -128,6 +157,9 @@ use Propel\Runtime\Exception\PropelException;
  * @method     ChildUser requireOneBySha1Password(string $sha1_password) Return the first ChildUser filtered by the sha1_password column and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
  * @method     ChildUser requireOneBySalt(string $salt) Return the first ChildUser filtered by the salt column and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
  * @method     ChildUser requireOneByHasPaypal(boolean $has_paypal) Return the first ChildUser filtered by the has_paypal column and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
+ * @method     ChildUser requireOneByIsAdministrator(boolean $is_administrator) Return the first ChildUser filtered by the is_administrator column and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
+ * @method     ChildUser requireOneByIsModerator(int $is_moderator) Return the first ChildUser filtered by the is_moderator column and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
+ * @method     ChildUser requireOneByDeletions(int $deletions) Return the first ChildUser filtered by the deletions column and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
  * @method     ChildUser requireOneByUpdatedAt(string $updated_at) Return the first ChildUser filtered by the updated_at column and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
  *
  * @method     ChildUser[]|ObjectCollection find(ConnectionInterface $con = null) Return ChildUser objects based on current ModelCriteria
@@ -140,6 +172,9 @@ use Propel\Runtime\Exception\PropelException;
  * @method     ChildUser[]|ObjectCollection findBySha1Password(string $sha1_password) Return ChildUser objects filtered by the sha1_password column
  * @method     ChildUser[]|ObjectCollection findBySalt(string $salt) Return ChildUser objects filtered by the salt column
  * @method     ChildUser[]|ObjectCollection findByHasPaypal(boolean $has_paypal) Return ChildUser objects filtered by the has_paypal column
+ * @method     ChildUser[]|ObjectCollection findByIsAdministrator(boolean $is_administrator) Return ChildUser objects filtered by the is_administrator column
+ * @method     ChildUser[]|ObjectCollection findByIsModerator(int $is_moderator) Return ChildUser objects filtered by the is_moderator column
+ * @method     ChildUser[]|ObjectCollection findByDeletions(int $deletions) Return ChildUser objects filtered by the deletions column
  * @method     ChildUser[]|ObjectCollection findByUpdatedAt(string $updated_at) Return ChildUser objects filtered by the updated_at column
  * @method     ChildUser[]|\Propel\Runtime\Util\PropelModelPager paginate($page = 1, $maxPerPage = 10, ConnectionInterface $con = null) Issue a SELECT query based on the current ModelCriteria and uses a page and a maximum number of results per page to compute an offset and a limit
  *
@@ -239,7 +274,7 @@ abstract class UserQuery extends ModelCriteria
      */
     protected function findPkSimple($key, ConnectionInterface $con)
     {
-        $sql = 'SELECT id, nickname, first_name, last_name, created_at, email, sha1_password, salt, has_paypal, updated_at FROM ask_user WHERE id = :p0';
+        $sql = 'SELECT id, nickname, first_name, last_name, created_at, email, sha1_password, salt, has_paypal, is_administrator, is_moderator, deletions, updated_at FROM ask_user WHERE id = :p0';
         try {
             $stmt = $con->prepare($sql);
             $stmt->bindValue(':p0', $key, PDO::PARAM_INT);
@@ -588,6 +623,115 @@ abstract class UserQuery extends ModelCriteria
         }
 
         return $this->addUsingAlias(UserTableMap::COL_HAS_PAYPAL, $hasPaypal, $comparison);
+    }
+
+    /**
+     * Filter the query on the is_administrator column
+     *
+     * Example usage:
+     * <code>
+     * $query->filterByIsAdministrator(true); // WHERE is_administrator = true
+     * $query->filterByIsAdministrator('yes'); // WHERE is_administrator = true
+     * </code>
+     *
+     * @param     boolean|string $isAdministrator The value to use as filter.
+     *              Non-boolean arguments are converted using the following rules:
+     *                * 1, '1', 'true',  'on',  and 'yes' are converted to boolean true
+     *                * 0, '0', 'false', 'off', and 'no'  are converted to boolean false
+     *              Check on string values is case insensitive (so 'FaLsE' is seen as 'false').
+     * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
+     *
+     * @return $this|ChildUserQuery The current query, for fluid interface
+     */
+    public function filterByIsAdministrator($isAdministrator = null, $comparison = null)
+    {
+        if (is_string($isAdministrator)) {
+            $isAdministrator = in_array(strtolower($isAdministrator), array('false', 'off', '-', 'no', 'n', '0', '')) ? false : true;
+        }
+
+        return $this->addUsingAlias(UserTableMap::COL_IS_ADMINISTRATOR, $isAdministrator, $comparison);
+    }
+
+    /**
+     * Filter the query on the is_moderator column
+     *
+     * Example usage:
+     * <code>
+     * $query->filterByIsModerator(1234); // WHERE is_moderator = 1234
+     * $query->filterByIsModerator(array(12, 34)); // WHERE is_moderator IN (12, 34)
+     * $query->filterByIsModerator(array('min' => 12)); // WHERE is_moderator > 12
+     * </code>
+     *
+     * @param     mixed $isModerator The value to use as filter.
+     *              Use scalar values for equality.
+     *              Use array values for in_array() equivalent.
+     *              Use associative array('min' => $minValue, 'max' => $maxValue) for intervals.
+     * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
+     *
+     * @return $this|ChildUserQuery The current query, for fluid interface
+     */
+    public function filterByIsModerator($isModerator = null, $comparison = null)
+    {
+        if (is_array($isModerator)) {
+            $useMinMax = false;
+            if (isset($isModerator['min'])) {
+                $this->addUsingAlias(UserTableMap::COL_IS_MODERATOR, $isModerator['min'], Criteria::GREATER_EQUAL);
+                $useMinMax = true;
+            }
+            if (isset($isModerator['max'])) {
+                $this->addUsingAlias(UserTableMap::COL_IS_MODERATOR, $isModerator['max'], Criteria::LESS_EQUAL);
+                $useMinMax = true;
+            }
+            if ($useMinMax) {
+                return $this;
+            }
+            if (null === $comparison) {
+                $comparison = Criteria::IN;
+            }
+        }
+
+        return $this->addUsingAlias(UserTableMap::COL_IS_MODERATOR, $isModerator, $comparison);
+    }
+
+    /**
+     * Filter the query on the deletions column
+     *
+     * Example usage:
+     * <code>
+     * $query->filterByDeletions(1234); // WHERE deletions = 1234
+     * $query->filterByDeletions(array(12, 34)); // WHERE deletions IN (12, 34)
+     * $query->filterByDeletions(array('min' => 12)); // WHERE deletions > 12
+     * </code>
+     *
+     * @param     mixed $deletions The value to use as filter.
+     *              Use scalar values for equality.
+     *              Use array values for in_array() equivalent.
+     *              Use associative array('min' => $minValue, 'max' => $maxValue) for intervals.
+     * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
+     *
+     * @return $this|ChildUserQuery The current query, for fluid interface
+     */
+    public function filterByDeletions($deletions = null, $comparison = null)
+    {
+        if (is_array($deletions)) {
+            $useMinMax = false;
+            if (isset($deletions['min'])) {
+                $this->addUsingAlias(UserTableMap::COL_DELETIONS, $deletions['min'], Criteria::GREATER_EQUAL);
+                $useMinMax = true;
+            }
+            if (isset($deletions['max'])) {
+                $this->addUsingAlias(UserTableMap::COL_DELETIONS, $deletions['max'], Criteria::LESS_EQUAL);
+                $useMinMax = true;
+            }
+            if ($useMinMax) {
+                return $this;
+            }
+            if (null === $comparison) {
+                $comparison = Criteria::IN;
+            }
+        }
+
+        return $this->addUsingAlias(UserTableMap::COL_DELETIONS, $deletions, $comparison);
     }
 
     /**
@@ -996,6 +1140,152 @@ abstract class UserQuery extends ModelCriteria
         return $this
             ->joinQuestionTag($relationAlias, $joinType)
             ->useQuery($relationAlias ? $relationAlias : 'QuestionTag', '\App\Entity\QuestionTagQuery');
+    }
+
+    /**
+     * Filter the query by a related \App\Entity\ReportQuestion object
+     *
+     * @param \App\Entity\ReportQuestion|ObjectCollection $reportQuestion the related object to use as filter
+     * @param string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
+     *
+     * @return ChildUserQuery The current query, for fluid interface
+     */
+    public function filterByReportQuestion($reportQuestion, $comparison = null)
+    {
+        if ($reportQuestion instanceof \App\Entity\ReportQuestion) {
+            return $this
+                ->addUsingAlias(UserTableMap::COL_ID, $reportQuestion->getUserId(), $comparison);
+        } elseif ($reportQuestion instanceof ObjectCollection) {
+            return $this
+                ->useReportQuestionQuery()
+                ->filterByPrimaryKeys($reportQuestion->getPrimaryKeys())
+                ->endUse();
+        } else {
+            throw new PropelException('filterByReportQuestion() only accepts arguments of type \App\Entity\ReportQuestion or Collection');
+        }
+    }
+
+    /**
+     * Adds a JOIN clause to the query using the ReportQuestion relation
+     *
+     * @param     string $relationAlias optional alias for the relation
+     * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
+     *
+     * @return $this|ChildUserQuery The current query, for fluid interface
+     */
+    public function joinReportQuestion($relationAlias = null, $joinType = Criteria::INNER_JOIN)
+    {
+        $tableMap = $this->getTableMap();
+        $relationMap = $tableMap->getRelation('ReportQuestion');
+
+        // create a ModelJoin object for this join
+        $join = new ModelJoin();
+        $join->setJoinType($joinType);
+        $join->setRelationMap($relationMap, $this->useAliasInSQL ? $this->getModelAlias() : null, $relationAlias);
+        if ($previousJoin = $this->getPreviousJoin()) {
+            $join->setPreviousJoin($previousJoin);
+        }
+
+        // add the ModelJoin to the current object
+        if ($relationAlias) {
+            $this->addAlias($relationAlias, $relationMap->getRightTable()->getName());
+            $this->addJoinObject($join, $relationAlias);
+        } else {
+            $this->addJoinObject($join, 'ReportQuestion');
+        }
+
+        return $this;
+    }
+
+    /**
+     * Use the ReportQuestion relation ReportQuestion object
+     *
+     * @see useQuery()
+     *
+     * @param     string $relationAlias optional alias for the relation,
+     *                                   to be used as main alias in the secondary query
+     * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
+     *
+     * @return \App\Entity\ReportQuestionQuery A secondary query class using the current class as primary query
+     */
+    public function useReportQuestionQuery($relationAlias = null, $joinType = Criteria::INNER_JOIN)
+    {
+        return $this
+            ->joinReportQuestion($relationAlias, $joinType)
+            ->useQuery($relationAlias ? $relationAlias : 'ReportQuestion', '\App\Entity\ReportQuestionQuery');
+    }
+
+    /**
+     * Filter the query by a related \App\Entity\ReportAnswer object
+     *
+     * @param \App\Entity\ReportAnswer|ObjectCollection $reportAnswer the related object to use as filter
+     * @param string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
+     *
+     * @return ChildUserQuery The current query, for fluid interface
+     */
+    public function filterByReportAnswer($reportAnswer, $comparison = null)
+    {
+        if ($reportAnswer instanceof \App\Entity\ReportAnswer) {
+            return $this
+                ->addUsingAlias(UserTableMap::COL_ID, $reportAnswer->getUserId(), $comparison);
+        } elseif ($reportAnswer instanceof ObjectCollection) {
+            return $this
+                ->useReportAnswerQuery()
+                ->filterByPrimaryKeys($reportAnswer->getPrimaryKeys())
+                ->endUse();
+        } else {
+            throw new PropelException('filterByReportAnswer() only accepts arguments of type \App\Entity\ReportAnswer or Collection');
+        }
+    }
+
+    /**
+     * Adds a JOIN clause to the query using the ReportAnswer relation
+     *
+     * @param     string $relationAlias optional alias for the relation
+     * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
+     *
+     * @return $this|ChildUserQuery The current query, for fluid interface
+     */
+    public function joinReportAnswer($relationAlias = null, $joinType = Criteria::INNER_JOIN)
+    {
+        $tableMap = $this->getTableMap();
+        $relationMap = $tableMap->getRelation('ReportAnswer');
+
+        // create a ModelJoin object for this join
+        $join = new ModelJoin();
+        $join->setJoinType($joinType);
+        $join->setRelationMap($relationMap, $this->useAliasInSQL ? $this->getModelAlias() : null, $relationAlias);
+        if ($previousJoin = $this->getPreviousJoin()) {
+            $join->setPreviousJoin($previousJoin);
+        }
+
+        // add the ModelJoin to the current object
+        if ($relationAlias) {
+            $this->addAlias($relationAlias, $relationMap->getRightTable()->getName());
+            $this->addJoinObject($join, $relationAlias);
+        } else {
+            $this->addJoinObject($join, 'ReportAnswer');
+        }
+
+        return $this;
+    }
+
+    /**
+     * Use the ReportAnswer relation ReportAnswer object
+     *
+     * @see useQuery()
+     *
+     * @param     string $relationAlias optional alias for the relation,
+     *                                   to be used as main alias in the secondary query
+     * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
+     *
+     * @return \App\Entity\ReportAnswerQuery A secondary query class using the current class as primary query
+     */
+    public function useReportAnswerQuery($relationAlias = null, $joinType = Criteria::INNER_JOIN)
+    {
+        return $this
+            ->joinReportAnswer($relationAlias, $joinType)
+            ->useQuery($relationAlias ? $relationAlias : 'ReportAnswer', '\App\Entity\ReportAnswerQuery');
     }
 
     /**

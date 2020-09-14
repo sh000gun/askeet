@@ -1,0 +1,16 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+
+<h1> Users </h1>
+
+<div id="users">
+  {% for subscriber in user_pager %}
+    <div class="user">
+      <h2><a href="{{ path('user_show', {'nickname': subscriber.nickname }) }}">{{ subscriber }}</a></h2>
+       {% include 'administrator/_user_options.html.twig' %}
+    </div>    
+  {% endfor %}
+</div>
+
+{% endblock %}

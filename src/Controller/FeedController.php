@@ -2,15 +2,14 @@
 
 namespace App\Controller;
 
+use App\Entity\QuestionQuery;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-
-use App\Entity\QuestionQuery;
+use Symfony\Component\Routing\Annotation\Route;
 
 class FeedController extends AbstractController
-{ 
+{
     /**
      * @Route("feed/popular", name="feed_popular")
      */
@@ -20,10 +19,13 @@ class FeedController extends AbstractController
 
         $response = new Response();
         $response->headers->set('Content-Type', 'text/xml');
-        return $this->render('feed/popularSuccess.xml.twig',[
+
+        return $this->render(
+            'feed/popularSuccess.xml.twig',
+            [
             'questions' => $questions,
             'guid' => uniqid(),
-            'time' => time(),],
+            'time' => time(), ],
             $response
         );
     }

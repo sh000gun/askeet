@@ -15,6 +15,10 @@ use App\Entity\QuestionTag as ChildQuestionTag;
 use App\Entity\QuestionTagQuery as ChildQuestionTagQuery;
 use App\Entity\Relevancy as ChildRelevancy;
 use App\Entity\RelevancyQuery as ChildRelevancyQuery;
+use App\Entity\ReportAnswer as ChildReportAnswer;
+use App\Entity\ReportAnswerQuery as ChildReportAnswerQuery;
+use App\Entity\ReportQuestion as ChildReportQuestion;
+use App\Entity\ReportQuestionQuery as ChildReportQuestionQuery;
 use App\Entity\User as ChildUser;
 use App\Entity\UserQuery as ChildUserQuery;
 use App\Entity\Map\AnswerTableMap;
@@ -22,6 +26,8 @@ use App\Entity\Map\InterestTableMap;
 use App\Entity\Map\QuestionTableMap;
 use App\Entity\Map\QuestionTagTableMap;
 use App\Entity\Map\RelevancyTableMap;
+use App\Entity\Map\ReportAnswerTableMap;
+use App\Entity\Map\ReportQuestionTableMap;
 use App\Entity\Map\UserTableMap;
 use Propel\Runtime\Propel;
 use Propel\Runtime\ActiveQuery\Criteria;
@@ -143,6 +149,30 @@ abstract class User implements ActiveRecordInterface
     protected $has_paypal;
 
     /**
+     * The value for the is_administrator field.
+     *
+     * Note: this column has a database default value of: false
+     * @var        boolean
+     */
+    protected $is_administrator;
+
+    /**
+     * The value for the is_moderator field.
+     *
+     * Note: this column has a database default value of: 0
+     * @var        int
+     */
+    protected $is_moderator;
+
+    /**
+     * The value for the deletions field.
+     *
+     * Note: this column has a database default value of: 0
+     * @var        int
+     */
+    protected $deletions;
+
+    /**
      * The value for the updated_at field.
      *
      * @var        DateTime
@@ -178,6 +208,18 @@ abstract class User implements ActiveRecordInterface
      */
     protected $collQuestionTags;
     protected $collQuestionTagsPartial;
+
+    /**
+     * @var        ObjectCollection|ChildReportQuestion[] Collection to store aggregation of ChildReportQuestion objects.
+     */
+    protected $collReportQuestions;
+    protected $collReportQuestionsPartial;
+
+    /**
+     * @var        ObjectCollection|ChildReportAnswer[] Collection to store aggregation of ChildReportAnswer objects.
+     */
+    protected $collReportAnswers;
+    protected $collReportAnswersPartial;
 
     /**
      * Flag to prevent endless save loop, if this object is referenced
@@ -218,6 +260,18 @@ abstract class User implements ActiveRecordInterface
     protected $questionTagsScheduledForDeletion = null;
 
     /**
+     * An array of objects scheduled for deletion.
+     * @var ObjectCollection|ChildReportQuestion[]
+     */
+    protected $reportQuestionsScheduledForDeletion = null;
+
+    /**
+     * An array of objects scheduled for deletion.
+     * @var ObjectCollection|ChildReportAnswer[]
+     */
+    protected $reportAnswersScheduledForDeletion = null;
+
+    /**
      * Applies default values to this object.
      * This method should be called from the object's constructor (or
      * equivalent initialization method).
@@ -226,6 +280,9 @@ abstract class User implements ActiveRecordInterface
     public function applyDefaultValues()
     {
         $this->has_paypal = false;
+        $this->is_administrator = false;
+        $this->is_moderator = 0;
+        $this->deletions = 0;
     }
 
     /**
@@ -566,6 +623,46 @@ abstract class User implements ActiveRecordInterface
     }
 
     /**
+     * Get the [is_administrator] column value.
+     *
+     * @return boolean
+     */
+    public function getIsAdministrator()
+    {
+        return $this->is_administrator;
+    }
+
+    /**
+     * Get the [is_administrator] column value.
+     *
+     * @return boolean
+     */
+    public function isAdministrator()
+    {
+        return $this->getIsAdministrator();
+    }
+
+    /**
+     * Get the [is_moderator] column value.
+     *
+     * @return int
+     */
+    public function getIsModerator()
+    {
+        return $this->is_moderator;
+    }
+
+    /**
+     * Get the [deletions] column value.
+     *
+     * @return int
+     */
+    public function getDeletions()
+    {
+        return $this->deletions;
+    }
+
+    /**
      * Get the [optionally formatted] temporal [updated_at] column value.
      *
      *
@@ -774,6 +871,74 @@ abstract class User implements ActiveRecordInterface
     } // setHasPaypal()
 
     /**
+     * Sets the value of the [is_administrator] column.
+     * Non-boolean arguments are converted using the following rules:
+     *   * 1, '1', 'true',  'on',  and 'yes' are converted to boolean true
+     *   * 0, '0', 'false', 'off', and 'no'  are converted to boolean false
+     * Check on string values is case insensitive (so 'FaLsE' is seen as 'false').
+     *
+     * @param  boolean|integer|string $v The new value
+     * @return $this|\App\Entity\User The current object (for fluent API support)
+     */
+    public function setIsAdministrator($v)
+    {
+        if ($v !== null) {
+            if (is_string($v)) {
+                $v = in_array(strtolower($v), array('false', 'off', '-', 'no', 'n', '0', '')) ? false : true;
+            } else {
+                $v = (boolean) $v;
+            }
+        }
+
+        if ($this->is_administrator !== $v) {
+            $this->is_administrator = $v;
+            $this->modifiedColumns[UserTableMap::COL_IS_ADMINISTRATOR] = true;
+        }
+
+        return $this;
+    } // setIsAdministrator()
+
+    /**
+     * Set the value of [is_moderator] column.
+     *
+     * @param int $v new value
+     * @return $this|\App\Entity\User The current object (for fluent API support)
+     */
+    public function setIsModerator($v)
+    {
+        if ($v !== null) {
+            $v = (int) $v;
+        }
+
+        if ($this->is_moderator !== $v) {
+            $this->is_moderator = $v;
+            $this->modifiedColumns[UserTableMap::COL_IS_MODERATOR] = true;
+        }
+
+        return $this;
+    } // setIsModerator()
+
+    /**
+     * Set the value of [deletions] column.
+     *
+     * @param int $v new value
+     * @return $this|\App\Entity\User The current object (for fluent API support)
+     */
+    public function setDeletions($v)
+    {
+        if ($v !== null) {
+            $v = (int) $v;
+        }
+
+        if ($this->deletions !== $v) {
+            $this->deletions = $v;
+            $this->modifiedColumns[UserTableMap::COL_DELETIONS] = true;
+        }
+
+        return $this;
+    } // setDeletions()
+
+    /**
      * Sets the value of [updated_at] column to a normalized version of the date/time value specified.
      *
      * @param  mixed $v string, integer (timestamp), or \DateTimeInterface value.
@@ -804,6 +969,18 @@ abstract class User implements ActiveRecordInterface
     public function hasOnlyDefaultValues()
     {
             if ($this->has_paypal !== false) {
+                return false;
+            }
+
+            if ($this->is_administrator !== false) {
+                return false;
+            }
+
+            if ($this->is_moderator !== 0) {
+                return false;
+            }
+
+            if ($this->deletions !== 0) {
                 return false;
             }
 
@@ -863,7 +1040,16 @@ abstract class User implements ActiveRecordInterface
             $col = $row[TableMap::TYPE_NUM == $indexType ? 8 + $startcol : UserTableMap::translateFieldName('HasPaypal', TableMap::TYPE_PHPNAME, $indexType)];
             $this->has_paypal = (null !== $col) ? (boolean) $col : null;
 
-            $col = $row[TableMap::TYPE_NUM == $indexType ? 9 + $startcol : UserTableMap::translateFieldName('UpdatedAt', TableMap::TYPE_PHPNAME, $indexType)];
+            $col = $row[TableMap::TYPE_NUM == $indexType ? 9 + $startcol : UserTableMap::translateFieldName('IsAdministrator', TableMap::TYPE_PHPNAME, $indexType)];
+            $this->is_administrator = (null !== $col) ? (boolean) $col : null;
+
+            $col = $row[TableMap::TYPE_NUM == $indexType ? 10 + $startcol : UserTableMap::translateFieldName('IsModerator', TableMap::TYPE_PHPNAME, $indexType)];
+            $this->is_moderator = (null !== $col) ? (int) $col : null;
+
+            $col = $row[TableMap::TYPE_NUM == $indexType ? 11 + $startcol : UserTableMap::translateFieldName('Deletions', TableMap::TYPE_PHPNAME, $indexType)];
+            $this->deletions = (null !== $col) ? (int) $col : null;
+
+            $col = $row[TableMap::TYPE_NUM == $indexType ? 12 + $startcol : UserTableMap::translateFieldName('UpdatedAt', TableMap::TYPE_PHPNAME, $indexType)];
             if ($col === '0000-00-00 00:00:00') {
                 $col = null;
             }
@@ -876,7 +1062,7 @@ abstract class User implements ActiveRecordInterface
                 $this->ensureConsistency();
             }
 
-            return $startcol + 10; // 10 = UserTableMap::NUM_HYDRATE_COLUMNS.
+            return $startcol + 13; // 13 = UserTableMap::NUM_HYDRATE_COLUMNS.
 
         } catch (Exception $e) {
             throw new PropelException(sprintf('Error populating %s object', '\\App\\Entity\\User'), 0, $e);
@@ -946,6 +1132,10 @@ abstract class User implements ActiveRecordInterface
             $this->collRelevancies = null;
 
             $this->collQuestionTags = null;
+
+            $this->collReportQuestions = null;
+
+            $this->collReportAnswers = null;
 
         } // if (deep)
     }
@@ -1076,10 +1266,9 @@ abstract class User implements ActiveRecordInterface
 
             if ($this->questionsScheduledForDeletion !== null) {
                 if (!$this->questionsScheduledForDeletion->isEmpty()) {
-                    foreach ($this->questionsScheduledForDeletion as $question) {
-                        // need to save related object because we set the relation to null
-                        $question->save($con);
-                    }
+                    \App\Entity\QuestionQuery::create()
+                        ->filterByPrimaryKeys($this->questionsScheduledForDeletion->getPrimaryKeys(false))
+                        ->delete($con);
                     $this->questionsScheduledForDeletion = null;
                 }
             }
@@ -1094,10 +1283,9 @@ abstract class User implements ActiveRecordInterface
 
             if ($this->answersScheduledForDeletion !== null) {
                 if (!$this->answersScheduledForDeletion->isEmpty()) {
-                    foreach ($this->answersScheduledForDeletion as $answer) {
-                        // need to save related object because we set the relation to null
-                        $answer->save($con);
-                    }
+                    \App\Entity\AnswerQuery::create()
+                        ->filterByPrimaryKeys($this->answersScheduledForDeletion->getPrimaryKeys(false))
+                        ->delete($con);
                     $this->answersScheduledForDeletion = null;
                 }
             }
@@ -1161,6 +1349,40 @@ abstract class User implements ActiveRecordInterface
                 }
             }
 
+            if ($this->reportQuestionsScheduledForDeletion !== null) {
+                if (!$this->reportQuestionsScheduledForDeletion->isEmpty()) {
+                    \App\Entity\ReportQuestionQuery::create()
+                        ->filterByPrimaryKeys($this->reportQuestionsScheduledForDeletion->getPrimaryKeys(false))
+                        ->delete($con);
+                    $this->reportQuestionsScheduledForDeletion = null;
+                }
+            }
+
+            if ($this->collReportQuestions !== null) {
+                foreach ($this->collReportQuestions as $referrerFK) {
+                    if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
+                        $affectedRows += $referrerFK->save($con);
+                    }
+                }
+            }
+
+            if ($this->reportAnswersScheduledForDeletion !== null) {
+                if (!$this->reportAnswersScheduledForDeletion->isEmpty()) {
+                    \App\Entity\ReportAnswerQuery::create()
+                        ->filterByPrimaryKeys($this->reportAnswersScheduledForDeletion->getPrimaryKeys(false))
+                        ->delete($con);
+                    $this->reportAnswersScheduledForDeletion = null;
+                }
+            }
+
+            if ($this->collReportAnswers !== null) {
+                foreach ($this->collReportAnswers as $referrerFK) {
+                    if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
+                        $affectedRows += $referrerFK->save($con);
+                    }
+                }
+            }
+
             $this->alreadyInSave = false;
 
         }
@@ -1214,6 +1436,15 @@ abstract class User implements ActiveRecordInterface
         if ($this->isColumnModified(UserTableMap::COL_HAS_PAYPAL)) {
             $modifiedColumns[':p' . $index++]  = 'has_paypal';
         }
+        if ($this->isColumnModified(UserTableMap::COL_IS_ADMINISTRATOR)) {
+            $modifiedColumns[':p' . $index++]  = 'is_administrator';
+        }
+        if ($this->isColumnModified(UserTableMap::COL_IS_MODERATOR)) {
+            $modifiedColumns[':p' . $index++]  = 'is_moderator';
+        }
+        if ($this->isColumnModified(UserTableMap::COL_DELETIONS)) {
+            $modifiedColumns[':p' . $index++]  = 'deletions';
+        }
         if ($this->isColumnModified(UserTableMap::COL_UPDATED_AT)) {
             $modifiedColumns[':p' . $index++]  = 'updated_at';
         }
@@ -1254,6 +1485,15 @@ abstract class User implements ActiveRecordInterface
                         break;
                     case 'has_paypal':
                         $stmt->bindValue($identifier, (int) $this->has_paypal, PDO::PARAM_INT);
+                        break;
+                    case 'is_administrator':
+                        $stmt->bindValue($identifier, (int) $this->is_administrator, PDO::PARAM_INT);
+                        break;
+                    case 'is_moderator':
+                        $stmt->bindValue($identifier, $this->is_moderator, PDO::PARAM_INT);
+                        break;
+                    case 'deletions':
+                        $stmt->bindValue($identifier, $this->deletions, PDO::PARAM_INT);
                         break;
                     case 'updated_at':
                         $stmt->bindValue($identifier, $this->updated_at ? $this->updated_at->format("Y-m-d H:i:s.u") : null, PDO::PARAM_STR);
@@ -1348,6 +1588,15 @@ abstract class User implements ActiveRecordInterface
                 return $this->getHasPaypal();
                 break;
             case 9:
+                return $this->getIsAdministrator();
+                break;
+            case 10:
+                return $this->getIsModerator();
+                break;
+            case 11:
+                return $this->getDeletions();
+                break;
+            case 12:
                 return $this->getUpdatedAt();
                 break;
             default:
@@ -1389,14 +1638,17 @@ abstract class User implements ActiveRecordInterface
             $keys[6] => $this->getSha1Password(),
             $keys[7] => $this->getSalt(),
             $keys[8] => $this->getHasPaypal(),
-            $keys[9] => $this->getUpdatedAt(),
+            $keys[9] => $this->getIsAdministrator(),
+            $keys[10] => $this->getIsModerator(),
+            $keys[11] => $this->getDeletions(),
+            $keys[12] => $this->getUpdatedAt(),
         );
         if ($result[$keys[4]] instanceof \DateTimeInterface) {
             $result[$keys[4]] = $result[$keys[4]]->format('c');
         }
 
-        if ($result[$keys[9]] instanceof \DateTimeInterface) {
-            $result[$keys[9]] = $result[$keys[9]]->format('c');
+        if ($result[$keys[12]] instanceof \DateTimeInterface) {
+            $result[$keys[12]] = $result[$keys[12]]->format('c');
         }
 
         $virtualColumns = $this->virtualColumns;
@@ -1480,6 +1732,36 @@ abstract class User implements ActiveRecordInterface
 
                 $result[$key] = $this->collQuestionTags->toArray(null, false, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
             }
+            if (null !== $this->collReportQuestions) {
+
+                switch ($keyType) {
+                    case TableMap::TYPE_CAMELNAME:
+                        $key = 'reportQuestions';
+                        break;
+                    case TableMap::TYPE_FIELDNAME:
+                        $key = 'ask_report_questions';
+                        break;
+                    default:
+                        $key = 'ReportQuestions';
+                }
+
+                $result[$key] = $this->collReportQuestions->toArray(null, false, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
+            }
+            if (null !== $this->collReportAnswers) {
+
+                switch ($keyType) {
+                    case TableMap::TYPE_CAMELNAME:
+                        $key = 'reportAnswers';
+                        break;
+                    case TableMap::TYPE_FIELDNAME:
+                        $key = 'ask_report_answers';
+                        break;
+                    default:
+                        $key = 'ReportAnswers';
+                }
+
+                $result[$key] = $this->collReportAnswers->toArray(null, false, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
+            }
         }
 
         return $result;
@@ -1542,6 +1824,15 @@ abstract class User implements ActiveRecordInterface
                 $this->setHasPaypal($value);
                 break;
             case 9:
+                $this->setIsAdministrator($value);
+                break;
+            case 10:
+                $this->setIsModerator($value);
+                break;
+            case 11:
+                $this->setDeletions($value);
+                break;
+            case 12:
                 $this->setUpdatedAt($value);
                 break;
         } // switch()
@@ -1598,7 +1889,16 @@ abstract class User implements ActiveRecordInterface
             $this->setHasPaypal($arr[$keys[8]]);
         }
         if (array_key_exists($keys[9], $arr)) {
-            $this->setUpdatedAt($arr[$keys[9]]);
+            $this->setIsAdministrator($arr[$keys[9]]);
+        }
+        if (array_key_exists($keys[10], $arr)) {
+            $this->setIsModerator($arr[$keys[10]]);
+        }
+        if (array_key_exists($keys[11], $arr)) {
+            $this->setDeletions($arr[$keys[11]]);
+        }
+        if (array_key_exists($keys[12], $arr)) {
+            $this->setUpdatedAt($arr[$keys[12]]);
         }
     }
 
@@ -1667,6 +1967,15 @@ abstract class User implements ActiveRecordInterface
         }
         if ($this->isColumnModified(UserTableMap::COL_HAS_PAYPAL)) {
             $criteria->add(UserTableMap::COL_HAS_PAYPAL, $this->has_paypal);
+        }
+        if ($this->isColumnModified(UserTableMap::COL_IS_ADMINISTRATOR)) {
+            $criteria->add(UserTableMap::COL_IS_ADMINISTRATOR, $this->is_administrator);
+        }
+        if ($this->isColumnModified(UserTableMap::COL_IS_MODERATOR)) {
+            $criteria->add(UserTableMap::COL_IS_MODERATOR, $this->is_moderator);
+        }
+        if ($this->isColumnModified(UserTableMap::COL_DELETIONS)) {
+            $criteria->add(UserTableMap::COL_DELETIONS, $this->deletions);
         }
         if ($this->isColumnModified(UserTableMap::COL_UPDATED_AT)) {
             $criteria->add(UserTableMap::COL_UPDATED_AT, $this->updated_at);
@@ -1765,6 +2074,9 @@ abstract class User implements ActiveRecordInterface
         $copyObj->setSha1Password($this->getSha1Password());
         $copyObj->setSalt($this->getSalt());
         $copyObj->setHasPaypal($this->getHasPaypal());
+        $copyObj->setIsAdministrator($this->getIsAdministrator());
+        $copyObj->setIsModerator($this->getIsModerator());
+        $copyObj->setDeletions($this->getDeletions());
         $copyObj->setUpdatedAt($this->getUpdatedAt());
 
         if ($deepCopy) {
@@ -1799,6 +2111,18 @@ abstract class User implements ActiveRecordInterface
             foreach ($this->getQuestionTags() as $relObj) {
                 if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
                     $copyObj->addQuestionTag($relObj->copy($deepCopy));
+                }
+            }
+
+            foreach ($this->getReportQuestions() as $relObj) {
+                if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
+                    $copyObj->addReportQuestion($relObj->copy($deepCopy));
+                }
+            }
+
+            foreach ($this->getReportAnswers() as $relObj) {
+                if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
+                    $copyObj->addReportAnswer($relObj->copy($deepCopy));
                 }
             }
 
@@ -1861,6 +2185,14 @@ abstract class User implements ActiveRecordInterface
         }
         if ('QuestionTag' == $relationName) {
             $this->initQuestionTags();
+            return;
+        }
+        if ('ReportQuestion' == $relationName) {
+            $this->initReportQuestions();
+            return;
+        }
+        if ('ReportAnswer' == $relationName) {
+            $this->initReportAnswers();
             return;
         }
     }
@@ -3100,6 +3432,512 @@ abstract class User implements ActiveRecordInterface
     }
 
     /**
+     * Clears out the collReportQuestions collection
+     *
+     * This does not modify the database; however, it will remove any associated objects, causing
+     * them to be refetched by subsequent calls to accessor method.
+     *
+     * @return void
+     * @see        addReportQuestions()
+     */
+    public function clearReportQuestions()
+    {
+        $this->collReportQuestions = null; // important to set this to NULL since that means it is uninitialized
+    }
+
+    /**
+     * Reset is the collReportQuestions collection loaded partially.
+     */
+    public function resetPartialReportQuestions($v = true)
+    {
+        $this->collReportQuestionsPartial = $v;
+    }
+
+    /**
+     * Initializes the collReportQuestions collection.
+     *
+     * By default this just sets the collReportQuestions collection to an empty array (like clearcollReportQuestions());
+     * however, you may wish to override this method in your stub class to provide setting appropriate
+     * to your application -- for example, setting the initial array to the values stored in database.
+     *
+     * @param      boolean $overrideExisting If set to true, the method call initializes
+     *                                        the collection even if it is not empty
+     *
+     * @return void
+     */
+    public function initReportQuestions($overrideExisting = true)
+    {
+        if (null !== $this->collReportQuestions && !$overrideExisting) {
+            return;
+        }
+
+        $collectionClassName = ReportQuestionTableMap::getTableMap()->getCollectionClassName();
+
+        $this->collReportQuestions = new $collectionClassName;
+        $this->collReportQuestions->setModel('\App\Entity\ReportQuestion');
+    }
+
+    /**
+     * Gets an array of ChildReportQuestion objects which contain a foreign key that references this object.
+     *
+     * If the $criteria is not null, it is used to always fetch the results from the database.
+     * Otherwise the results are fetched from the database the first time, then cached.
+     * Next time the same method is called without $criteria, the cached collection is returned.
+     * If this ChildUser is new, it will return
+     * an empty collection or the current collection; the criteria is ignored on a new object.
+     *
+     * @param      Criteria $criteria optional Criteria object to narrow the query
+     * @param      ConnectionInterface $con optional connection object
+     * @return ObjectCollection|ChildReportQuestion[] List of ChildReportQuestion objects
+     * @throws PropelException
+     */
+    public function getReportQuestions(Criteria $criteria = null, ConnectionInterface $con = null)
+    {
+        $partial = $this->collReportQuestionsPartial && !$this->isNew();
+        if (null === $this->collReportQuestions || null !== $criteria  || $partial) {
+            if ($this->isNew() && null === $this->collReportQuestions) {
+                // return empty collection
+                $this->initReportQuestions();
+            } else {
+                $collReportQuestions = ChildReportQuestionQuery::create(null, $criteria)
+                    ->filterByUser($this)
+                    ->find($con);
+
+                if (null !== $criteria) {
+                    if (false !== $this->collReportQuestionsPartial && count($collReportQuestions)) {
+                        $this->initReportQuestions(false);
+
+                        foreach ($collReportQuestions as $obj) {
+                            if (false == $this->collReportQuestions->contains($obj)) {
+                                $this->collReportQuestions->append($obj);
+                            }
+                        }
+
+                        $this->collReportQuestionsPartial = true;
+                    }
+
+                    return $collReportQuestions;
+                }
+
+                if ($partial && $this->collReportQuestions) {
+                    foreach ($this->collReportQuestions as $obj) {
+                        if ($obj->isNew()) {
+                            $collReportQuestions[] = $obj;
+                        }
+                    }
+                }
+
+                $this->collReportQuestions = $collReportQuestions;
+                $this->collReportQuestionsPartial = false;
+            }
+        }
+
+        return $this->collReportQuestions;
+    }
+
+    /**
+     * Sets a collection of ChildReportQuestion objects related by a one-to-many relationship
+     * to the current object.
+     * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
+     * and new objects from the given Propel collection.
+     *
+     * @param      Collection $reportQuestions A Propel collection.
+     * @param      ConnectionInterface $con Optional connection object
+     * @return $this|ChildUser The current object (for fluent API support)
+     */
+    public function setReportQuestions(Collection $reportQuestions, ConnectionInterface $con = null)
+    {
+        /** @var ChildReportQuestion[] $reportQuestionsToDelete */
+        $reportQuestionsToDelete = $this->getReportQuestions(new Criteria(), $con)->diff($reportQuestions);
+
+
+        //since at least one column in the foreign key is at the same time a PK
+        //we can not just set a PK to NULL in the lines below. We have to store
+        //a backup of all values, so we are able to manipulate these items based on the onDelete value later.
+        $this->reportQuestionsScheduledForDeletion = clone $reportQuestionsToDelete;
+
+        foreach ($reportQuestionsToDelete as $reportQuestionRemoved) {
+            $reportQuestionRemoved->setUser(null);
+        }
+
+        $this->collReportQuestions = null;
+        foreach ($reportQuestions as $reportQuestion) {
+            $this->addReportQuestion($reportQuestion);
+        }
+
+        $this->collReportQuestions = $reportQuestions;
+        $this->collReportQuestionsPartial = false;
+
+        return $this;
+    }
+
+    /**
+     * Returns the number of related ReportQuestion objects.
+     *
+     * @param      Criteria $criteria
+     * @param      boolean $distinct
+     * @param      ConnectionInterface $con
+     * @return int             Count of related ReportQuestion objects.
+     * @throws PropelException
+     */
+    public function countReportQuestions(Criteria $criteria = null, $distinct = false, ConnectionInterface $con = null)
+    {
+        $partial = $this->collReportQuestionsPartial && !$this->isNew();
+        if (null === $this->collReportQuestions || null !== $criteria || $partial) {
+            if ($this->isNew() && null === $this->collReportQuestions) {
+                return 0;
+            }
+
+            if ($partial && !$criteria) {
+                return count($this->getReportQuestions());
+            }
+
+            $query = ChildReportQuestionQuery::create(null, $criteria);
+            if ($distinct) {
+                $query->distinct();
+            }
+
+            return $query
+                ->filterByUser($this)
+                ->count($con);
+        }
+
+        return count($this->collReportQuestions);
+    }
+
+    /**
+     * Method called to associate a ChildReportQuestion object to this object
+     * through the ChildReportQuestion foreign key attribute.
+     *
+     * @param  ChildReportQuestion $l ChildReportQuestion
+     * @return $this|\App\Entity\User The current object (for fluent API support)
+     */
+    public function addReportQuestion(ChildReportQuestion $l)
+    {
+        if ($this->collReportQuestions === null) {
+            $this->initReportQuestions();
+            $this->collReportQuestionsPartial = true;
+        }
+
+        if (!$this->collReportQuestions->contains($l)) {
+            $this->doAddReportQuestion($l);
+
+            if ($this->reportQuestionsScheduledForDeletion and $this->reportQuestionsScheduledForDeletion->contains($l)) {
+                $this->reportQuestionsScheduledForDeletion->remove($this->reportQuestionsScheduledForDeletion->search($l));
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param ChildReportQuestion $reportQuestion The ChildReportQuestion object to add.
+     */
+    protected function doAddReportQuestion(ChildReportQuestion $reportQuestion)
+    {
+        $this->collReportQuestions[]= $reportQuestion;
+        $reportQuestion->setUser($this);
+    }
+
+    /**
+     * @param  ChildReportQuestion $reportQuestion The ChildReportQuestion object to remove.
+     * @return $this|ChildUser The current object (for fluent API support)
+     */
+    public function removeReportQuestion(ChildReportQuestion $reportQuestion)
+    {
+        if ($this->getReportQuestions()->contains($reportQuestion)) {
+            $pos = $this->collReportQuestions->search($reportQuestion);
+            $this->collReportQuestions->remove($pos);
+            if (null === $this->reportQuestionsScheduledForDeletion) {
+                $this->reportQuestionsScheduledForDeletion = clone $this->collReportQuestions;
+                $this->reportQuestionsScheduledForDeletion->clear();
+            }
+            $this->reportQuestionsScheduledForDeletion[]= clone $reportQuestion;
+            $reportQuestion->setUser(null);
+        }
+
+        return $this;
+    }
+
+
+    /**
+     * If this collection has already been initialized with
+     * an identical criteria, it returns the collection.
+     * Otherwise if this User is new, it will return
+     * an empty collection; or if this User has previously
+     * been saved, it will retrieve related ReportQuestions from storage.
+     *
+     * This method is protected by default in order to keep the public
+     * api reasonable.  You can provide public methods for those you
+     * actually need in User.
+     *
+     * @param      Criteria $criteria optional Criteria object to narrow the query
+     * @param      ConnectionInterface $con optional connection object
+     * @param      string $joinBehavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return ObjectCollection|ChildReportQuestion[] List of ChildReportQuestion objects
+     */
+    public function getReportQuestionsJoinQuestion(Criteria $criteria = null, ConnectionInterface $con = null, $joinBehavior = Criteria::LEFT_JOIN)
+    {
+        $query = ChildReportQuestionQuery::create(null, $criteria);
+        $query->joinWith('Question', $joinBehavior);
+
+        return $this->getReportQuestions($query, $con);
+    }
+
+    /**
+     * Clears out the collReportAnswers collection
+     *
+     * This does not modify the database; however, it will remove any associated objects, causing
+     * them to be refetched by subsequent calls to accessor method.
+     *
+     * @return void
+     * @see        addReportAnswers()
+     */
+    public function clearReportAnswers()
+    {
+        $this->collReportAnswers = null; // important to set this to NULL since that means it is uninitialized
+    }
+
+    /**
+     * Reset is the collReportAnswers collection loaded partially.
+     */
+    public function resetPartialReportAnswers($v = true)
+    {
+        $this->collReportAnswersPartial = $v;
+    }
+
+    /**
+     * Initializes the collReportAnswers collection.
+     *
+     * By default this just sets the collReportAnswers collection to an empty array (like clearcollReportAnswers());
+     * however, you may wish to override this method in your stub class to provide setting appropriate
+     * to your application -- for example, setting the initial array to the values stored in database.
+     *
+     * @param      boolean $overrideExisting If set to true, the method call initializes
+     *                                        the collection even if it is not empty
+     *
+     * @return void
+     */
+    public function initReportAnswers($overrideExisting = true)
+    {
+        if (null !== $this->collReportAnswers && !$overrideExisting) {
+            return;
+        }
+
+        $collectionClassName = ReportAnswerTableMap::getTableMap()->getCollectionClassName();
+
+        $this->collReportAnswers = new $collectionClassName;
+        $this->collReportAnswers->setModel('\App\Entity\ReportAnswer');
+    }
+
+    /**
+     * Gets an array of ChildReportAnswer objects which contain a foreign key that references this object.
+     *
+     * If the $criteria is not null, it is used to always fetch the results from the database.
+     * Otherwise the results are fetched from the database the first time, then cached.
+     * Next time the same method is called without $criteria, the cached collection is returned.
+     * If this ChildUser is new, it will return
+     * an empty collection or the current collection; the criteria is ignored on a new object.
+     *
+     * @param      Criteria $criteria optional Criteria object to narrow the query
+     * @param      ConnectionInterface $con optional connection object
+     * @return ObjectCollection|ChildReportAnswer[] List of ChildReportAnswer objects
+     * @throws PropelException
+     */
+    public function getReportAnswers(Criteria $criteria = null, ConnectionInterface $con = null)
+    {
+        $partial = $this->collReportAnswersPartial && !$this->isNew();
+        if (null === $this->collReportAnswers || null !== $criteria  || $partial) {
+            if ($this->isNew() && null === $this->collReportAnswers) {
+                // return empty collection
+                $this->initReportAnswers();
+            } else {
+                $collReportAnswers = ChildReportAnswerQuery::create(null, $criteria)
+                    ->filterByUser($this)
+                    ->find($con);
+
+                if (null !== $criteria) {
+                    if (false !== $this->collReportAnswersPartial && count($collReportAnswers)) {
+                        $this->initReportAnswers(false);
+
+                        foreach ($collReportAnswers as $obj) {
+                            if (false == $this->collReportAnswers->contains($obj)) {
+                                $this->collReportAnswers->append($obj);
+                            }
+                        }
+
+                        $this->collReportAnswersPartial = true;
+                    }
+
+                    return $collReportAnswers;
+                }
+
+                if ($partial && $this->collReportAnswers) {
+                    foreach ($this->collReportAnswers as $obj) {
+                        if ($obj->isNew()) {
+                            $collReportAnswers[] = $obj;
+                        }
+                    }
+                }
+
+                $this->collReportAnswers = $collReportAnswers;
+                $this->collReportAnswersPartial = false;
+            }
+        }
+
+        return $this->collReportAnswers;
+    }
+
+    /**
+     * Sets a collection of ChildReportAnswer objects related by a one-to-many relationship
+     * to the current object.
+     * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
+     * and new objects from the given Propel collection.
+     *
+     * @param      Collection $reportAnswers A Propel collection.
+     * @param      ConnectionInterface $con Optional connection object
+     * @return $this|ChildUser The current object (for fluent API support)
+     */
+    public function setReportAnswers(Collection $reportAnswers, ConnectionInterface $con = null)
+    {
+        /** @var ChildReportAnswer[] $reportAnswersToDelete */
+        $reportAnswersToDelete = $this->getReportAnswers(new Criteria(), $con)->diff($reportAnswers);
+
+
+        //since at least one column in the foreign key is at the same time a PK
+        //we can not just set a PK to NULL in the lines below. We have to store
+        //a backup of all values, so we are able to manipulate these items based on the onDelete value later.
+        $this->reportAnswersScheduledForDeletion = clone $reportAnswersToDelete;
+
+        foreach ($reportAnswersToDelete as $reportAnswerRemoved) {
+            $reportAnswerRemoved->setUser(null);
+        }
+
+        $this->collReportAnswers = null;
+        foreach ($reportAnswers as $reportAnswer) {
+            $this->addReportAnswer($reportAnswer);
+        }
+
+        $this->collReportAnswers = $reportAnswers;
+        $this->collReportAnswersPartial = false;
+
+        return $this;
+    }
+
+    /**
+     * Returns the number of related ReportAnswer objects.
+     *
+     * @param      Criteria $criteria
+     * @param      boolean $distinct
+     * @param      ConnectionInterface $con
+     * @return int             Count of related ReportAnswer objects.
+     * @throws PropelException
+     */
+    public function countReportAnswers(Criteria $criteria = null, $distinct = false, ConnectionInterface $con = null)
+    {
+        $partial = $this->collReportAnswersPartial && !$this->isNew();
+        if (null === $this->collReportAnswers || null !== $criteria || $partial) {
+            if ($this->isNew() && null === $this->collReportAnswers) {
+                return 0;
+            }
+
+            if ($partial && !$criteria) {
+                return count($this->getReportAnswers());
+            }
+
+            $query = ChildReportAnswerQuery::create(null, $criteria);
+            if ($distinct) {
+                $query->distinct();
+            }
+
+            return $query
+                ->filterByUser($this)
+                ->count($con);
+        }
+
+        return count($this->collReportAnswers);
+    }
+
+    /**
+     * Method called to associate a ChildReportAnswer object to this object
+     * through the ChildReportAnswer foreign key attribute.
+     *
+     * @param  ChildReportAnswer $l ChildReportAnswer
+     * @return $this|\App\Entity\User The current object (for fluent API support)
+     */
+    public function addReportAnswer(ChildReportAnswer $l)
+    {
+        if ($this->collReportAnswers === null) {
+            $this->initReportAnswers();
+            $this->collReportAnswersPartial = true;
+        }
+
+        if (!$this->collReportAnswers->contains($l)) {
+            $this->doAddReportAnswer($l);
+
+            if ($this->reportAnswersScheduledForDeletion and $this->reportAnswersScheduledForDeletion->contains($l)) {
+                $this->reportAnswersScheduledForDeletion->remove($this->reportAnswersScheduledForDeletion->search($l));
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param ChildReportAnswer $reportAnswer The ChildReportAnswer object to add.
+     */
+    protected function doAddReportAnswer(ChildReportAnswer $reportAnswer)
+    {
+        $this->collReportAnswers[]= $reportAnswer;
+        $reportAnswer->setUser($this);
+    }
+
+    /**
+     * @param  ChildReportAnswer $reportAnswer The ChildReportAnswer object to remove.
+     * @return $this|ChildUser The current object (for fluent API support)
+     */
+    public function removeReportAnswer(ChildReportAnswer $reportAnswer)
+    {
+        if ($this->getReportAnswers()->contains($reportAnswer)) {
+            $pos = $this->collReportAnswers->search($reportAnswer);
+            $this->collReportAnswers->remove($pos);
+            if (null === $this->reportAnswersScheduledForDeletion) {
+                $this->reportAnswersScheduledForDeletion = clone $this->collReportAnswers;
+                $this->reportAnswersScheduledForDeletion->clear();
+            }
+            $this->reportAnswersScheduledForDeletion[]= clone $reportAnswer;
+            $reportAnswer->setUser(null);
+        }
+
+        return $this;
+    }
+
+
+    /**
+     * If this collection has already been initialized with
+     * an identical criteria, it returns the collection.
+     * Otherwise if this User is new, it will return
+     * an empty collection; or if this User has previously
+     * been saved, it will retrieve related ReportAnswers from storage.
+     *
+     * This method is protected by default in order to keep the public
+     * api reasonable.  You can provide public methods for those you
+     * actually need in User.
+     *
+     * @param      Criteria $criteria optional Criteria object to narrow the query
+     * @param      ConnectionInterface $con optional connection object
+     * @param      string $joinBehavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return ObjectCollection|ChildReportAnswer[] List of ChildReportAnswer objects
+     */
+    public function getReportAnswersJoinAnswer(Criteria $criteria = null, ConnectionInterface $con = null, $joinBehavior = Criteria::LEFT_JOIN)
+    {
+        $query = ChildReportAnswerQuery::create(null, $criteria);
+        $query->joinWith('Answer', $joinBehavior);
+
+        return $this->getReportAnswers($query, $con);
+    }
+
+    /**
      * Clears the current object, sets all attributes to their default values and removes
      * outgoing references as well as back-references (from other objects to this one. Results probably in a database
      * change of those foreign objects when you call `save` there).
@@ -3115,6 +3953,9 @@ abstract class User implements ActiveRecordInterface
         $this->sha1_password = null;
         $this->salt = null;
         $this->has_paypal = null;
+        $this->is_administrator = null;
+        $this->is_moderator = null;
+        $this->deletions = null;
         $this->updated_at = null;
         $this->alreadyInSave = false;
         $this->clearAllReferences();
@@ -3160,6 +4001,16 @@ abstract class User implements ActiveRecordInterface
                     $o->clearAllReferences($deep);
                 }
             }
+            if ($this->collReportQuestions) {
+                foreach ($this->collReportQuestions as $o) {
+                    $o->clearAllReferences($deep);
+                }
+            }
+            if ($this->collReportAnswers) {
+                foreach ($this->collReportAnswers as $o) {
+                    $o->clearAllReferences($deep);
+                }
+            }
         } // if ($deep)
 
         $this->collQuestions = null;
@@ -3167,6 +4018,8 @@ abstract class User implements ActiveRecordInterface
         $this->collInterests = null;
         $this->collRelevancies = null;
         $this->collQuestionTags = null;
+        $this->collReportQuestions = null;
+        $this->collReportAnswers = null;
     }
 
     /**
