@@ -100,7 +100,17 @@ use Propel\Runtime\Exception\PropelException;
  * @method     ChildQuestionQuery rightJoinWithReportQuestion() Adds a RIGHT JOIN clause and with to the query using the ReportQuestion relation
  * @method     ChildQuestionQuery innerJoinWithReportQuestion() Adds a INNER JOIN clause and with to the query using the ReportQuestion relation
  *
- * @method     \App\Entity\UserQuery|\App\Entity\AnswerQuery|\App\Entity\InterestQuery|\App\Entity\QuestionTagQuery|\App\Entity\ReportQuestionQuery endUse() Finalizes a secondary criteria and merges it with its primary Criteria
+ * @method     ChildQuestionQuery leftJoinSearchIndex($relationAlias = null) Adds a LEFT JOIN clause to the query using the SearchIndex relation
+ * @method     ChildQuestionQuery rightJoinSearchIndex($relationAlias = null) Adds a RIGHT JOIN clause to the query using the SearchIndex relation
+ * @method     ChildQuestionQuery innerJoinSearchIndex($relationAlias = null) Adds a INNER JOIN clause to the query using the SearchIndex relation
+ *
+ * @method     ChildQuestionQuery joinWithSearchIndex($joinType = Criteria::INNER_JOIN) Adds a join clause and with to the query using the SearchIndex relation
+ *
+ * @method     ChildQuestionQuery leftJoinWithSearchIndex() Adds a LEFT JOIN clause and with to the query using the SearchIndex relation
+ * @method     ChildQuestionQuery rightJoinWithSearchIndex() Adds a RIGHT JOIN clause and with to the query using the SearchIndex relation
+ * @method     ChildQuestionQuery innerJoinWithSearchIndex() Adds a INNER JOIN clause and with to the query using the SearchIndex relation
+ *
+ * @method     \App\Entity\UserQuery|\App\Entity\AnswerQuery|\App\Entity\InterestQuery|\App\Entity\QuestionTagQuery|\App\Entity\ReportQuestionQuery|\App\Entity\SearchIndexQuery endUse() Finalizes a secondary criteria and merges it with its primary Criteria
  *
  * @method     ChildQuestion findOne(ConnectionInterface $con = null) Return the first ChildQuestion matching the query
  * @method     ChildQuestion findOneOrCreate(ConnectionInterface $con = null) Return the first ChildQuestion matching the query, or a new ChildQuestion object populated from the query conditions when no match is found
@@ -1048,6 +1058,79 @@ abstract class QuestionQuery extends ModelCriteria
         return $this
             ->joinReportQuestion($relationAlias, $joinType)
             ->useQuery($relationAlias ? $relationAlias : 'ReportQuestion', '\App\Entity\ReportQuestionQuery');
+    }
+
+    /**
+     * Filter the query by a related \App\Entity\SearchIndex object
+     *
+     * @param \App\Entity\SearchIndex|ObjectCollection $searchIndex the related object to use as filter
+     * @param string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
+     *
+     * @return ChildQuestionQuery The current query, for fluid interface
+     */
+    public function filterBySearchIndex($searchIndex, $comparison = null)
+    {
+        if ($searchIndex instanceof \App\Entity\SearchIndex) {
+            return $this
+                ->addUsingAlias(QuestionTableMap::COL_ID, $searchIndex->getQuestionId(), $comparison);
+        } elseif ($searchIndex instanceof ObjectCollection) {
+            return $this
+                ->useSearchIndexQuery()
+                ->filterByPrimaryKeys($searchIndex->getPrimaryKeys())
+                ->endUse();
+        } else {
+            throw new PropelException('filterBySearchIndex() only accepts arguments of type \App\Entity\SearchIndex or Collection');
+        }
+    }
+
+    /**
+     * Adds a JOIN clause to the query using the SearchIndex relation
+     *
+     * @param     string $relationAlias optional alias for the relation
+     * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
+     *
+     * @return $this|ChildQuestionQuery The current query, for fluid interface
+     */
+    public function joinSearchIndex($relationAlias = null, $joinType = Criteria::LEFT_JOIN)
+    {
+        $tableMap = $this->getTableMap();
+        $relationMap = $tableMap->getRelation('SearchIndex');
+
+        // create a ModelJoin object for this join
+        $join = new ModelJoin();
+        $join->setJoinType($joinType);
+        $join->setRelationMap($relationMap, $this->useAliasInSQL ? $this->getModelAlias() : null, $relationAlias);
+        if ($previousJoin = $this->getPreviousJoin()) {
+            $join->setPreviousJoin($previousJoin);
+        }
+
+        // add the ModelJoin to the current object
+        if ($relationAlias) {
+            $this->addAlias($relationAlias, $relationMap->getRightTable()->getName());
+            $this->addJoinObject($join, $relationAlias);
+        } else {
+            $this->addJoinObject($join, 'SearchIndex');
+        }
+
+        return $this;
+    }
+
+    /**
+     * Use the SearchIndex relation SearchIndex object
+     *
+     * @see useQuery()
+     *
+     * @param     string $relationAlias optional alias for the relation,
+     *                                   to be used as main alias in the secondary query
+     * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
+     *
+     * @return \App\Entity\SearchIndexQuery A secondary query class using the current class as primary query
+     */
+    public function useSearchIndexQuery($relationAlias = null, $joinType = Criteria::LEFT_JOIN)
+    {
+        return $this
+            ->joinSearchIndex($relationAlias, $joinType)
+            ->useQuery($relationAlias ? $relationAlias : 'SearchIndex', '\App\Entity\SearchIndexQuery');
     }
 
     /**

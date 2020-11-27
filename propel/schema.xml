@@ -132,5 +132,15 @@
         </foreign-key>
         <column name="created_at" type="timestamp" />
     </table>
-
+    <table name="ask_search_index" phpName="SearchIndex">
+  <column name="question_id" type="integer" />
+  <foreign-key foreignTable="ask_question" onDelete="cascade">
+    <reference local="question_id" foreign="id"/>
+  </foreign-key>
+  <column name="word" type="varchar" size="255" />
+  <index name="word_index">
+    <index-column name="word" />
+  </index>
+  <column name="weight" type="integer" />
+</table>
 </database>

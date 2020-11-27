@@ -15,6 +15,8 @@ use App\Entity\QuestionTag as ChildQuestionTag;
 use App\Entity\QuestionTagQuery as ChildQuestionTagQuery;
 use App\Entity\ReportQuestion as ChildReportQuestion;
 use App\Entity\ReportQuestionQuery as ChildReportQuestionQuery;
+use App\Entity\SearchIndex as ChildSearchIndex;
+use App\Entity\SearchIndexQuery as ChildSearchIndexQuery;
 use App\Entity\User as ChildUser;
 use App\Entity\UserQuery as ChildUserQuery;
 use App\Entity\Map\AnswerTableMap;
@@ -22,6 +24,7 @@ use App\Entity\Map\InterestTableMap;
 use App\Entity\Map\QuestionTableMap;
 use App\Entity\Map\QuestionTagTableMap;
 use App\Entity\Map\ReportQuestionTableMap;
+use App\Entity\Map\SearchIndexTableMap;
 use Propel\Runtime\Propel;
 use Propel\Runtime\ActiveQuery\Criteria;
 use Propel\Runtime\ActiveQuery\ModelCriteria;
@@ -179,6 +182,12 @@ abstract class Question implements ActiveRecordInterface
     protected $collReportQuestionsPartial;
 
     /**
+     * @var        ObjectCollection|ChildSearchIndex[] Collection to store aggregation of ChildSearchIndex objects.
+     */
+    protected $collSearchIndices;
+    protected $collSearchIndicesPartial;
+
+    /**
      * Flag to prevent endless save loop, if this object is referenced
      * by another object which falls in this transaction.
      *
@@ -209,6 +218,12 @@ abstract class Question implements ActiveRecordInterface
      * @var ObjectCollection|ChildReportQuestion[]
      */
     protected $reportQuestionsScheduledForDeletion = null;
+
+    /**
+     * An array of objects scheduled for deletion.
+     * @var ObjectCollection|ChildSearchIndex[]
+     */
+    protected $searchIndicesScheduledForDeletion = null;
 
     /**
      * Applies default values to this object.
@@ -933,6 +948,8 @@ abstract class Question implements ActiveRecordInterface
 
             $this->collReportQuestions = null;
 
+            $this->collSearchIndices = null;
+
         } // if (deep)
     }
 
@@ -1134,6 +1151,23 @@ abstract class Question implements ActiveRecordInterface
 
             if ($this->collReportQuestions !== null) {
                 foreach ($this->collReportQuestions as $referrerFK) {
+                    if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
+                        $affectedRows += $referrerFK->save($con);
+                    }
+                }
+            }
+
+            if ($this->searchIndicesScheduledForDeletion !== null) {
+                if (!$this->searchIndicesScheduledForDeletion->isEmpty()) {
+                    \App\Entity\SearchIndexQuery::create()
+                        ->filterByPrimaryKeys($this->searchIndicesScheduledForDeletion->getPrimaryKeys(false))
+                        ->delete($con);
+                    $this->searchIndicesScheduledForDeletion = null;
+                }
+            }
+
+            if ($this->collSearchIndices !== null) {
+                foreach ($this->collSearchIndices as $referrerFK) {
                     if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
                         $affectedRows += $referrerFK->save($con);
                     }
@@ -1459,6 +1493,21 @@ abstract class Question implements ActiveRecordInterface
 
                 $result[$key] = $this->collReportQuestions->toArray(null, false, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
             }
+            if (null !== $this->collSearchIndices) {
+
+                switch ($keyType) {
+                    case TableMap::TYPE_CAMELNAME:
+                        $key = 'searchIndices';
+                        break;
+                    case TableMap::TYPE_FIELDNAME:
+                        $key = 'ask_search_indices';
+                        break;
+                    default:
+                        $key = 'SearchIndices';
+                }
+
+                $result[$key] = $this->collSearchIndices->toArray(null, false, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
+            }
         }
 
         return $result;
@@ -1775,6 +1824,12 @@ abstract class Question implements ActiveRecordInterface
                 }
             }
 
+            foreach ($this->getSearchIndices() as $relObj) {
+                if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
+                    $copyObj->addSearchIndex($relObj->copy($deepCopy));
+                }
+            }
+
         } // if ($deepCopy)
 
         if ($makeNew) {
@@ -1881,6 +1936,10 @@ abstract class Question implements ActiveRecordInterface
         }
         if ('ReportQuestion' == $relationName) {
             $this->initReportQuestions();
+            return;
+        }
+        if ('SearchIndex' == $relationName) {
+            $this->initSearchIndices();
             return;
         }
     }
@@ -2895,6 +2954,231 @@ abstract class Question implements ActiveRecordInterface
     }
 
     /**
+     * Clears out the collSearchIndices collection
+     *
+     * This does not modify the database; however, it will remove any associated objects, causing
+     * them to be refetched by subsequent calls to accessor method.
+     *
+     * @return void
+     * @see        addSearchIndices()
+     */
+    public function clearSearchIndices()
+    {
+        $this->collSearchIndices = null; // important to set this to NULL since that means it is uninitialized
+    }
+
+    /**
+     * Reset is the collSearchIndices collection loaded partially.
+     */
+    public function resetPartialSearchIndices($v = true)
+    {
+        $this->collSearchIndicesPartial = $v;
+    }
+
+    /**
+     * Initializes the collSearchIndices collection.
+     *
+     * By default this just sets the collSearchIndices collection to an empty array (like clearcollSearchIndices());
+     * however, you may wish to override this method in your stub class to provide setting appropriate
+     * to your application -- for example, setting the initial array to the values stored in database.
+     *
+     * @param      boolean $overrideExisting If set to true, the method call initializes
+     *                                        the collection even if it is not empty
+     *
+     * @return void
+     */
+    public function initSearchIndices($overrideExisting = true)
+    {
+        if (null !== $this->collSearchIndices && !$overrideExisting) {
+            return;
+        }
+
+        $collectionClassName = SearchIndexTableMap::getTableMap()->getCollectionClassName();
+
+        $this->collSearchIndices = new $collectionClassName;
+        $this->collSearchIndices->setModel('\App\Entity\SearchIndex');
+    }
+
+    /**
+     * Gets an array of ChildSearchIndex objects which contain a foreign key that references this object.
+     *
+     * If the $criteria is not null, it is used to always fetch the results from the database.
+     * Otherwise the results are fetched from the database the first time, then cached.
+     * Next time the same method is called without $criteria, the cached collection is returned.
+     * If this ChildQuestion is new, it will return
+     * an empty collection or the current collection; the criteria is ignored on a new object.
+     *
+     * @param      Criteria $criteria optional Criteria object to narrow the query
+     * @param      ConnectionInterface $con optional connection object
+     * @return ObjectCollection|ChildSearchIndex[] List of ChildSearchIndex objects
+     * @throws PropelException
+     */
+    public function getSearchIndices(Criteria $criteria = null, ConnectionInterface $con = null)
+    {
+        $partial = $this->collSearchIndicesPartial && !$this->isNew();
+        if (null === $this->collSearchIndices || null !== $criteria  || $partial) {
+            if ($this->isNew() && null === $this->collSearchIndices) {
+                // return empty collection
+                $this->initSearchIndices();
+            } else {
+                $collSearchIndices = ChildSearchIndexQuery::create(null, $criteria)
+                    ->filterByQuestion($this)
+                    ->find($con);
+
+                if (null !== $criteria) {
+                    if (false !== $this->collSearchIndicesPartial && count($collSearchIndices)) {
+                        $this->initSearchIndices(false);
+
+                        foreach ($collSearchIndices as $obj) {
+                            if (false == $this->collSearchIndices->contains($obj)) {
+                                $this->collSearchIndices->append($obj);
+                            }
+                        }
+
+                        $this->collSearchIndicesPartial = true;
+                    }
+
+                    return $collSearchIndices;
+                }
+
+                if ($partial && $this->collSearchIndices) {
+                    foreach ($this->collSearchIndices as $obj) {
+                        if ($obj->isNew()) {
+                            $collSearchIndices[] = $obj;
+                        }
+                    }
+                }
+
+                $this->collSearchIndices = $collSearchIndices;
+                $this->collSearchIndicesPartial = false;
+            }
+        }
+
+        return $this->collSearchIndices;
+    }
+
+    /**
+     * Sets a collection of ChildSearchIndex objects related by a one-to-many relationship
+     * to the current object.
+     * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
+     * and new objects from the given Propel collection.
+     *
+     * @param      Collection $searchIndices A Propel collection.
+     * @param      ConnectionInterface $con Optional connection object
+     * @return $this|ChildQuestion The current object (for fluent API support)
+     */
+    public function setSearchIndices(Collection $searchIndices, ConnectionInterface $con = null)
+    {
+        /** @var ChildSearchIndex[] $searchIndicesToDelete */
+        $searchIndicesToDelete = $this->getSearchIndices(new Criteria(), $con)->diff($searchIndices);
+
+
+        $this->searchIndicesScheduledForDeletion = $searchIndicesToDelete;
+
+        foreach ($searchIndicesToDelete as $searchIndexRemoved) {
+            $searchIndexRemoved->setQuestion(null);
+        }
+
+        $this->collSearchIndices = null;
+        foreach ($searchIndices as $searchIndex) {
+            $this->addSearchIndex($searchIndex);
+        }
+
+        $this->collSearchIndices = $searchIndices;
+        $this->collSearchIndicesPartial = false;
+
+        return $this;
+    }
+
+    /**
+     * Returns the number of related SearchIndex objects.
+     *
+     * @param      Criteria $criteria
+     * @param      boolean $distinct
+     * @param      ConnectionInterface $con
+     * @return int             Count of related SearchIndex objects.
+     * @throws PropelException
+     */
+    public function countSearchIndices(Criteria $criteria = null, $distinct = false, ConnectionInterface $con = null)
+    {
+        $partial = $this->collSearchIndicesPartial && !$this->isNew();
+        if (null === $this->collSearchIndices || null !== $criteria || $partial) {
+            if ($this->isNew() && null === $this->collSearchIndices) {
+                return 0;
+            }
+
+            if ($partial && !$criteria) {
+                return count($this->getSearchIndices());
+            }
+
+            $query = ChildSearchIndexQuery::create(null, $criteria);
+            if ($distinct) {
+                $query->distinct();
+            }
+
+            return $query
+                ->filterByQuestion($this)
+                ->count($con);
+        }
+
+        return count($this->collSearchIndices);
+    }
+
+    /**
+     * Method called to associate a ChildSearchIndex object to this object
+     * through the ChildSearchIndex foreign key attribute.
+     *
+     * @param  ChildSearchIndex $l ChildSearchIndex
+     * @return $this|\App\Entity\Question The current object (for fluent API support)
+     */
+    public function addSearchIndex(ChildSearchIndex $l)
+    {
+        if ($this->collSearchIndices === null) {
+            $this->initSearchIndices();
+            $this->collSearchIndicesPartial = true;
+        }
+
+        if (!$this->collSearchIndices->contains($l)) {
+            $this->doAddSearchIndex($l);
+
+            if ($this->searchIndicesScheduledForDeletion and $this->searchIndicesScheduledForDeletion->contains($l)) {
+                $this->searchIndicesScheduledForDeletion->remove($this->searchIndicesScheduledForDeletion->search($l));
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param ChildSearchIndex $searchIndex The ChildSearchIndex object to add.
+     */
+    protected function doAddSearchIndex(ChildSearchIndex $searchIndex)
+    {
+        $this->collSearchIndices[]= $searchIndex;
+        $searchIndex->setQuestion($this);
+    }
+
+    /**
+     * @param  ChildSearchIndex $searchIndex The ChildSearchIndex object to remove.
+     * @return $this|ChildQuestion The current object (for fluent API support)
+     */
+    public function removeSearchIndex(ChildSearchIndex $searchIndex)
+    {
+        if ($this->getSearchIndices()->contains($searchIndex)) {
+            $pos = $this->collSearchIndices->search($searchIndex);
+            $this->collSearchIndices->remove($pos);
+            if (null === $this->searchIndicesScheduledForDeletion) {
+                $this->searchIndicesScheduledForDeletion = clone $this->collSearchIndices;
+                $this->searchIndicesScheduledForDeletion->clear();
+            }
+            $this->searchIndicesScheduledForDeletion[]= $searchIndex;
+            $searchIndex->setQuestion(null);
+        }
+
+        return $this;
+    }
+
+    /**
      * Clears the current object, sets all attributes to their default values and removes
      * outgoing references as well as back-references (from other objects to this one. Results probably in a database
      * change of those foreign objects when you call `save` there).
@@ -2953,12 +3237,18 @@ abstract class Question implements ActiveRecordInterface
                     $o->clearAllReferences($deep);
                 }
             }
+            if ($this->collSearchIndices) {
+                foreach ($this->collSearchIndices as $o) {
+                    $o->clearAllReferences($deep);
+                }
+            }
         } // if ($deep)
 
         $this->collAnswers = null;
         $this->collInterests = null;
         $this->collQuestionTags = null;
         $this->collReportQuestions = null;
+        $this->collSearchIndices = null;
         $this->aUser = null;
     }
 

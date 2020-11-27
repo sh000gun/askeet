@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Entity\Base\QuestionQuery as BaseQuestionQuery;
+use App\Lib\myTools;
 
 /**
  * Skeleton subclass for performing query and update operations on the 'ask_question' table.
@@ -81,5 +82,41 @@ class QuestionQuery extends BaseQuestionQuery
         return QuestionQuery::create()
             ->filterById($questionId)
             ->delete();
+    }
+
+    public static function search($phrase, $exact = false, $offset = 1, $max = 10)
+    {
+        $words    = array_values(myTools::stemPhrase($phrase));
+        $nb_words = count($words);
+ 
+        if (!$words)
+        {
+            return array();
+        }
+
+        $query = QuestionQuery::create()
+            ->useSearchIndexQuery()
+                ->distinct()
+                ->withColumn('COUNT(SearchIndex.Word)', 'nb')
+                ->withColumn('SUM(SearchIndex.Weight)', 'total_weight');
+        
+        // https://stackoverflow.com/questions/52123758/multiple-propel-like-filters
+        foreach($words as $i => $word)
+        {
+            if ($i > 0)
+            { // Not the first item in the array
+                $query->_or();
+            }
+            $query->where('SearchIndex.Word = ?', $word);
+        }
+
+        return $query->groupBy('SearchIndex.QuestionId')
+            ->_if($exact)
+                ->having('nb', $nb_words)
+            ->_endif()
+            ->orderBy('nb', 'desc')
+            ->orderBy('total_weight', 'desc')
+            ->endUse()
+            ->paginate($offset, $max);
     }
 }

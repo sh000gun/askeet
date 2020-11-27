@@ -205,5 +205,24 @@ CREATE TABLE `ask_report_answer`
         ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
+-- ---------------------------------------------------------------------
+-- ask_search_index
+-- ---------------------------------------------------------------------
+
+DROP TABLE IF EXISTS `ask_search_index`;
+
+CREATE TABLE `ask_search_index`
+(
+    `question_id` INTEGER,
+    `word` VARCHAR(255),
+    `weight` INTEGER,
+    INDEX `word_index` (`word`),
+    INDEX `ask_search_index_fi_3a3644` (`question_id`),
+    CONSTRAINT `ask_search_index_fk_3a3644`
+        FOREIGN KEY (`question_id`)
+        REFERENCES `ask_question` (`id`)
+        ON DELETE CASCADE
+) ENGINE=InnoDB;
+
 # This restores the fkey checks, after having unset them earlier
 SET FOREIGN_KEY_CHECKS = 1;

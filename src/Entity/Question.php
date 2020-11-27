@@ -6,6 +6,8 @@ use App\Entity\Base\Question as BaseQuestion;
 use App\Lib\myTools;
 use App\Lib\Tag;
 use Michelf\Markdown;
+use App\Lib\PorterStemmer;
+use Propel\Runtime\Propel;
 
 /**
  * Skeleton subclass for representing a row from the 'ask_question' table.
@@ -80,4 +82,79 @@ class Question extends BaseQuestion
             $questionTag->save();
         }
     }
+
+    public function save($con = null)
+{
+   $con = Propel::getConnection();
+  try
+  {
+     $con->beginTransaction();
+ 
+    $ret = parent::save($con);
+    $this->updateSearchIndex();
+ 
+    $con->commit();
+ 
+    return $ret;
+  }
+  catch (Exception $e)
+  {
+    $con->rollback();
+    throw $e;
+  }
+}
+
+    public function updateSearchIndex()
+{
+  // delete existing SearchIndex entries about the current question
+  SearchIndexQuery::create()
+    ->filterByQuestionId($this->getId())
+    ->delete();   
+ 
+  // create a new entry for each of the words of the question
+  foreach ($this->getWords() as $word => $weight)
+  {
+    $index = new SearchIndex();
+    $index->setQuestionId($this->getId());
+    $index->setWord($word);
+    $index->setWeight($weight);
+    $index->save();
+  }
+}
+ 
+public function getWords()
+{
+  // body
+  $raw_text =  str_repeat(' '.strip_tags($this->getHtmlBody()), 1);
+ 
+  // title
+  $raw_text .= str_repeat(' '.$this->getTitle(), 2);
+ 
+  // title and body stemming
+  $stemmed_words = myTools::stemPhrase($raw_text);
+ 
+  // unique words with weight
+  $words = array_count_values($stemmed_words);
+ 
+  // add tags
+  $max = 0;
+  foreach ($this->getPopularTags(20) as $tag => $count)
+  {
+    if (!$max)
+    {
+      $max = $count;
+    }
+ 
+    $stemmed_tag = PorterStemmer::stem($tag);
+ 
+    if (!isset($words[$stemmed_tag]))
+    {
+      $words[$stemmed_tag] = 0;
+    } else {
+        $words[$stemmed_tag] += ceil(($count / $max) * 3);
+    }
+  }
+ 
+  return $words;
+}
 }

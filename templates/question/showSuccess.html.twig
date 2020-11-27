@@ -61,6 +61,25 @@
 
 {% endblock %}
 
+{% block search %}
+<h2>find it</h2>
+
+{{ form_start(searchForm, {'action': path('question_search'), 'method': 'POST', attr: {'novalidate': 'novalidate'}}) }}
+        <div class="form-row">
+            <div class="form_error">{{ form_errors(searchForm.search) }}</div>
+            {{ form_widget(searchForm.search) }}
+            <input id="search_it" type="submit" value="Search" />
+        </div>
+        
+        <label for="search_all">
+            {{ form_widget(searchForm.search_all) }} search with all words
+        </label>
+
+        <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}" /> 
+{{ form_end(form) }}
+
+{% endblock %}
+
 {% block tag %}
 <h2>question tags</h2>
 

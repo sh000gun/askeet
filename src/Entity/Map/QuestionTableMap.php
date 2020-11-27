@@ -222,6 +222,13 @@ class QuestionTableMap extends TableMap
     1 => ':id',
   ),
 ), 'CASCADE', null, 'ReportQuestions', false);
+        $this->addRelation('SearchIndex', '\\App\\Entity\\SearchIndex', RelationMap::ONE_TO_MANY, array (
+  0 =>
+  array (
+    0 => ':question_id',
+    1 => ':id',
+  ),
+), 'CASCADE', null, 'SearchIndices', false);
     } // buildRelations()
 
     /**
@@ -247,6 +254,7 @@ class QuestionTableMap extends TableMap
         InterestTableMap::clearInstancePool();
         QuestionTagTableMap::clearInstancePool();
         ReportQuestionTableMap::clearInstancePool();
+        SearchIndexTableMap::clearInstancePool();
     }
 
     /**

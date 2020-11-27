@@ -10,10 +10,13 @@ use App\Form\Type\QuestionType;
 use App\Lib\myAnswerValidator;
 use App\Lib\myQuestionTagValidator;
 use App\Lib\myQuestionValidator;
+use App\Form\Type\QuestionSearchType;
+use App\Lib\myQuestionSearchValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\HttpFoundation\Response;
 
 class QuestionController extends AbstractController
 {
@@ -98,13 +101,48 @@ class QuestionController extends AbstractController
         $tagData->question_id = $question->getId();
         $tagForm = $this->createForm(QuestionTagType::class, $tagData);
 
+        $searchData = new myQuestionSearchValidator();
+        $searchForm = $this->createForm(QuestionSearchType::class, $searchData);
+
         return $this->render(
             'question/showSuccess.html.twig',
             [
           'question' => $question,
           'form' => $form->createView(),
           'tagForm' => $tagForm->createView(),
+          'searchForm' => $searchForm->createView(),
       ]
         );
     }
+
+    /**
+     *  @Route ("question/search/{page}", name="question_search", requirements={"page"="\d+"})
+     */
+    public function search(Request $request, $page = 1)
+    {
+        $data = new myQuestionSearchValidator();
+        $form = $this->createForm(QuestionSearchType::class, $data);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $data->search) 
+        {
+            $searchPager = QuestionQuery::search($data->search, $data->search_all, $page, $this->params->get('app_pager_homepage_max'));
+
+            if(!empty($searchPager)) {
+
+                if (count($searchPager->getResults()))
+                {
+                return $this->render(
+                    'question/searchSuccess.html.twig',
+                    [
+                        'question_pager' => $searchPager,
+                        'search' => $data->search
+                    ]);
+                }
+            }
+        }
+        
+         return $this->redirectToRoute('question_list');
+    }
+
 }
