@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <rss version="2.0">
   <channel>
-  <title>Popular questions on askeet</title>
+  <title>{% trans %}Popular questions on askeet{% endtrans %}</title>
   <link>{{ path('question_list') }}</link>
-  <description>A list of the most popular questions asked on the askeet site, rated by the community.</description>
+  <description>{% trans %}A list of the most popular questions asked on the askeet site, rated by the community{% endtrans %}.</description>
   <language>en</language>
 {% for question in questions %}
 <item>
@@ -11,7 +11,7 @@
   <description>{{ question.body }}</description>
   <link>{{url('question_show', {stripped_title: question.getStrippedTitle}) }}</link>
   <guid>{{ guid }}</guid>
-  <pubDate>{{ time|date('D, d M Y G:i:s O') }}</pubDate>
+  <pubDate>{{ time|date('D, d M Y G:i:s')|format_datetime() }}</pubDate>
 </item>
 {% endfor %}
   </channel>

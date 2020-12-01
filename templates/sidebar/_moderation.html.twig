@@ -1,9 +1,9 @@
 {% if is_granted("ROLE_MODERATOR") %}
-    <h2>moderation</h2>
+    <h2>{% trans %}moderation{% endtrans %}</h2>
 
     <ul>
-        <li><a id="'moderator_reportedQuestions" href="{{ path('moderator_reportedQuestions') }}">reported questions ({{ static_call('App\\Entity\\QuestionQuery', 'getReportCount', []) }})</a></li>
-        <li><a href="{{ path('moderator_reportedAnswers') }}">reported answers ({{ static_call('App\\Entity\\AnswerQuery', 'getReportCount', []) }})</a></li>
-        <li><a href="{{ path('moderator_unpopularTags') }}">unpopular tags</a></li>
+        <li><a id="'moderator_reportedQuestions" href="{{ path('moderator_reportedQuestions') }}">{% trans %}reported questions{% endtrans %} ({{ static_call('App\\Entity\\QuestionQuery', 'getReportCount', []) }})</a></li>
+        <li><a href="{{ path('moderator_reportedAnswers') }}">{% trans %}reported answers{% endtrans %} ({{ static_call('App\\Entity\\AnswerQuery', 'getReportCount', []) }})</a></li>
+        <li><a href="{{ path('moderator_unpopularTags') }}">{% trans %}unpopular tags{% endtrans %}</a></li>
     </ul>
 {% endif %}

@@ -5,9 +5,9 @@
 # https://symfony.com/doc/current/best_practices/configuration.html#application-related-configuration
 parameters:
     app_pager_homepage_max: 2
-    universe: on    
+    universe: false 
     host_exclude_regex: /^(www|askeet)/     
-    maintenance: true 
+    maintenance: false 
 
 services:
     # default configuration for services in *this* file

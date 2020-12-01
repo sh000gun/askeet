@@ -10,6 +10,8 @@ use App\Entity\AnswerQuery as ChildAnswerQuery;
 use App\Entity\Interest as ChildInterest;
 use App\Entity\InterestQuery as ChildInterestQuery;
 use App\Entity\Question as ChildQuestion;
+use App\Entity\QuestionI18n as ChildQuestionI18n;
+use App\Entity\QuestionI18nQuery as ChildQuestionI18nQuery;
 use App\Entity\QuestionQuery as ChildQuestionQuery;
 use App\Entity\QuestionTag as ChildQuestionTag;
 use App\Entity\QuestionTagQuery as ChildQuestionTagQuery;
@@ -21,6 +23,7 @@ use App\Entity\User as ChildUser;
 use App\Entity\UserQuery as ChildUserQuery;
 use App\Entity\Map\AnswerTableMap;
 use App\Entity\Map\InterestTableMap;
+use App\Entity\Map\QuestionI18nTableMap;
 use App\Entity\Map\QuestionTableMap;
 use App\Entity\Map\QuestionTagTableMap;
 use App\Entity\Map\ReportQuestionTableMap;
@@ -38,6 +41,7 @@ use Propel\Runtime\Exception\PropelException;
 use Propel\Runtime\Map\TableMap;
 use Propel\Runtime\Parser\AbstractParser;
 use Propel\Runtime\Util\PropelDateTime;
+use gossi\propel\behavior\l10n\PropelL10n;
 
 /**
  * Base class that represents a row from the 'ask_question' table.
@@ -95,20 +99,6 @@ abstract class Question implements ActiveRecordInterface
     protected $user_id;
 
     /**
-     * The value for the title field.
-     *
-     * @var        string
-     */
-    protected $title;
-
-    /**
-     * The value for the body field.
-     *
-     * @var        string
-     */
-    protected $body;
-
-    /**
      * The value for the created_at field.
      *
      * @var        DateTime
@@ -136,13 +126,6 @@ abstract class Question implements ActiveRecordInterface
      * @var        string
      */
     protected $stripped_title;
-
-    /**
-     * The value for the html_body field.
-     *
-     * @var        string
-     */
-    protected $html_body;
 
     /**
      * The value for the reports field.
@@ -188,12 +171,27 @@ abstract class Question implements ActiveRecordInterface
     protected $collSearchIndicesPartial;
 
     /**
+     * @var        ObjectCollection|ChildQuestionI18n[] Collection to store aggregation of ChildQuestionI18n objects.
+     */
+    protected $collQuestionI18ns;
+    protected $collQuestionI18nsPartial;
+
+    /**
      * Flag to prevent endless save loop, if this object is referenced
      * by another object which falls in this transaction.
      *
      * @var boolean
      */
     protected $alreadyInSave = false;
+
+    // l10n behavior
+    protected $currentLocale;
+
+    /**
+     * Current translation objects
+     * @var        array[ChildQuestionI18n]
+     */
+    protected $currentTranslations;
 
     /**
      * An array of objects scheduled for deletion.
@@ -224,6 +222,12 @@ abstract class Question implements ActiveRecordInterface
      * @var ObjectCollection|ChildSearchIndex[]
      */
     protected $searchIndicesScheduledForDeletion = null;
+
+    /**
+     * An array of objects scheduled for deletion.
+     * @var ObjectCollection|ChildQuestionI18n[]
+     */
+    protected $questionI18nsScheduledForDeletion = null;
 
     /**
      * Applies default values to this object.
@@ -403,7 +407,7 @@ abstract class Question implements ActiveRecordInterface
      * @param string $name  The virtual column name
      * @param mixed  $value The value to give to the virtual column
      *
-     * @return $this|Question The current object, for fluid interface
+     * @return $this The current object, for fluid interface
      */
     public function setVirtualColumn($name, $value)
     {
@@ -417,11 +421,11 @@ abstract class Question implements ActiveRecordInterface
      *
      * @param  string  $msg
      * @param  int     $priority One of the Propel::LOG_* logging levels
-     * @return boolean
+     * @return void
      */
     protected function log($msg, $priority = Propel::LOG_INFO)
     {
-        return Propel::log(get_class($this) . ': ' . $msg, $priority);
+        Propel::log(get_class($this) . ': ' . $msg, $priority);
     }
 
     /**
@@ -485,26 +489,6 @@ abstract class Question implements ActiveRecordInterface
     }
 
     /**
-     * Get the [title] column value.
-     *
-     * @return string
-     */
-    public function getTitle()
-    {
-        return $this->title;
-    }
-
-    /**
-     * Get the [body] column value.
-     *
-     * @return string
-     */
-    public function getBody()
-    {
-        return $this->body;
-    }
-
-    /**
      * Get the [optionally formatted] temporal [created_at] column value.
      *
      *
@@ -565,16 +549,6 @@ abstract class Question implements ActiveRecordInterface
     }
 
     /**
-     * Get the [html_body] column value.
-     *
-     * @return string
-     */
-    public function getHtmlBody()
-    {
-        return $this->html_body;
-    }
-
-    /**
      * Get the [reports] column value.
      *
      * @return int
@@ -587,7 +561,7 @@ abstract class Question implements ActiveRecordInterface
     /**
      * Set the value of [id] column.
      *
-     * @param int $v new value
+     * @param int $v New value
      * @return $this|\App\Entity\Question The current object (for fluent API support)
      */
     public function setId($v)
@@ -607,7 +581,7 @@ abstract class Question implements ActiveRecordInterface
     /**
      * Set the value of [user_id] column.
      *
-     * @param int $v new value
+     * @param int|null $v New value
      * @return $this|\App\Entity\Question The current object (for fluent API support)
      */
     public function setUserId($v)
@@ -627,46 +601,6 @@ abstract class Question implements ActiveRecordInterface
 
         return $this;
     } // setUserId()
-
-    /**
-     * Set the value of [title] column.
-     *
-     * @param string $v new value
-     * @return $this|\App\Entity\Question The current object (for fluent API support)
-     */
-    public function setTitle($v)
-    {
-        if ($v !== null) {
-            $v = (string) $v;
-        }
-
-        if ($this->title !== $v) {
-            $this->title = $v;
-            $this->modifiedColumns[QuestionTableMap::COL_TITLE] = true;
-        }
-
-        return $this;
-    } // setTitle()
-
-    /**
-     * Set the value of [body] column.
-     *
-     * @param string $v new value
-     * @return $this|\App\Entity\Question The current object (for fluent API support)
-     */
-    public function setBody($v)
-    {
-        if ($v !== null) {
-            $v = (string) $v;
-        }
-
-        if ($this->body !== $v) {
-            $this->body = $v;
-            $this->modifiedColumns[QuestionTableMap::COL_BODY] = true;
-        }
-
-        return $this;
-    } // setBody()
 
     /**
      * Sets the value of [created_at] column to a normalized version of the date/time value specified.
@@ -711,7 +645,7 @@ abstract class Question implements ActiveRecordInterface
     /**
      * Set the value of [interested_users] column.
      *
-     * @param int $v new value
+     * @param int|null $v New value
      * @return $this|\App\Entity\Question The current object (for fluent API support)
      */
     public function setInterestedUsers($v)
@@ -731,7 +665,7 @@ abstract class Question implements ActiveRecordInterface
     /**
      * Set the value of [stripped_title] column.
      *
-     * @param string $v new value
+     * @param string|null $v New value
      * @return $this|\App\Entity\Question The current object (for fluent API support)
      */
     public function setStrippedTitle($v)
@@ -749,29 +683,9 @@ abstract class Question implements ActiveRecordInterface
     } // setStrippedTitle()
 
     /**
-     * Set the value of [html_body] column.
-     *
-     * @param string $v new value
-     * @return $this|\App\Entity\Question The current object (for fluent API support)
-     */
-    public function setHtmlBody($v)
-    {
-        if ($v !== null) {
-            $v = (string) $v;
-        }
-
-        if ($this->html_body !== $v) {
-            $this->html_body = $v;
-            $this->modifiedColumns[QuestionTableMap::COL_HTML_BODY] = true;
-        }
-
-        return $this;
-    } // setHtmlBody()
-
-    /**
      * Set the value of [reports] column.
      *
-     * @param int $v new value
+     * @param int|null $v New value
      * @return $this|\App\Entity\Question The current object (for fluent API support)
      */
     public function setReports($v)
@@ -838,34 +752,25 @@ abstract class Question implements ActiveRecordInterface
             $col = $row[TableMap::TYPE_NUM == $indexType ? 1 + $startcol : QuestionTableMap::translateFieldName('UserId', TableMap::TYPE_PHPNAME, $indexType)];
             $this->user_id = (null !== $col) ? (int) $col : null;
 
-            $col = $row[TableMap::TYPE_NUM == $indexType ? 2 + $startcol : QuestionTableMap::translateFieldName('Title', TableMap::TYPE_PHPNAME, $indexType)];
-            $this->title = (null !== $col) ? (string) $col : null;
-
-            $col = $row[TableMap::TYPE_NUM == $indexType ? 3 + $startcol : QuestionTableMap::translateFieldName('Body', TableMap::TYPE_PHPNAME, $indexType)];
-            $this->body = (null !== $col) ? (string) $col : null;
-
-            $col = $row[TableMap::TYPE_NUM == $indexType ? 4 + $startcol : QuestionTableMap::translateFieldName('CreatedAt', TableMap::TYPE_PHPNAME, $indexType)];
+            $col = $row[TableMap::TYPE_NUM == $indexType ? 2 + $startcol : QuestionTableMap::translateFieldName('CreatedAt', TableMap::TYPE_PHPNAME, $indexType)];
             if ($col === '0000-00-00 00:00:00') {
                 $col = null;
             }
             $this->created_at = (null !== $col) ? PropelDateTime::newInstance($col, null, 'DateTime') : null;
 
-            $col = $row[TableMap::TYPE_NUM == $indexType ? 5 + $startcol : QuestionTableMap::translateFieldName('UpdatedAt', TableMap::TYPE_PHPNAME, $indexType)];
+            $col = $row[TableMap::TYPE_NUM == $indexType ? 3 + $startcol : QuestionTableMap::translateFieldName('UpdatedAt', TableMap::TYPE_PHPNAME, $indexType)];
             if ($col === '0000-00-00 00:00:00') {
                 $col = null;
             }
             $this->updated_at = (null !== $col) ? PropelDateTime::newInstance($col, null, 'DateTime') : null;
 
-            $col = $row[TableMap::TYPE_NUM == $indexType ? 6 + $startcol : QuestionTableMap::translateFieldName('InterestedUsers', TableMap::TYPE_PHPNAME, $indexType)];
+            $col = $row[TableMap::TYPE_NUM == $indexType ? 4 + $startcol : QuestionTableMap::translateFieldName('InterestedUsers', TableMap::TYPE_PHPNAME, $indexType)];
             $this->interested_users = (null !== $col) ? (int) $col : null;
 
-            $col = $row[TableMap::TYPE_NUM == $indexType ? 7 + $startcol : QuestionTableMap::translateFieldName('StrippedTitle', TableMap::TYPE_PHPNAME, $indexType)];
+            $col = $row[TableMap::TYPE_NUM == $indexType ? 5 + $startcol : QuestionTableMap::translateFieldName('StrippedTitle', TableMap::TYPE_PHPNAME, $indexType)];
             $this->stripped_title = (null !== $col) ? (string) $col : null;
 
-            $col = $row[TableMap::TYPE_NUM == $indexType ? 8 + $startcol : QuestionTableMap::translateFieldName('HtmlBody', TableMap::TYPE_PHPNAME, $indexType)];
-            $this->html_body = (null !== $col) ? (string) $col : null;
-
-            $col = $row[TableMap::TYPE_NUM == $indexType ? 9 + $startcol : QuestionTableMap::translateFieldName('Reports', TableMap::TYPE_PHPNAME, $indexType)];
+            $col = $row[TableMap::TYPE_NUM == $indexType ? 6 + $startcol : QuestionTableMap::translateFieldName('Reports', TableMap::TYPE_PHPNAME, $indexType)];
             $this->reports = (null !== $col) ? (int) $col : null;
             $this->resetModified();
 
@@ -875,7 +780,7 @@ abstract class Question implements ActiveRecordInterface
                 $this->ensureConsistency();
             }
 
-            return $startcol + 10; // 10 = QuestionTableMap::NUM_HYDRATE_COLUMNS.
+            return $startcol + 7; // 7 = QuestionTableMap::NUM_HYDRATE_COLUMNS.
 
         } catch (Exception $e) {
             throw new PropelException(sprintf('Error populating %s object', '\\App\\Entity\\Question'), 0, $e);
@@ -949,6 +854,8 @@ abstract class Question implements ActiveRecordInterface
             $this->collReportQuestions = null;
 
             $this->collSearchIndices = null;
+
+            $this->collQuestionI18ns = null;
 
         } // if (deep)
     }
@@ -1174,6 +1081,23 @@ abstract class Question implements ActiveRecordInterface
                 }
             }
 
+            if ($this->questionI18nsScheduledForDeletion !== null) {
+                if (!$this->questionI18nsScheduledForDeletion->isEmpty()) {
+                    \App\Entity\QuestionI18nQuery::create()
+                        ->filterByPrimaryKeys($this->questionI18nsScheduledForDeletion->getPrimaryKeys(false))
+                        ->delete($con);
+                    $this->questionI18nsScheduledForDeletion = null;
+                }
+            }
+
+            if ($this->collQuestionI18ns !== null) {
+                foreach ($this->collQuestionI18ns as $referrerFK) {
+                    if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
+                        $affectedRows += $referrerFK->save($con);
+                    }
+                }
+            }
+
             $this->alreadyInSave = false;
 
         }
@@ -1206,12 +1130,6 @@ abstract class Question implements ActiveRecordInterface
         if ($this->isColumnModified(QuestionTableMap::COL_USER_ID)) {
             $modifiedColumns[':p' . $index++]  = 'user_id';
         }
-        if ($this->isColumnModified(QuestionTableMap::COL_TITLE)) {
-            $modifiedColumns[':p' . $index++]  = 'title';
-        }
-        if ($this->isColumnModified(QuestionTableMap::COL_BODY)) {
-            $modifiedColumns[':p' . $index++]  = 'body';
-        }
         if ($this->isColumnModified(QuestionTableMap::COL_CREATED_AT)) {
             $modifiedColumns[':p' . $index++]  = 'created_at';
         }
@@ -1223,9 +1141,6 @@ abstract class Question implements ActiveRecordInterface
         }
         if ($this->isColumnModified(QuestionTableMap::COL_STRIPPED_TITLE)) {
             $modifiedColumns[':p' . $index++]  = 'stripped_title';
-        }
-        if ($this->isColumnModified(QuestionTableMap::COL_HTML_BODY)) {
-            $modifiedColumns[':p' . $index++]  = 'html_body';
         }
         if ($this->isColumnModified(QuestionTableMap::COL_REPORTS)) {
             $modifiedColumns[':p' . $index++]  = 'reports';
@@ -1247,12 +1162,6 @@ abstract class Question implements ActiveRecordInterface
                     case 'user_id':
                         $stmt->bindValue($identifier, $this->user_id, PDO::PARAM_INT);
                         break;
-                    case 'title':
-                        $stmt->bindValue($identifier, $this->title, PDO::PARAM_STR);
-                        break;
-                    case 'body':
-                        $stmt->bindValue($identifier, $this->body, PDO::PARAM_STR);
-                        break;
                     case 'created_at':
                         $stmt->bindValue($identifier, $this->created_at ? $this->created_at->format("Y-m-d H:i:s.u") : null, PDO::PARAM_STR);
                         break;
@@ -1264,9 +1173,6 @@ abstract class Question implements ActiveRecordInterface
                         break;
                     case 'stripped_title':
                         $stmt->bindValue($identifier, $this->stripped_title, PDO::PARAM_STR);
-                        break;
-                    case 'html_body':
-                        $stmt->bindValue($identifier, $this->html_body, PDO::PARAM_STR);
                         break;
                     case 'reports':
                         $stmt->bindValue($identifier, $this->reports, PDO::PARAM_INT);
@@ -1340,27 +1246,18 @@ abstract class Question implements ActiveRecordInterface
                 return $this->getUserId();
                 break;
             case 2:
-                return $this->getTitle();
-                break;
-            case 3:
-                return $this->getBody();
-                break;
-            case 4:
                 return $this->getCreatedAt();
                 break;
-            case 5:
+            case 3:
                 return $this->getUpdatedAt();
                 break;
-            case 6:
+            case 4:
                 return $this->getInterestedUsers();
                 break;
-            case 7:
+            case 5:
                 return $this->getStrippedTitle();
                 break;
-            case 8:
-                return $this->getHtmlBody();
-                break;
-            case 9:
+            case 6:
                 return $this->getReports();
                 break;
             default:
@@ -1395,21 +1292,18 @@ abstract class Question implements ActiveRecordInterface
         $result = array(
             $keys[0] => $this->getId(),
             $keys[1] => $this->getUserId(),
-            $keys[2] => $this->getTitle(),
-            $keys[3] => $this->getBody(),
-            $keys[4] => $this->getCreatedAt(),
-            $keys[5] => $this->getUpdatedAt(),
-            $keys[6] => $this->getInterestedUsers(),
-            $keys[7] => $this->getStrippedTitle(),
-            $keys[8] => $this->getHtmlBody(),
-            $keys[9] => $this->getReports(),
+            $keys[2] => $this->getCreatedAt(),
+            $keys[3] => $this->getUpdatedAt(),
+            $keys[4] => $this->getInterestedUsers(),
+            $keys[5] => $this->getStrippedTitle(),
+            $keys[6] => $this->getReports(),
         );
-        if ($result[$keys[4]] instanceof \DateTimeInterface) {
-            $result[$keys[4]] = $result[$keys[4]]->format('c');
+        if ($result[$keys[2]] instanceof \DateTimeInterface) {
+            $result[$keys[2]] = $result[$keys[2]]->format('c');
         }
 
-        if ($result[$keys[5]] instanceof \DateTimeInterface) {
-            $result[$keys[5]] = $result[$keys[5]]->format('c');
+        if ($result[$keys[3]] instanceof \DateTimeInterface) {
+            $result[$keys[3]] = $result[$keys[3]]->format('c');
         }
 
         $virtualColumns = $this->virtualColumns;
@@ -1508,6 +1402,21 @@ abstract class Question implements ActiveRecordInterface
 
                 $result[$key] = $this->collSearchIndices->toArray(null, false, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
             }
+            if (null !== $this->collQuestionI18ns) {
+
+                switch ($keyType) {
+                    case TableMap::TYPE_CAMELNAME:
+                        $key = 'questionI18ns';
+                        break;
+                    case TableMap::TYPE_FIELDNAME:
+                        $key = 'ask_question_i18ns';
+                        break;
+                    default:
+                        $key = 'QuestionI18ns';
+                }
+
+                $result[$key] = $this->collQuestionI18ns->toArray(null, false, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
+            }
         }
 
         return $result;
@@ -1549,27 +1458,18 @@ abstract class Question implements ActiveRecordInterface
                 $this->setUserId($value);
                 break;
             case 2:
-                $this->setTitle($value);
-                break;
-            case 3:
-                $this->setBody($value);
-                break;
-            case 4:
                 $this->setCreatedAt($value);
                 break;
-            case 5:
+            case 3:
                 $this->setUpdatedAt($value);
                 break;
-            case 6:
+            case 4:
                 $this->setInterestedUsers($value);
                 break;
-            case 7:
+            case 5:
                 $this->setStrippedTitle($value);
                 break;
-            case 8:
-                $this->setHtmlBody($value);
-                break;
-            case 9:
+            case 6:
                 $this->setReports($value);
                 break;
         } // switch()
@@ -1605,28 +1505,19 @@ abstract class Question implements ActiveRecordInterface
             $this->setUserId($arr[$keys[1]]);
         }
         if (array_key_exists($keys[2], $arr)) {
-            $this->setTitle($arr[$keys[2]]);
+            $this->setCreatedAt($arr[$keys[2]]);
         }
         if (array_key_exists($keys[3], $arr)) {
-            $this->setBody($arr[$keys[3]]);
+            $this->setUpdatedAt($arr[$keys[3]]);
         }
         if (array_key_exists($keys[4], $arr)) {
-            $this->setCreatedAt($arr[$keys[4]]);
+            $this->setInterestedUsers($arr[$keys[4]]);
         }
         if (array_key_exists($keys[5], $arr)) {
-            $this->setUpdatedAt($arr[$keys[5]]);
+            $this->setStrippedTitle($arr[$keys[5]]);
         }
         if (array_key_exists($keys[6], $arr)) {
-            $this->setInterestedUsers($arr[$keys[6]]);
-        }
-        if (array_key_exists($keys[7], $arr)) {
-            $this->setStrippedTitle($arr[$keys[7]]);
-        }
-        if (array_key_exists($keys[8], $arr)) {
-            $this->setHtmlBody($arr[$keys[8]]);
-        }
-        if (array_key_exists($keys[9], $arr)) {
-            $this->setReports($arr[$keys[9]]);
+            $this->setReports($arr[$keys[6]]);
         }
     }
 
@@ -1675,12 +1566,6 @@ abstract class Question implements ActiveRecordInterface
         if ($this->isColumnModified(QuestionTableMap::COL_USER_ID)) {
             $criteria->add(QuestionTableMap::COL_USER_ID, $this->user_id);
         }
-        if ($this->isColumnModified(QuestionTableMap::COL_TITLE)) {
-            $criteria->add(QuestionTableMap::COL_TITLE, $this->title);
-        }
-        if ($this->isColumnModified(QuestionTableMap::COL_BODY)) {
-            $criteria->add(QuestionTableMap::COL_BODY, $this->body);
-        }
         if ($this->isColumnModified(QuestionTableMap::COL_CREATED_AT)) {
             $criteria->add(QuestionTableMap::COL_CREATED_AT, $this->created_at);
         }
@@ -1692,9 +1577,6 @@ abstract class Question implements ActiveRecordInterface
         }
         if ($this->isColumnModified(QuestionTableMap::COL_STRIPPED_TITLE)) {
             $criteria->add(QuestionTableMap::COL_STRIPPED_TITLE, $this->stripped_title);
-        }
-        if ($this->isColumnModified(QuestionTableMap::COL_HTML_BODY)) {
-            $criteria->add(QuestionTableMap::COL_HTML_BODY, $this->html_body);
         }
         if ($this->isColumnModified(QuestionTableMap::COL_REPORTS)) {
             $criteria->add(QuestionTableMap::COL_REPORTS, $this->reports);
@@ -1786,13 +1668,10 @@ abstract class Question implements ActiveRecordInterface
     public function copyInto($copyObj, $deepCopy = false, $makeNew = true)
     {
         $copyObj->setUserId($this->getUserId());
-        $copyObj->setTitle($this->getTitle());
-        $copyObj->setBody($this->getBody());
         $copyObj->setCreatedAt($this->getCreatedAt());
         $copyObj->setUpdatedAt($this->getUpdatedAt());
         $copyObj->setInterestedUsers($this->getInterestedUsers());
         $copyObj->setStrippedTitle($this->getStrippedTitle());
-        $copyObj->setHtmlBody($this->getHtmlBody());
         $copyObj->setReports($this->getReports());
 
         if ($deepCopy) {
@@ -1827,6 +1706,12 @@ abstract class Question implements ActiveRecordInterface
             foreach ($this->getSearchIndices() as $relObj) {
                 if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
                     $copyObj->addSearchIndex($relObj->copy($deepCopy));
+                }
+            }
+
+            foreach ($this->getQuestionI18ns() as $relObj) {
+                if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
+                    $copyObj->addQuestionI18n($relObj->copy($deepCopy));
                 }
             }
 
@@ -1922,24 +1807,28 @@ abstract class Question implements ActiveRecordInterface
      */
     public function initRelation($relationName)
     {
-        if ('Answer' == $relationName) {
+        if ('Answer' === $relationName) {
             $this->initAnswers();
             return;
         }
-        if ('Interest' == $relationName) {
+        if ('Interest' === $relationName) {
             $this->initInterests();
             return;
         }
-        if ('QuestionTag' == $relationName) {
+        if ('QuestionTag' === $relationName) {
             $this->initQuestionTags();
             return;
         }
-        if ('ReportQuestion' == $relationName) {
+        if ('ReportQuestion' === $relationName) {
             $this->initReportQuestions();
             return;
         }
-        if ('SearchIndex' == $relationName) {
+        if ('SearchIndex' === $relationName) {
             $this->initSearchIndices();
+            return;
+        }
+        if ('QuestionI18n' === $relationName) {
+            $this->initQuestionI18ns();
             return;
         }
     }
@@ -2007,10 +1896,19 @@ abstract class Question implements ActiveRecordInterface
     public function getAnswers(Criteria $criteria = null, ConnectionInterface $con = null)
     {
         $partial = $this->collAnswersPartial && !$this->isNew();
-        if (null === $this->collAnswers || null !== $criteria  || $partial) {
-            if ($this->isNew() && null === $this->collAnswers) {
+        if (null === $this->collAnswers || null !== $criteria || $partial) {
+            if ($this->isNew()) {
                 // return empty collection
-                $this->initAnswers();
+                if (null === $this->collAnswers) {
+                    $this->initAnswers();
+                } else {
+                    $collectionClassName = AnswerTableMap::getTableMap()->getCollectionClassName();
+
+                    $collAnswers = new $collectionClassName;
+                    $collAnswers->setModel('\App\Entity\Answer');
+
+                    return $collAnswers;
+                }
             } else {
                 $collAnswers = ChildAnswerQuery::create(null, $criteria)
                     ->filterByQuestion($this)
@@ -2257,10 +2155,19 @@ abstract class Question implements ActiveRecordInterface
     public function getInterests(Criteria $criteria = null, ConnectionInterface $con = null)
     {
         $partial = $this->collInterestsPartial && !$this->isNew();
-        if (null === $this->collInterests || null !== $criteria  || $partial) {
-            if ($this->isNew() && null === $this->collInterests) {
+        if (null === $this->collInterests || null !== $criteria || $partial) {
+            if ($this->isNew()) {
                 // return empty collection
-                $this->initInterests();
+                if (null === $this->collInterests) {
+                    $this->initInterests();
+                } else {
+                    $collectionClassName = InterestTableMap::getTableMap()->getCollectionClassName();
+
+                    $collInterests = new $collectionClassName;
+                    $collInterests->setModel('\App\Entity\Interest');
+
+                    return $collInterests;
+                }
             } else {
                 $collInterests = ChildInterestQuery::create(null, $criteria)
                     ->filterByQuestion($this)
@@ -2510,10 +2417,19 @@ abstract class Question implements ActiveRecordInterface
     public function getQuestionTags(Criteria $criteria = null, ConnectionInterface $con = null)
     {
         $partial = $this->collQuestionTagsPartial && !$this->isNew();
-        if (null === $this->collQuestionTags || null !== $criteria  || $partial) {
-            if ($this->isNew() && null === $this->collQuestionTags) {
+        if (null === $this->collQuestionTags || null !== $criteria || $partial) {
+            if ($this->isNew()) {
                 // return empty collection
-                $this->initQuestionTags();
+                if (null === $this->collQuestionTags) {
+                    $this->initQuestionTags();
+                } else {
+                    $collectionClassName = QuestionTagTableMap::getTableMap()->getCollectionClassName();
+
+                    $collQuestionTags = new $collectionClassName;
+                    $collQuestionTags->setModel('\App\Entity\QuestionTag');
+
+                    return $collQuestionTags;
+                }
             } else {
                 $collQuestionTags = ChildQuestionTagQuery::create(null, $criteria)
                     ->filterByQuestion($this)
@@ -2763,10 +2679,19 @@ abstract class Question implements ActiveRecordInterface
     public function getReportQuestions(Criteria $criteria = null, ConnectionInterface $con = null)
     {
         $partial = $this->collReportQuestionsPartial && !$this->isNew();
-        if (null === $this->collReportQuestions || null !== $criteria  || $partial) {
-            if ($this->isNew() && null === $this->collReportQuestions) {
+        if (null === $this->collReportQuestions || null !== $criteria || $partial) {
+            if ($this->isNew()) {
                 // return empty collection
-                $this->initReportQuestions();
+                if (null === $this->collReportQuestions) {
+                    $this->initReportQuestions();
+                } else {
+                    $collectionClassName = ReportQuestionTableMap::getTableMap()->getCollectionClassName();
+
+                    $collReportQuestions = new $collectionClassName;
+                    $collReportQuestions->setModel('\App\Entity\ReportQuestion');
+
+                    return $collReportQuestions;
+                }
             } else {
                 $collReportQuestions = ChildReportQuestionQuery::create(null, $criteria)
                     ->filterByQuestion($this)
@@ -3016,10 +2941,19 @@ abstract class Question implements ActiveRecordInterface
     public function getSearchIndices(Criteria $criteria = null, ConnectionInterface $con = null)
     {
         $partial = $this->collSearchIndicesPartial && !$this->isNew();
-        if (null === $this->collSearchIndices || null !== $criteria  || $partial) {
-            if ($this->isNew() && null === $this->collSearchIndices) {
+        if (null === $this->collSearchIndices || null !== $criteria || $partial) {
+            if ($this->isNew()) {
                 // return empty collection
-                $this->initSearchIndices();
+                if (null === $this->collSearchIndices) {
+                    $this->initSearchIndices();
+                } else {
+                    $collectionClassName = SearchIndexTableMap::getTableMap()->getCollectionClassName();
+
+                    $collSearchIndices = new $collectionClassName;
+                    $collSearchIndices->setModel('\App\Entity\SearchIndex');
+
+                    return $collSearchIndices;
+                }
             } else {
                 $collSearchIndices = ChildSearchIndexQuery::create(null, $criteria)
                     ->filterByQuestion($this)
@@ -3179,6 +3113,247 @@ abstract class Question implements ActiveRecordInterface
     }
 
     /**
+     * Clears out the collQuestionI18ns collection
+     *
+     * This does not modify the database; however, it will remove any associated objects, causing
+     * them to be refetched by subsequent calls to accessor method.
+     *
+     * @return void
+     * @see        addQuestionI18ns()
+     */
+    public function clearQuestionI18ns()
+    {
+        $this->collQuestionI18ns = null; // important to set this to NULL since that means it is uninitialized
+    }
+
+    /**
+     * Reset is the collQuestionI18ns collection loaded partially.
+     */
+    public function resetPartialQuestionI18ns($v = true)
+    {
+        $this->collQuestionI18nsPartial = $v;
+    }
+
+    /**
+     * Initializes the collQuestionI18ns collection.
+     *
+     * By default this just sets the collQuestionI18ns collection to an empty array (like clearcollQuestionI18ns());
+     * however, you may wish to override this method in your stub class to provide setting appropriate
+     * to your application -- for example, setting the initial array to the values stored in database.
+     *
+     * @param      boolean $overrideExisting If set to true, the method call initializes
+     *                                        the collection even if it is not empty
+     *
+     * @return void
+     */
+    public function initQuestionI18ns($overrideExisting = true)
+    {
+        if (null !== $this->collQuestionI18ns && !$overrideExisting) {
+            return;
+        }
+
+        $collectionClassName = QuestionI18nTableMap::getTableMap()->getCollectionClassName();
+
+        $this->collQuestionI18ns = new $collectionClassName;
+        $this->collQuestionI18ns->setModel('\App\Entity\QuestionI18n');
+    }
+
+    /**
+     * Gets an array of ChildQuestionI18n objects which contain a foreign key that references this object.
+     *
+     * If the $criteria is not null, it is used to always fetch the results from the database.
+     * Otherwise the results are fetched from the database the first time, then cached.
+     * Next time the same method is called without $criteria, the cached collection is returned.
+     * If this ChildQuestion is new, it will return
+     * an empty collection or the current collection; the criteria is ignored on a new object.
+     *
+     * @param      Criteria $criteria optional Criteria object to narrow the query
+     * @param      ConnectionInterface $con optional connection object
+     * @return ObjectCollection|ChildQuestionI18n[] List of ChildQuestionI18n objects
+     * @throws PropelException
+     */
+    public function getQuestionI18ns(Criteria $criteria = null, ConnectionInterface $con = null)
+    {
+        $partial = $this->collQuestionI18nsPartial && !$this->isNew();
+        if (null === $this->collQuestionI18ns || null !== $criteria || $partial) {
+            if ($this->isNew()) {
+                // return empty collection
+                if (null === $this->collQuestionI18ns) {
+                    $this->initQuestionI18ns();
+                } else {
+                    $collectionClassName = QuestionI18nTableMap::getTableMap()->getCollectionClassName();
+
+                    $collQuestionI18ns = new $collectionClassName;
+                    $collQuestionI18ns->setModel('\App\Entity\QuestionI18n');
+
+                    return $collQuestionI18ns;
+                }
+            } else {
+                $collQuestionI18ns = ChildQuestionI18nQuery::create(null, $criteria)
+                    ->filterByQuestion($this)
+                    ->find($con);
+
+                if (null !== $criteria) {
+                    if (false !== $this->collQuestionI18nsPartial && count($collQuestionI18ns)) {
+                        $this->initQuestionI18ns(false);
+
+                        foreach ($collQuestionI18ns as $obj) {
+                            if (false == $this->collQuestionI18ns->contains($obj)) {
+                                $this->collQuestionI18ns->append($obj);
+                            }
+                        }
+
+                        $this->collQuestionI18nsPartial = true;
+                    }
+
+                    return $collQuestionI18ns;
+                }
+
+                if ($partial && $this->collQuestionI18ns) {
+                    foreach ($this->collQuestionI18ns as $obj) {
+                        if ($obj->isNew()) {
+                            $collQuestionI18ns[] = $obj;
+                        }
+                    }
+                }
+
+                $this->collQuestionI18ns = $collQuestionI18ns;
+                $this->collQuestionI18nsPartial = false;
+            }
+        }
+
+        return $this->collQuestionI18ns;
+    }
+
+    /**
+     * Sets a collection of ChildQuestionI18n objects related by a one-to-many relationship
+     * to the current object.
+     * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
+     * and new objects from the given Propel collection.
+     *
+     * @param      Collection $questionI18ns A Propel collection.
+     * @param      ConnectionInterface $con Optional connection object
+     * @return $this|ChildQuestion The current object (for fluent API support)
+     */
+    public function setQuestionI18ns(Collection $questionI18ns, ConnectionInterface $con = null)
+    {
+        /** @var ChildQuestionI18n[] $questionI18nsToDelete */
+        $questionI18nsToDelete = $this->getQuestionI18ns(new Criteria(), $con)->diff($questionI18ns);
+
+
+        //since at least one column in the foreign key is at the same time a PK
+        //we can not just set a PK to NULL in the lines below. We have to store
+        //a backup of all values, so we are able to manipulate these items based on the onDelete value later.
+        $this->questionI18nsScheduledForDeletion = clone $questionI18nsToDelete;
+
+        foreach ($questionI18nsToDelete as $questionI18nRemoved) {
+            $questionI18nRemoved->setQuestion(null);
+        }
+
+        $this->collQuestionI18ns = null;
+        foreach ($questionI18ns as $questionI18n) {
+            $this->addQuestionI18n($questionI18n);
+        }
+
+        $this->collQuestionI18ns = $questionI18ns;
+        $this->collQuestionI18nsPartial = false;
+
+        return $this;
+    }
+
+    /**
+     * Returns the number of related QuestionI18n objects.
+     *
+     * @param      Criteria $criteria
+     * @param      boolean $distinct
+     * @param      ConnectionInterface $con
+     * @return int             Count of related QuestionI18n objects.
+     * @throws PropelException
+     */
+    public function countQuestionI18ns(Criteria $criteria = null, $distinct = false, ConnectionInterface $con = null)
+    {
+        $partial = $this->collQuestionI18nsPartial && !$this->isNew();
+        if (null === $this->collQuestionI18ns || null !== $criteria || $partial) {
+            if ($this->isNew() && null === $this->collQuestionI18ns) {
+                return 0;
+            }
+
+            if ($partial && !$criteria) {
+                return count($this->getQuestionI18ns());
+            }
+
+            $query = ChildQuestionI18nQuery::create(null, $criteria);
+            if ($distinct) {
+                $query->distinct();
+            }
+
+            return $query
+                ->filterByQuestion($this)
+                ->count($con);
+        }
+
+        return count($this->collQuestionI18ns);
+    }
+
+    /**
+     * Method called to associate a ChildQuestionI18n object to this object
+     * through the ChildQuestionI18n foreign key attribute.
+     *
+     * @param  ChildQuestionI18n $l ChildQuestionI18n
+     * @return $this|\App\Entity\Question The current object (for fluent API support)
+     */
+    public function addQuestionI18n(ChildQuestionI18n $l)
+    {
+        if ($l && $locale = $l->getLocale()) {
+            $this->setLocale($locale);
+            $this->currentTranslations[$locale] = $l;
+        }
+        if ($this->collQuestionI18ns === null) {
+            $this->initQuestionI18ns();
+            $this->collQuestionI18nsPartial = true;
+        }
+
+        if (!$this->collQuestionI18ns->contains($l)) {
+            $this->doAddQuestionI18n($l);
+
+            if ($this->questionI18nsScheduledForDeletion and $this->questionI18nsScheduledForDeletion->contains($l)) {
+                $this->questionI18nsScheduledForDeletion->remove($this->questionI18nsScheduledForDeletion->search($l));
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param ChildQuestionI18n $questionI18n The ChildQuestionI18n object to add.
+     */
+    protected function doAddQuestionI18n(ChildQuestionI18n $questionI18n)
+    {
+        $this->collQuestionI18ns[]= $questionI18n;
+        $questionI18n->setQuestion($this);
+    }
+
+    /**
+     * @param  ChildQuestionI18n $questionI18n The ChildQuestionI18n object to remove.
+     * @return $this|ChildQuestion The current object (for fluent API support)
+     */
+    public function removeQuestionI18n(ChildQuestionI18n $questionI18n)
+    {
+        if ($this->getQuestionI18ns()->contains($questionI18n)) {
+            $pos = $this->collQuestionI18ns->search($questionI18n);
+            $this->collQuestionI18ns->remove($pos);
+            if (null === $this->questionI18nsScheduledForDeletion) {
+                $this->questionI18nsScheduledForDeletion = clone $this->collQuestionI18ns;
+                $this->questionI18nsScheduledForDeletion->clear();
+            }
+            $this->questionI18nsScheduledForDeletion[]= clone $questionI18n;
+            $questionI18n->setQuestion(null);
+        }
+
+        return $this;
+    }
+
+    /**
      * Clears the current object, sets all attributes to their default values and removes
      * outgoing references as well as back-references (from other objects to this one. Results probably in a database
      * change of those foreign objects when you call `save` there).
@@ -3190,13 +3365,10 @@ abstract class Question implements ActiveRecordInterface
         }
         $this->id = null;
         $this->user_id = null;
-        $this->title = null;
-        $this->body = null;
         $this->created_at = null;
         $this->updated_at = null;
         $this->interested_users = null;
         $this->stripped_title = null;
-        $this->html_body = null;
         $this->reports = null;
         $this->alreadyInSave = false;
         $this->clearAllReferences();
@@ -3242,13 +3414,23 @@ abstract class Question implements ActiveRecordInterface
                     $o->clearAllReferences($deep);
                 }
             }
+            if ($this->collQuestionI18ns) {
+                foreach ($this->collQuestionI18ns as $o) {
+                    $o->clearAllReferences($deep);
+                }
+            }
         } // if ($deep)
+
+        // l10n behavior
+        $this->currentLocale = null;
+        $this->currentTranslations = null;
 
         $this->collAnswers = null;
         $this->collInterests = null;
         $this->collQuestionTags = null;
         $this->collReportQuestions = null;
         $this->collSearchIndices = null;
+        $this->collQuestionI18ns = null;
         $this->aUser = null;
     }
 
@@ -3260,6 +3442,379 @@ abstract class Question implements ActiveRecordInterface
     public function __toString()
     {
         return (string) $this->exportTo(QuestionTableMap::DEFAULT_STRING_FORMAT);
+    }
+
+    // l10n behavior
+
+    /**
+     * Sets the locale for translations
+     *
+     * @param     string $locale Locale to use for the translation, e.g. 'de-DE'
+     *
+     * @return    $this|ChildQuestion The current object (for fluent API support)
+     */
+    public function setLocale($locale)
+    {
+        $this->currentLocale = PropelL10n::normalize($locale);
+
+        return $this;
+    }
+
+    /**
+     * Gets the locale for translations
+     *
+     * @return    string $locale Locale to use for the translation, e.g. 'de-DE'
+     */
+    public function getLocale()
+    {
+        return $this->currentLocale;
+    }
+
+    /**
+     * Returns the current translation for a given locale
+     *
+     * @param     string $locale Locale to use for the translation, e.g. 'de-DE'
+     * @param     ConnectionInterface $con an optional connection object
+     *
+     * @return ChildQuestionI18n */
+    public function getTranslation($locale = null, ConnectionInterface $con = null)
+    {
+        if ($locale === null) {
+            $locale = PropelL10n::getLocale();
+        }
+        if (!isset($this->currentTranslations[$locale])) {
+            if (null !== $this->collQuestionI18ns) {
+                foreach ($this->collQuestionI18ns as $translation) {
+                    if ($translation->getLocale() == $locale) {
+                        $this->currentTranslations[$locale] = $translation;
+
+                        return $translation;
+                    }
+                }
+            }
+            if ($this->isNew()) {
+                $translation = new ChildQuestionI18n();
+                $translation->setLocale($locale);
+            } else {
+                $translation = ChildQuestionI18nQuery::create()
+                    ->filterByPrimaryKey(array($this->getPrimaryKey(), $locale))
+                    ->findOneOrCreate($con);
+                $this->currentTranslations[$locale] = $translation;
+            }
+            $this->addQuestionI18n($translation);
+        }
+
+        return $this->currentTranslations[$locale];
+    }
+
+    /**
+     * Remove the translation for a given locale
+     *
+     * @param     string $locale Locale to use for the translation, e.g. 'de-DE'
+     * @param     ConnectionInterface $con an optional connection object
+     *
+     * @return    $this|ChildQuestion The current object (for fluent API support)
+     */
+    public function removeTranslation($locale = null, ConnectionInterface $con = null)
+    {
+        if ($locale === null) {
+            $locale = PropelL10n::getLocale();
+        }
+        if (!$this->isNew()) {
+            ChildQuestionI18nQuery::create()
+                ->filterByPrimaryKey(array($this->getPrimaryKey(), $locale))
+                ->delete($con);
+        }
+        if (isset($this->currentTranslations[$locale])) {
+            unset($this->currentTranslations[$locale]);
+        }
+        foreach ($this->collQuestionI18ns as $key => $translation) {
+            if ($translation->getLocale() == $locale) {
+                unset($this->collQuestionI18ns[$key]);
+                break;
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * Returns the current translation
+     *
+     * @param     ConnectionInterface $con an optional connection object
+     *
+     * @return ChildQuestionI18n */
+    public function getCurrentTranslation($locale = null, ConnectionInterface $con = null)
+    {
+        $locale = $this->getLocale();
+        if ($locale === null) {
+            $locale = PropelL10n::getLocale();
+        }
+        return $this->getTranslation($locale, $con);
+    }
+
+
+        /**
+         * Get the [title] column value.
+         *
+         * @return string
+         */
+    public function getTitle($locale = null)
+    {
+        $getTranslatedLocale = function($locale)  {
+            $trans = $this->getTranslation($locale);
+            return $trans->getTitle();
+        };
+        $workDownLanguageTag = function($locale) use($getTranslatedLocale) {
+            // check if the locale has more than one subtag to work down
+            if (strpos($locale, '-') === false) {
+                return null;
+            }
+
+            // drop the last subtag
+            $locale = implode('-', array_slice(explode('-', $locale), 0, -1));
+            $value = $getTranslatedLocale($locale);
+            if ($value === null) {
+                $value = $workDownLanguageTag($locale);
+            }
+            return $value;
+        };
+        $value = null;
+        if ($locale === null) {
+            $locale = $this->getLocale();
+        }
+        if ($locale === null) {
+            $locale = PropelL10n::getLocale();
+        }
+
+        // try default locale
+        $value = $getTranslatedLocale($locale);
+
+        if ($value === null) {
+            // try dependency chain
+            while (PropelL10n::hasDependency($locale) && $value === null) {
+                $newLocale = PropelL10n::getDependency($locale);
+
+                // if primary language of dependency is different than current, work down language-tag-chain
+                if (\Locale::getPrimaryLanguage($newLocale) != \Locale::getPrimaryLanguage($locale)) {
+                    $value = $workDownLanguageTag($locale);
+                }
+
+                // proceed with dependency if still nothing is found
+                if ($value === null) {
+                    $locale = $newLocale;
+                    $value = $getTranslatedLocale($locale);
+                }
+            }
+
+            // work down language-tag-chain
+            if ($value === null) {
+                $value = $workDownLanguageTag($locale);
+
+                // try fallback language
+                if ($value === null) {
+                    $locale = PropelL10n::getFallback();
+                    $value = $getTranslatedLocale($locale);
+                }
+            }
+        }
+        return $value;
+    }
+
+
+        /**
+         * Set the value of [title] column.
+         *
+         * @param string|null $v New value
+         * @return $this|\App\Entity\QuestionI18n The current object (for fluent API support)
+         */
+    public function setTitle($v, $locale = null)
+    {
+        if ($locale === null) {
+            $locale = $this->getLocale();
+        }
+        if ($locale === null) {
+            $locale = PropelL10n::getLocale();
+        }
+        $this->getTranslation($locale)->setTitle($v);
+
+        return $this;
+    }
+
+
+        /**
+         * Get the [body] column value.
+         *
+         * @return string
+         */
+    public function getBody($locale = null)
+    {
+        $getTranslatedLocale = function($locale)  {
+            $trans = $this->getTranslation($locale);
+            return $trans->getBody();
+        };
+        $workDownLanguageTag = function($locale) use($getTranslatedLocale) {
+            // check if the locale has more than one subtag to work down
+            if (strpos($locale, '-') === false) {
+                return null;
+            }
+
+            // drop the last subtag
+            $locale = implode('-', array_slice(explode('-', $locale), 0, -1));
+            $value = $getTranslatedLocale($locale);
+            if ($value === null) {
+                $value = $workDownLanguageTag($locale);
+            }
+            return $value;
+        };
+        $value = null;
+        if ($locale === null) {
+            $locale = $this->getLocale();
+        }
+        if ($locale === null) {
+            $locale = PropelL10n::getLocale();
+        }
+
+        // try default locale
+        $value = $getTranslatedLocale($locale);
+
+        if ($value === null) {
+            // try dependency chain
+            while (PropelL10n::hasDependency($locale) && $value === null) {
+                $newLocale = PropelL10n::getDependency($locale);
+
+                // if primary language of dependency is different than current, work down language-tag-chain
+                if (\Locale::getPrimaryLanguage($newLocale) != \Locale::getPrimaryLanguage($locale)) {
+                    $value = $workDownLanguageTag($locale);
+                }
+
+                // proceed with dependency if still nothing is found
+                if ($value === null) {
+                    $locale = $newLocale;
+                    $value = $getTranslatedLocale($locale);
+                }
+            }
+
+            // work down language-tag-chain
+            if ($value === null) {
+                $value = $workDownLanguageTag($locale);
+
+                // try fallback language
+                if ($value === null) {
+                    $locale = PropelL10n::getFallback();
+                    $value = $getTranslatedLocale($locale);
+                }
+            }
+        }
+        return $value;
+    }
+
+
+        /**
+         * Set the value of [body] column.
+         *
+         * @param string|null $v New value
+         * @return $this|\App\Entity\QuestionI18n The current object (for fluent API support)
+         */
+    public function setBody($v, $locale = null)
+    {
+        if ($locale === null) {
+            $locale = $this->getLocale();
+        }
+        if ($locale === null) {
+            $locale = PropelL10n::getLocale();
+        }
+        $this->getTranslation($locale)->setBody($v);
+
+        return $this;
+    }
+
+
+        /**
+         * Get the [html_body] column value.
+         *
+         * @return string
+         */
+    public function getHtmlBody($locale = null)
+    {
+        $getTranslatedLocale = function($locale)  {
+            $trans = $this->getTranslation($locale);
+            return $trans->getHtmlBody();
+        };
+        $workDownLanguageTag = function($locale) use($getTranslatedLocale) {
+            // check if the locale has more than one subtag to work down
+            if (strpos($locale, '-') === false) {
+                return null;
+            }
+
+            // drop the last subtag
+            $locale = implode('-', array_slice(explode('-', $locale), 0, -1));
+            $value = $getTranslatedLocale($locale);
+            if ($value === null) {
+                $value = $workDownLanguageTag($locale);
+            }
+            return $value;
+        };
+        $value = null;
+        if ($locale === null) {
+            $locale = $this->getLocale();
+        }
+        if ($locale === null) {
+            $locale = PropelL10n::getLocale();
+        }
+
+        // try default locale
+        $value = $getTranslatedLocale($locale);
+
+        if ($value === null) {
+            // try dependency chain
+            while (PropelL10n::hasDependency($locale) && $value === null) {
+                $newLocale = PropelL10n::getDependency($locale);
+
+                // if primary language of dependency is different than current, work down language-tag-chain
+                if (\Locale::getPrimaryLanguage($newLocale) != \Locale::getPrimaryLanguage($locale)) {
+                    $value = $workDownLanguageTag($locale);
+                }
+
+                // proceed with dependency if still nothing is found
+                if ($value === null) {
+                    $locale = $newLocale;
+                    $value = $getTranslatedLocale($locale);
+                }
+            }
+
+            // work down language-tag-chain
+            if ($value === null) {
+                $value = $workDownLanguageTag($locale);
+
+                // try fallback language
+                if ($value === null) {
+                    $locale = PropelL10n::getFallback();
+                    $value = $getTranslatedLocale($locale);
+                }
+            }
+        }
+        return $value;
+    }
+
+
+        /**
+         * Set the value of [html_body] column.
+         *
+         * @param string|null $v New value
+         * @return $this|\App\Entity\QuestionI18n The current object (for fluent API support)
+         */
+    public function setHtmlBody($v, $locale = null)
+    {
+        if ($locale === null) {
+            $locale = $this->getLocale();
+        }
+        if ($locale === null) {
+            $locale = PropelL10n::getLocale();
+        }
+        $this->getTranslation($locale)->setHtmlBody($v);
+
+        return $this;
     }
 
     // timestampable behavior
