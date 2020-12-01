@@ -5,6 +5,8 @@
         "php": "^7.2.5",
         "ext-ctype": "*",
         "ext-iconv": "*",
+        "propel/propel": "^2.0.0-alpha11",
+        "gossi/propel-l10n-behavior": "^0.1.0",
         "michelf/php-markdown": "^1.9",
         "sensio/framework-extra-bundle": "^5.1",
         "symfony/apache-pack": "^1.0",
@@ -30,6 +32,8 @@
         "symfony/validator": "5.1.*",
         "symfony/web-link": "5.1.*",
         "symfony/yaml": "5.1.*",
+        "twig/extensions": "^1.5",
+        "twig/intl-extra": "^3.1",
         "twig/string-extra": "^3.0"
     },
     "require-dev": {
@@ -48,10 +52,7 @@
     },
     "autoload": {
         "psr-4": {
-            "App\\": "src/",
-            "Propel\\Runtime\\": "vendor/propelorm/Propel2/src/",
-            "Propel\\Common\\": "vendor/propelorm/Propel2/src/",
-            "Propel\\Generator\\": "vendor/propelorm/Propel2/src/",
+            "App\\": "src/", 
             "Propel\\Bundle\\PropelBundle\\": "vendor/propelorm/PropelBundle"
         }
     },

@@ -7,9 +7,10 @@
     <h2><a href="{{ path('question_show', {stripped_title: question.getStrippedTitle}) }}" >{{ question.title }}</a></h2>
  
     <div class="question_body">
-      <div>asked by <a href="{{ path('user_show', {nickname: question.user.nickname}) }}">{{ question.user }}</a> on {{ question.createdAt|date('M d, Y g:i 0') }}
+      <div>{% trans %}asked by{% endtrans %} <a href="{{ path('user_show', {nickname: question.user.nickname}) }}">{{ question.user }}</a> on {{ question.createdAt|date('M d, Y g:i')|format_datetime() }}
       </div>
      {{ question.htmlBody|u.truncate(200)|raw }}
+
     </div>
     {% set links = [] %}
     {% for tag in question.getPopularTags(5, app.request.attributes.get('app_permanent_tag')) %}

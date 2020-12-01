@@ -5,6 +5,7 @@ namespace App\Entity\Base;
 use \Exception;
 use \PDO;
 use App\Entity\Question as ChildQuestion;
+use App\Entity\QuestionI18nQuery as ChildQuestionI18nQuery;
 use App\Entity\QuestionQuery as ChildQuestionQuery;
 use App\Entity\Map\QuestionTableMap;
 use Propel\Runtime\Propel;
@@ -14,6 +15,7 @@ use Propel\Runtime\ActiveQuery\ModelJoin;
 use Propel\Runtime\Collection\ObjectCollection;
 use Propel\Runtime\Connection\ConnectionInterface;
 use Propel\Runtime\Exception\PropelException;
+use gossi\propel\behavior\l10n\PropelL10n;
 
 /**
  * Base class that represents a query for the 'ask_question' table.
@@ -22,24 +24,18 @@ use Propel\Runtime\Exception\PropelException;
  *
  * @method     ChildQuestionQuery orderById($order = Criteria::ASC) Order by the id column
  * @method     ChildQuestionQuery orderByUserId($order = Criteria::ASC) Order by the user_id column
- * @method     ChildQuestionQuery orderByTitle($order = Criteria::ASC) Order by the title column
- * @method     ChildQuestionQuery orderByBody($order = Criteria::ASC) Order by the body column
  * @method     ChildQuestionQuery orderByCreatedAt($order = Criteria::ASC) Order by the created_at column
  * @method     ChildQuestionQuery orderByUpdatedAt($order = Criteria::ASC) Order by the updated_at column
  * @method     ChildQuestionQuery orderByInterestedUsers($order = Criteria::ASC) Order by the interested_users column
  * @method     ChildQuestionQuery orderByStrippedTitle($order = Criteria::ASC) Order by the stripped_title column
- * @method     ChildQuestionQuery orderByHtmlBody($order = Criteria::ASC) Order by the html_body column
  * @method     ChildQuestionQuery orderByReports($order = Criteria::ASC) Order by the reports column
  *
  * @method     ChildQuestionQuery groupById() Group by the id column
  * @method     ChildQuestionQuery groupByUserId() Group by the user_id column
- * @method     ChildQuestionQuery groupByTitle() Group by the title column
- * @method     ChildQuestionQuery groupByBody() Group by the body column
  * @method     ChildQuestionQuery groupByCreatedAt() Group by the created_at column
  * @method     ChildQuestionQuery groupByUpdatedAt() Group by the updated_at column
  * @method     ChildQuestionQuery groupByInterestedUsers() Group by the interested_users column
  * @method     ChildQuestionQuery groupByStrippedTitle() Group by the stripped_title column
- * @method     ChildQuestionQuery groupByHtmlBody() Group by the html_body column
  * @method     ChildQuestionQuery groupByReports() Group by the reports column
  *
  * @method     ChildQuestionQuery leftJoin($relation) Adds a LEFT JOIN clause to the query
@@ -110,20 +106,27 @@ use Propel\Runtime\Exception\PropelException;
  * @method     ChildQuestionQuery rightJoinWithSearchIndex() Adds a RIGHT JOIN clause and with to the query using the SearchIndex relation
  * @method     ChildQuestionQuery innerJoinWithSearchIndex() Adds a INNER JOIN clause and with to the query using the SearchIndex relation
  *
- * @method     \App\Entity\UserQuery|\App\Entity\AnswerQuery|\App\Entity\InterestQuery|\App\Entity\QuestionTagQuery|\App\Entity\ReportQuestionQuery|\App\Entity\SearchIndexQuery endUse() Finalizes a secondary criteria and merges it with its primary Criteria
+ * @method     ChildQuestionQuery leftJoinQuestionI18n($relationAlias = null) Adds a LEFT JOIN clause to the query using the QuestionI18n relation
+ * @method     ChildQuestionQuery rightJoinQuestionI18n($relationAlias = null) Adds a RIGHT JOIN clause to the query using the QuestionI18n relation
+ * @method     ChildQuestionQuery innerJoinQuestionI18n($relationAlias = null) Adds a INNER JOIN clause to the query using the QuestionI18n relation
+ *
+ * @method     ChildQuestionQuery joinWithQuestionI18n($joinType = Criteria::INNER_JOIN) Adds a join clause and with to the query using the QuestionI18n relation
+ *
+ * @method     ChildQuestionQuery leftJoinWithQuestionI18n() Adds a LEFT JOIN clause and with to the query using the QuestionI18n relation
+ * @method     ChildQuestionQuery rightJoinWithQuestionI18n() Adds a RIGHT JOIN clause and with to the query using the QuestionI18n relation
+ * @method     ChildQuestionQuery innerJoinWithQuestionI18n() Adds a INNER JOIN clause and with to the query using the QuestionI18n relation
+ *
+ * @method     \App\Entity\UserQuery|\App\Entity\AnswerQuery|\App\Entity\InterestQuery|\App\Entity\QuestionTagQuery|\App\Entity\ReportQuestionQuery|\App\Entity\SearchIndexQuery|\App\Entity\QuestionI18nQuery endUse() Finalizes a secondary criteria and merges it with its primary Criteria
  *
  * @method     ChildQuestion findOne(ConnectionInterface $con = null) Return the first ChildQuestion matching the query
  * @method     ChildQuestion findOneOrCreate(ConnectionInterface $con = null) Return the first ChildQuestion matching the query, or a new ChildQuestion object populated from the query conditions when no match is found
  *
  * @method     ChildQuestion findOneById(int $id) Return the first ChildQuestion filtered by the id column
  * @method     ChildQuestion findOneByUserId(int $user_id) Return the first ChildQuestion filtered by the user_id column
- * @method     ChildQuestion findOneByTitle(string $title) Return the first ChildQuestion filtered by the title column
- * @method     ChildQuestion findOneByBody(string $body) Return the first ChildQuestion filtered by the body column
  * @method     ChildQuestion findOneByCreatedAt(string $created_at) Return the first ChildQuestion filtered by the created_at column
  * @method     ChildQuestion findOneByUpdatedAt(string $updated_at) Return the first ChildQuestion filtered by the updated_at column
  * @method     ChildQuestion findOneByInterestedUsers(int $interested_users) Return the first ChildQuestion filtered by the interested_users column
  * @method     ChildQuestion findOneByStrippedTitle(string $stripped_title) Return the first ChildQuestion filtered by the stripped_title column
- * @method     ChildQuestion findOneByHtmlBody(string $html_body) Return the first ChildQuestion filtered by the html_body column
  * @method     ChildQuestion findOneByReports(int $reports) Return the first ChildQuestion filtered by the reports column *
 
  * @method     ChildQuestion requirePk($key, ConnectionInterface $con = null) Return the ChildQuestion by primary key and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
@@ -131,25 +134,19 @@ use Propel\Runtime\Exception\PropelException;
  *
  * @method     ChildQuestion requireOneById(int $id) Return the first ChildQuestion filtered by the id column and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
  * @method     ChildQuestion requireOneByUserId(int $user_id) Return the first ChildQuestion filtered by the user_id column and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
- * @method     ChildQuestion requireOneByTitle(string $title) Return the first ChildQuestion filtered by the title column and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
- * @method     ChildQuestion requireOneByBody(string $body) Return the first ChildQuestion filtered by the body column and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
  * @method     ChildQuestion requireOneByCreatedAt(string $created_at) Return the first ChildQuestion filtered by the created_at column and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
  * @method     ChildQuestion requireOneByUpdatedAt(string $updated_at) Return the first ChildQuestion filtered by the updated_at column and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
  * @method     ChildQuestion requireOneByInterestedUsers(int $interested_users) Return the first ChildQuestion filtered by the interested_users column and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
  * @method     ChildQuestion requireOneByStrippedTitle(string $stripped_title) Return the first ChildQuestion filtered by the stripped_title column and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
- * @method     ChildQuestion requireOneByHtmlBody(string $html_body) Return the first ChildQuestion filtered by the html_body column and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
  * @method     ChildQuestion requireOneByReports(int $reports) Return the first ChildQuestion filtered by the reports column and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
  *
  * @method     ChildQuestion[]|ObjectCollection find(ConnectionInterface $con = null) Return ChildQuestion objects based on current ModelCriteria
  * @method     ChildQuestion[]|ObjectCollection findById(int $id) Return ChildQuestion objects filtered by the id column
  * @method     ChildQuestion[]|ObjectCollection findByUserId(int $user_id) Return ChildQuestion objects filtered by the user_id column
- * @method     ChildQuestion[]|ObjectCollection findByTitle(string $title) Return ChildQuestion objects filtered by the title column
- * @method     ChildQuestion[]|ObjectCollection findByBody(string $body) Return ChildQuestion objects filtered by the body column
  * @method     ChildQuestion[]|ObjectCollection findByCreatedAt(string $created_at) Return ChildQuestion objects filtered by the created_at column
  * @method     ChildQuestion[]|ObjectCollection findByUpdatedAt(string $updated_at) Return ChildQuestion objects filtered by the updated_at column
  * @method     ChildQuestion[]|ObjectCollection findByInterestedUsers(int $interested_users) Return ChildQuestion objects filtered by the interested_users column
  * @method     ChildQuestion[]|ObjectCollection findByStrippedTitle(string $stripped_title) Return ChildQuestion objects filtered by the stripped_title column
- * @method     ChildQuestion[]|ObjectCollection findByHtmlBody(string $html_body) Return ChildQuestion objects filtered by the html_body column
  * @method     ChildQuestion[]|ObjectCollection findByReports(int $reports) Return ChildQuestion objects filtered by the reports column
  * @method     ChildQuestion[]|\Propel\Runtime\Util\PropelModelPager paginate($page = 1, $maxPerPage = 10, ConnectionInterface $con = null) Issue a SELECT query based on the current ModelCriteria and uses a page and a maximum number of results per page to compute an offset and a limit
  *
@@ -249,7 +246,7 @@ abstract class QuestionQuery extends ModelCriteria
      */
     protected function findPkSimple($key, ConnectionInterface $con)
     {
-        $sql = 'SELECT id, user_id, title, body, created_at, updated_at, interested_users, stripped_title, html_body, reports FROM ask_question WHERE id = :p0';
+        $sql = 'SELECT id, user_id, created_at, updated_at, interested_users, stripped_title, reports FROM ask_question WHERE id = :p0';
         try {
             $stmt = $con->prepare($sql);
             $stmt->bindValue(':p0', $key, PDO::PARAM_INT);
@@ -424,56 +421,6 @@ abstract class QuestionQuery extends ModelCriteria
     }
 
     /**
-     * Filter the query on the title column
-     *
-     * Example usage:
-     * <code>
-     * $query->filterByTitle('fooValue');   // WHERE title = 'fooValue'
-     * $query->filterByTitle('%fooValue%', Criteria::LIKE); // WHERE title LIKE '%fooValue%'
-     * </code>
-     *
-     * @param     string $title The value to use as filter.
-     * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
-     *
-     * @return $this|ChildQuestionQuery The current query, for fluid interface
-     */
-    public function filterByTitle($title = null, $comparison = null)
-    {
-        if (null === $comparison) {
-            if (is_array($title)) {
-                $comparison = Criteria::IN;
-            }
-        }
-
-        return $this->addUsingAlias(QuestionTableMap::COL_TITLE, $title, $comparison);
-    }
-
-    /**
-     * Filter the query on the body column
-     *
-     * Example usage:
-     * <code>
-     * $query->filterByBody('fooValue');   // WHERE body = 'fooValue'
-     * $query->filterByBody('%fooValue%', Criteria::LIKE); // WHERE body LIKE '%fooValue%'
-     * </code>
-     *
-     * @param     string $body The value to use as filter.
-     * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
-     *
-     * @return $this|ChildQuestionQuery The current query, for fluid interface
-     */
-    public function filterByBody($body = null, $comparison = null)
-    {
-        if (null === $comparison) {
-            if (is_array($body)) {
-                $comparison = Criteria::IN;
-            }
-        }
-
-        return $this->addUsingAlias(QuestionTableMap::COL_BODY, $body, $comparison);
-    }
-
-    /**
      * Filter the query on the created_at column
      *
      * Example usage:
@@ -623,31 +570,6 @@ abstract class QuestionQuery extends ModelCriteria
         }
 
         return $this->addUsingAlias(QuestionTableMap::COL_STRIPPED_TITLE, $strippedTitle, $comparison);
-    }
-
-    /**
-     * Filter the query on the html_body column
-     *
-     * Example usage:
-     * <code>
-     * $query->filterByHtmlBody('fooValue');   // WHERE html_body = 'fooValue'
-     * $query->filterByHtmlBody('%fooValue%', Criteria::LIKE); // WHERE html_body LIKE '%fooValue%'
-     * </code>
-     *
-     * @param     string $htmlBody The value to use as filter.
-     * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
-     *
-     * @return $this|ChildQuestionQuery The current query, for fluid interface
-     */
-    public function filterByHtmlBody($htmlBody = null, $comparison = null)
-    {
-        if (null === $comparison) {
-            if (is_array($htmlBody)) {
-                $comparison = Criteria::IN;
-            }
-        }
-
-        return $this->addUsingAlias(QuestionTableMap::COL_HTML_BODY, $htmlBody, $comparison);
     }
 
     /**
@@ -1134,6 +1056,79 @@ abstract class QuestionQuery extends ModelCriteria
     }
 
     /**
+     * Filter the query by a related \App\Entity\QuestionI18n object
+     *
+     * @param \App\Entity\QuestionI18n|ObjectCollection $questionI18n the related object to use as filter
+     * @param string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
+     *
+     * @return ChildQuestionQuery The current query, for fluid interface
+     */
+    public function filterByQuestionI18n($questionI18n, $comparison = null)
+    {
+        if ($questionI18n instanceof \App\Entity\QuestionI18n) {
+            return $this
+                ->addUsingAlias(QuestionTableMap::COL_ID, $questionI18n->getId(), $comparison);
+        } elseif ($questionI18n instanceof ObjectCollection) {
+            return $this
+                ->useQuestionI18nQuery()
+                ->filterByPrimaryKeys($questionI18n->getPrimaryKeys())
+                ->endUse();
+        } else {
+            throw new PropelException('filterByQuestionI18n() only accepts arguments of type \App\Entity\QuestionI18n or Collection');
+        }
+    }
+
+    /**
+     * Adds a JOIN clause to the query using the QuestionI18n relation
+     *
+     * @param     string $relationAlias optional alias for the relation
+     * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
+     *
+     * @return $this|ChildQuestionQuery The current query, for fluid interface
+     */
+    public function joinQuestionI18n($relationAlias = null, $joinType = 'LEFT JOIN')
+    {
+        $tableMap = $this->getTableMap();
+        $relationMap = $tableMap->getRelation('QuestionI18n');
+
+        // create a ModelJoin object for this join
+        $join = new ModelJoin();
+        $join->setJoinType($joinType);
+        $join->setRelationMap($relationMap, $this->useAliasInSQL ? $this->getModelAlias() : null, $relationAlias);
+        if ($previousJoin = $this->getPreviousJoin()) {
+            $join->setPreviousJoin($previousJoin);
+        }
+
+        // add the ModelJoin to the current object
+        if ($relationAlias) {
+            $this->addAlias($relationAlias, $relationMap->getRightTable()->getName());
+            $this->addJoinObject($join, $relationAlias);
+        } else {
+            $this->addJoinObject($join, 'QuestionI18n');
+        }
+
+        return $this;
+    }
+
+    /**
+     * Use the QuestionI18n relation QuestionI18n object
+     *
+     * @see useQuery()
+     *
+     * @param     string $relationAlias optional alias for the relation,
+     *                                   to be used as main alias in the secondary query
+     * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
+     *
+     * @return \App\Entity\QuestionI18nQuery A secondary query class using the current class as primary query
+     */
+    public function useQuestionI18nQuery($relationAlias = null, $joinType = 'LEFT JOIN')
+    {
+        return $this
+            ->joinQuestionI18n($relationAlias, $joinType)
+            ->useQuery($relationAlias ? $relationAlias : 'QuestionI18n', '\App\Entity\QuestionI18nQuery');
+    }
+
+    /**
      * Exclude object from result
      *
      * @param   ChildQuestion $question Object to remove from the list of results
@@ -1208,6 +1203,347 @@ abstract class QuestionQuery extends ModelCriteria
 
             return $affectedRows;
         });
+    }
+
+    // l10n behavior
+
+    /**
+     * Adds a JOIN clause to the query using the i18n relation
+     *
+     * @param     string $locale Locale to use for the join condition, e.g. 'de-DE'
+     * @param     string $relationAlias optional alias for the relation
+     * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'. Defaults to left join.
+     *
+     * @return    ChildQuestionQuery The current query, for fluid interface
+     */
+    public function joinI18n($locale = null, $relationAlias = null, $joinType = Criteria::LEFT_JOIN)
+    {
+        if ($locale === null) {
+            $locale = PropelL10n::getLocale();
+        }
+        $relationName = $relationAlias ? $relationAlias : 'QuestionI18n';
+
+        return $this
+            ->joinQuestionI18n($relationAlias, $joinType)
+            ->addJoinCondition($relationName, $relationName . '.Locale = ?', $locale);
+    }
+
+    /**
+     * Adds a JOIN clause to the query and hydrates the related I18n object.
+     * Shortcut for $c->joinI18n($locale)->with()
+     *
+     * @param     string $locale Locale to use for the join condition, e.g. 'de-DE'
+     * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'. Defaults to left join.
+     *
+     * @return    $this|ChildQuestionQuery The current query, for fluid interface
+     */
+    public function joinWithI18n($locale = null, $joinType = Criteria::LEFT_JOIN)
+    {
+        if ($locale === null) {
+            $locale = PropelL10n::getLocale();
+        }
+        $this
+            ->joinI18n($locale, null, $joinType)
+            ->with('QuestionI18n');
+        $this->with['QuestionI18n']->setIsWithOneToMany(false);
+
+        return $this;
+    }
+
+    /**
+     * Use the I18n relation query object
+     *
+     * @see       useQuery()
+     *
+     * @param     string $locale Locale to use for the join condition, e.g. 'de-DE'
+     * @param     string $relationAlias optional alias for the relation
+     * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'. Defaults to left join.
+     *
+     * @return    ChildQuestionI18nQuery A secondary query class using the current class as primary query
+     */
+    public function useI18nQuery($locale = null, $relationAlias = null, $joinType = Criteria::LEFT_JOIN)
+    {
+        if ($locale === null) {
+            $locale = PropelL10n::getLocale();
+        }
+        return $this
+            ->joinI18n($locale, $relationAlias, $joinType)
+            ->useQuery($relationAlias ? $relationAlias : 'QuestionI18n', '\App\Entity\QuestionI18nQuery');
+    }
+
+    protected $currentLocale;
+
+    /**
+     * Sets the locale for translations
+     *
+     * @param     string $locale Locale to use for the translation, e.g. 'de-DE'
+     *
+     * @return    $this|ChildQuestion The current object (for fluent API support)
+     */
+    public function setLocale($locale)
+    {
+        $this->currentLocale = PropelL10n::normalize($locale);
+
+        return $this;
+    }
+
+    /**
+     * Gets the locale for translations
+     *
+     * @return    string $locale Locale to use for the translation, e.g. 'de-DE'
+     */
+    public function getLocale()
+    {
+        return $this->currentLocale;
+    }
+
+    /**
+     * Filters the query with the
+     *
+     * Example usage:
+     * <code>
+     * $query->filterByTitle('fooValue');   // WHERE title = 'fooValue'
+     * $query->filterByTitle('%fooValue%'); // WHERE title LIKE '%fooValue%'
+     * </code>
+     *
+     * @param     string $title The value to use as filter.
+         *              Accepts wildcards (* and % trigger a LIKE)
+     * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
+     * @param     string $locale Overwrites the locale for this filter
+     *
+     * @return    ChildQuestionQuery The current query, for fluid interface
+     */
+    public function filterByTitle($title , $comparison = null, $locale = null)
+    {
+        if ($locale === null) {
+            $locale = $this->getLocale();
+        }
+        if ($locale === null) {
+            $locale = PropelL10n::getLocale();
+        }
+
+        if (null === $comparison) {
+            if (is_array($title)) {
+                $comparison = Criteria::IN;
+            } elseif (preg_match('/[\%\*]/', $title)) {
+                $token = str_replace('*', '%', $title);
+                $comparison = Criteria::LIKE;
+            }
+        }
+
+        return $this->useI18nQuery($locale)
+            ->filterByTitle($title , $comparison)
+        ->endUse();
+    }
+
+    /**
+     * Finds objects in the query with the given filter
+     *
+     * Example usage:
+     * <code>
+     * $query->findByTitle('fooValue');   // WHERE title = 'fooValue'
+     * $query->findByTitle('%fooValue%'); // WHERE title LIKE '%fooValue%'
+     * </code>
+     *
+     * @param     string $title The value to use as filter.
+     *              Accepts wildcards (* and % trigger a LIKE)
+     * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
+     * @param     string $locale Overwrites the locale for this filter
+     *
+     * @return    ChildQuestion[]|ObjectCollection The results
+     */
+    public function findByTitle($title , $comparison = null, $locale = null)
+    {
+        return $this->filterByTitle($title , $comparison, $locale)
+            ->find();
+    }
+
+    /**
+     * Finds the first object in the query with the given filter
+     *
+     * Example usage:
+     * <code>
+     * $query->findByTitle('fooValue');   // WHERE title = 'fooValue'
+     * $query->findByTitle('%fooValue%'); // WHERE title LIKE '%fooValue%'
+     * </code>
+     *
+     * @param     string $title The value to use as filter.
+     *              Accepts wildcards (* and % trigger a LIKE)
+     * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
+     * @param     string $locale Overwrites the locale for this filter
+     *
+     * @return    ChildQuestion The result
+     */
+    public function findOneByTitle($title , $comparison = null, $locale = null)
+    {
+        return $this->filterByTitle($title , $comparison, $locale)
+            ->findOne();
+    }
+
+    /**
+     * Filters the query with the
+     *
+     * Example usage:
+     * <code>
+     * $query->filterByBody('fooValue');   // WHERE body = 'fooValue'
+     * $query->filterByBody('%fooValue%'); // WHERE body LIKE '%fooValue%'
+     * </code>
+     *
+     * @param     string $body The value to use as filter.
+         *              Accepts wildcards (* and % trigger a LIKE)
+     * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
+     * @param     string $locale Overwrites the locale for this filter
+     *
+     * @return    ChildQuestionQuery The current query, for fluid interface
+     */
+    public function filterByBody($body , $comparison = null, $locale = null)
+    {
+        if ($locale === null) {
+            $locale = $this->getLocale();
+        }
+        if ($locale === null) {
+            $locale = PropelL10n::getLocale();
+        }
+
+        if (null === $comparison) {
+            if (is_array($body)) {
+                $comparison = Criteria::IN;
+            } elseif (preg_match('/[\%\*]/', $body)) {
+                $token = str_replace('*', '%', $body);
+                $comparison = Criteria::LIKE;
+            }
+        }
+
+        return $this->useI18nQuery($locale)
+            ->filterByBody($body , $comparison)
+        ->endUse();
+    }
+
+    /**
+     * Finds objects in the query with the given filter
+     *
+     * Example usage:
+     * <code>
+     * $query->findByBody('fooValue');   // WHERE body = 'fooValue'
+     * $query->findByBody('%fooValue%'); // WHERE body LIKE '%fooValue%'
+     * </code>
+     *
+     * @param     string $body The value to use as filter.
+     *              Accepts wildcards (* and % trigger a LIKE)
+     * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
+     * @param     string $locale Overwrites the locale for this filter
+     *
+     * @return    ChildQuestion[]|ObjectCollection The results
+     */
+    public function findByBody($body , $comparison = null, $locale = null)
+    {
+        return $this->filterByBody($body , $comparison, $locale)
+            ->find();
+    }
+
+    /**
+     * Finds the first object in the query with the given filter
+     *
+     * Example usage:
+     * <code>
+     * $query->findByBody('fooValue');   // WHERE body = 'fooValue'
+     * $query->findByBody('%fooValue%'); // WHERE body LIKE '%fooValue%'
+     * </code>
+     *
+     * @param     string $body The value to use as filter.
+     *              Accepts wildcards (* and % trigger a LIKE)
+     * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
+     * @param     string $locale Overwrites the locale for this filter
+     *
+     * @return    ChildQuestion The result
+     */
+    public function findOneByBody($body , $comparison = null, $locale = null)
+    {
+        return $this->filterByBody($body , $comparison, $locale)
+            ->findOne();
+    }
+
+    /**
+     * Filters the query with the
+     *
+     * Example usage:
+     * <code>
+     * $query->filterByHtmlBody('fooValue');   // WHERE html_body = 'fooValue'
+     * $query->filterByHtmlBody('%fooValue%'); // WHERE html_body LIKE '%fooValue%'
+     * </code>
+     *
+     * @param     string $html_body The value to use as filter.
+         *              Accepts wildcards (* and % trigger a LIKE)
+     * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
+     * @param     string $locale Overwrites the locale for this filter
+     *
+     * @return    ChildQuestionQuery The current query, for fluid interface
+     */
+    public function filterByHtmlBody($html_body , $comparison = null, $locale = null)
+    {
+        if ($locale === null) {
+            $locale = $this->getLocale();
+        }
+        if ($locale === null) {
+            $locale = PropelL10n::getLocale();
+        }
+
+        if (null === $comparison) {
+            if (is_array($html_body)) {
+                $comparison = Criteria::IN;
+            } elseif (preg_match('/[\%\*]/', $html_body)) {
+                $token = str_replace('*', '%', $html_body);
+                $comparison = Criteria::LIKE;
+            }
+        }
+
+        return $this->useI18nQuery($locale)
+            ->filterByHtmlBody($html_body , $comparison)
+        ->endUse();
+    }
+
+    /**
+     * Finds objects in the query with the given filter
+     *
+     * Example usage:
+     * <code>
+     * $query->findByHtmlBody('fooValue');   // WHERE html_body = 'fooValue'
+     * $query->findByHtmlBody('%fooValue%'); // WHERE html_body LIKE '%fooValue%'
+     * </code>
+     *
+     * @param     string $html_body The value to use as filter.
+     *              Accepts wildcards (* and % trigger a LIKE)
+     * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
+     * @param     string $locale Overwrites the locale for this filter
+     *
+     * @return    ChildQuestion[]|ObjectCollection The results
+     */
+    public function findByHtmlBody($html_body , $comparison = null, $locale = null)
+    {
+        return $this->filterByHtmlBody($html_body , $comparison, $locale)
+            ->find();
+    }
+
+    /**
+     * Finds the first object in the query with the given filter
+     *
+     * Example usage:
+     * <code>
+     * $query->findByHtmlBody('fooValue');   // WHERE html_body = 'fooValue'
+     * $query->findByHtmlBody('%fooValue%'); // WHERE html_body LIKE '%fooValue%'
+     * </code>
+     *
+     * @param     string $html_body The value to use as filter.
+     *              Accepts wildcards (* and % trigger a LIKE)
+     * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
+     * @param     string $locale Overwrites the locale for this filter
+     *
+     * @return    ChildQuestion The result
+     */
+    public function findOneByHtmlBody($html_body , $comparison = null, $locale = null)
+    {
+        return $this->filterByHtmlBody($html_body , $comparison, $locale)
+            ->findOne();
     }
 
     // timestampable behavior

@@ -1,0 +1,8 @@
+question.title.not_blank: Vous devez donner un titre à votre question
+question.body.not_blank: Vous devez fournir un bref contexte pour votre question
+question.body.length: Veuillez donner plus de détails
+answer.body.not_blank: Vous devez fournir un bref contexte pour votre réponse 
+anwer.body.length: Veuillez donner plus de détails
+resetPassword.email.not_blank: Vous devez fournir un e-mail
+resetPassword.email.valid: |
+   Vous n'avez pas entré d'adresse e-mail valide (par exemple: nom@domaine.com). Veuillez réessayer.

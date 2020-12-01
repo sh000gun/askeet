@@ -2,9 +2,9 @@
 <html>
     <head>
         <meta charset="UTF-8">
-        <title>{% block title %}Welcome!{% endblock %}</title>
+        <title>{% block title %}{% trans %}Welcome!{% endtrans %}{% endblock %}</title>
         <link rel="shortcut icon" href="{{ asset('images/favicon.ico') }}" />
-        <link rel="alternate" type="application/rss+xml" title="Popular questions on askeet" href="{{ path('feed_popular') }}" />
+        <link rel="alternate" type="application/rss+xml" title="{% trans %}Popular questions on askeet{% endtrans %}" href="{{ path('feed_popular') }}" />
         
 
         {% block stylesheets %}
@@ -19,10 +19,10 @@
         <div id="header">
             <ul>
               {% if is_granted("ROLE_SUBSCRIBER") %}
-                <li><a href="{{ path('user_logout') }}">sign out</a></li>
-                <li><a href="{{ path('user_show', {'nickname': app.user.nickname }) }}">{{ app.user.nickname }} profile</a></li>
+                <li><a href="{{ path('user_logout') }}">{% trans %}sign out{% endtrans %}</a></li>
+                <li><a href="{{ path('user_show', {'nickname': app.user.nickname }) }}">{{ app.user.nickname }} {% trans %}profile{% endtrans %}</a></li>
               {% elseif not app.user %}
-                <li><a href="{{ path('user_login') }}">sign in</a></li>
+                <li><a href="{{ path('user_login') }}">{% trans %}sign in{% endtrans %}</a></li>
               {% endif %}
 
               <li><a href="{{ path('question_list') }}">about</a></li>
@@ -31,9 +31,9 @@
         </div>
 
         <div id="login" style="display: none">
-          <h2>Please sign-in first</h2>
+          <h2>{% trans %}Please sign-in first{% endtrans %}</h2>
 
-          <a id="login_cancel" href="#">cancel</a><br />
+          <a id="login_cancel" href="#">{% trans %}cancel{% endtrans %}</a><br />
             
           {{ render(controller('App\\Controller\\UserController::embedLogin', {'request' : app.request})) }}
           

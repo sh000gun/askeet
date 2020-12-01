@@ -282,7 +282,7 @@ abstract class QuestionTag implements ActiveRecordInterface
      * @param string $name  The virtual column name
      * @param mixed  $value The value to give to the virtual column
      *
-     * @return $this|QuestionTag The current object, for fluid interface
+     * @return $this The current object, for fluid interface
      */
     public function setVirtualColumn($name, $value)
     {
@@ -296,11 +296,11 @@ abstract class QuestionTag implements ActiveRecordInterface
      *
      * @param  string  $msg
      * @param  int     $priority One of the Propel::LOG_* logging levels
-     * @return boolean
+     * @return void
      */
     protected function log($msg, $priority = Propel::LOG_INFO)
     {
-        return Propel::log(get_class($this) . ': ' . $msg, $priority);
+        Propel::log(get_class($this) . ': ' . $msg, $priority);
     }
 
     /**
@@ -406,7 +406,7 @@ abstract class QuestionTag implements ActiveRecordInterface
     /**
      * Set the value of [question_id] column.
      *
-     * @param int $v new value
+     * @param int $v New value
      * @return $this|\App\Entity\QuestionTag The current object (for fluent API support)
      */
     public function setQuestionId($v)
@@ -430,7 +430,7 @@ abstract class QuestionTag implements ActiveRecordInterface
     /**
      * Set the value of [user_id] column.
      *
-     * @param int $v new value
+     * @param int $v New value
      * @return $this|\App\Entity\QuestionTag The current object (for fluent API support)
      */
     public function setUserId($v)
@@ -474,7 +474,7 @@ abstract class QuestionTag implements ActiveRecordInterface
     /**
      * Set the value of [tag] column.
      *
-     * @param string $v new value
+     * @param string|null $v New value
      * @return $this|\App\Entity\QuestionTag The current object (for fluent API support)
      */
     public function setTag($v)
@@ -494,7 +494,7 @@ abstract class QuestionTag implements ActiveRecordInterface
     /**
      * Set the value of [normalized_tag] column.
      *
-     * @param string $v new value
+     * @param string $v New value
      * @return $this|\App\Entity\QuestionTag The current object (for fluent API support)
      */
     public function setNormalizedTag($v)

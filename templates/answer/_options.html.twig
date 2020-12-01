@@ -1,9 +1,9 @@
 <div class="options">
     {% if is_granted('IS_AUTHENTICATED_FULLY') %}
         {% if static_call('App\\Entity\\ReportAnswerQuery', 'isAnswerReportedByUser', [answer.id, app.user.id]) %}
-            [reported]
+            [{% trans %}reported{% endtrans %}]
         {%  else %}
-            <a id="{{ 'report_answer_to_moderator' ~ answer.id }}" href="" data-answer="{{ answer.id }}">[report to moderator]</a>
+            <a id="{{ 'report_answer_to_moderator' ~ answer.id }}" href="" data-answer="{{ answer.id }}">[{% trans %}report to moderator{% endtrans %}]</a>
         {% endif %}
     {% endif %}
 </div>

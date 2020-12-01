@@ -451,7 +451,7 @@ abstract class User implements ActiveRecordInterface
      * @param string $name  The virtual column name
      * @param mixed  $value The value to give to the virtual column
      *
-     * @return $this|User The current object, for fluid interface
+     * @return $this The current object, for fluid interface
      */
     public function setVirtualColumn($name, $value)
     {
@@ -465,11 +465,11 @@ abstract class User implements ActiveRecordInterface
      *
      * @param  string  $msg
      * @param  int     $priority One of the Propel::LOG_* logging levels
-     * @return boolean
+     * @return void
      */
     protected function log($msg, $priority = Propel::LOG_INFO)
     {
-        return Propel::log(get_class($this) . ': ' . $msg, $priority);
+        Propel::log(get_class($this) . ': ' . $msg, $priority);
     }
 
     /**
@@ -685,7 +685,7 @@ abstract class User implements ActiveRecordInterface
     /**
      * Set the value of [id] column.
      *
-     * @param int $v new value
+     * @param int $v New value
      * @return $this|\App\Entity\User The current object (for fluent API support)
      */
     public function setId($v)
@@ -705,7 +705,7 @@ abstract class User implements ActiveRecordInterface
     /**
      * Set the value of [nickname] column.
      *
-     * @param string $v new value
+     * @param string|null $v New value
      * @return $this|\App\Entity\User The current object (for fluent API support)
      */
     public function setNickname($v)
@@ -725,7 +725,7 @@ abstract class User implements ActiveRecordInterface
     /**
      * Set the value of [first_name] column.
      *
-     * @param string $v new value
+     * @param string|null $v New value
      * @return $this|\App\Entity\User The current object (for fluent API support)
      */
     public function setFirstName($v)
@@ -745,7 +745,7 @@ abstract class User implements ActiveRecordInterface
     /**
      * Set the value of [last_name] column.
      *
-     * @param string $v new value
+     * @param string|null $v New value
      * @return $this|\App\Entity\User The current object (for fluent API support)
      */
     public function setLastName($v)
@@ -785,7 +785,7 @@ abstract class User implements ActiveRecordInterface
     /**
      * Set the value of [email] column.
      *
-     * @param string $v new value
+     * @param string|null $v New value
      * @return $this|\App\Entity\User The current object (for fluent API support)
      */
     public function setEmail($v)
@@ -805,7 +805,7 @@ abstract class User implements ActiveRecordInterface
     /**
      * Set the value of [sha1_password] column.
      *
-     * @param string $v new value
+     * @param string|null $v New value
      * @return $this|\App\Entity\User The current object (for fluent API support)
      */
     public function setSha1Password($v)
@@ -825,7 +825,7 @@ abstract class User implements ActiveRecordInterface
     /**
      * Set the value of [salt] column.
      *
-     * @param string $v new value
+     * @param string|null $v New value
      * @return $this|\App\Entity\User The current object (for fluent API support)
      */
     public function setSalt($v)
@@ -901,7 +901,7 @@ abstract class User implements ActiveRecordInterface
     /**
      * Set the value of [is_moderator] column.
      *
-     * @param int $v new value
+     * @param int|null $v New value
      * @return $this|\App\Entity\User The current object (for fluent API support)
      */
     public function setIsModerator($v)
@@ -921,7 +921,7 @@ abstract class User implements ActiveRecordInterface
     /**
      * Set the value of [deletions] column.
      *
-     * @param int $v new value
+     * @param int|null $v New value
      * @return $this|\App\Entity\User The current object (for fluent API support)
      */
     public function setDeletions($v)
@@ -2167,31 +2167,31 @@ abstract class User implements ActiveRecordInterface
      */
     public function initRelation($relationName)
     {
-        if ('Question' == $relationName) {
+        if ('Question' === $relationName) {
             $this->initQuestions();
             return;
         }
-        if ('Answer' == $relationName) {
+        if ('Answer' === $relationName) {
             $this->initAnswers();
             return;
         }
-        if ('Interest' == $relationName) {
+        if ('Interest' === $relationName) {
             $this->initInterests();
             return;
         }
-        if ('Relevancy' == $relationName) {
+        if ('Relevancy' === $relationName) {
             $this->initRelevancies();
             return;
         }
-        if ('QuestionTag' == $relationName) {
+        if ('QuestionTag' === $relationName) {
             $this->initQuestionTags();
             return;
         }
-        if ('ReportQuestion' == $relationName) {
+        if ('ReportQuestion' === $relationName) {
             $this->initReportQuestions();
             return;
         }
-        if ('ReportAnswer' == $relationName) {
+        if ('ReportAnswer' === $relationName) {
             $this->initReportAnswers();
             return;
         }
@@ -2260,10 +2260,19 @@ abstract class User implements ActiveRecordInterface
     public function getQuestions(Criteria $criteria = null, ConnectionInterface $con = null)
     {
         $partial = $this->collQuestionsPartial && !$this->isNew();
-        if (null === $this->collQuestions || null !== $criteria  || $partial) {
-            if ($this->isNew() && null === $this->collQuestions) {
+        if (null === $this->collQuestions || null !== $criteria || $partial) {
+            if ($this->isNew()) {
                 // return empty collection
-                $this->initQuestions();
+                if (null === $this->collQuestions) {
+                    $this->initQuestions();
+                } else {
+                    $collectionClassName = QuestionTableMap::getTableMap()->getCollectionClassName();
+
+                    $collQuestions = new $collectionClassName;
+                    $collQuestions->setModel('\App\Entity\Question');
+
+                    return $collQuestions;
+                }
             } else {
                 $collQuestions = ChildQuestionQuery::create(null, $criteria)
                     ->filterByUser($this)
@@ -2485,10 +2494,19 @@ abstract class User implements ActiveRecordInterface
     public function getAnswers(Criteria $criteria = null, ConnectionInterface $con = null)
     {
         $partial = $this->collAnswersPartial && !$this->isNew();
-        if (null === $this->collAnswers || null !== $criteria  || $partial) {
-            if ($this->isNew() && null === $this->collAnswers) {
+        if (null === $this->collAnswers || null !== $criteria || $partial) {
+            if ($this->isNew()) {
                 // return empty collection
-                $this->initAnswers();
+                if (null === $this->collAnswers) {
+                    $this->initAnswers();
+                } else {
+                    $collectionClassName = AnswerTableMap::getTableMap()->getCollectionClassName();
+
+                    $collAnswers = new $collectionClassName;
+                    $collAnswers->setModel('\App\Entity\Answer');
+
+                    return $collAnswers;
+                }
             } else {
                 $collAnswers = ChildAnswerQuery::create(null, $criteria)
                     ->filterByUser($this)
@@ -2735,10 +2753,19 @@ abstract class User implements ActiveRecordInterface
     public function getInterests(Criteria $criteria = null, ConnectionInterface $con = null)
     {
         $partial = $this->collInterestsPartial && !$this->isNew();
-        if (null === $this->collInterests || null !== $criteria  || $partial) {
-            if ($this->isNew() && null === $this->collInterests) {
+        if (null === $this->collInterests || null !== $criteria || $partial) {
+            if ($this->isNew()) {
                 // return empty collection
-                $this->initInterests();
+                if (null === $this->collInterests) {
+                    $this->initInterests();
+                } else {
+                    $collectionClassName = InterestTableMap::getTableMap()->getCollectionClassName();
+
+                    $collInterests = new $collectionClassName;
+                    $collInterests->setModel('\App\Entity\Interest');
+
+                    return $collInterests;
+                }
             } else {
                 $collInterests = ChildInterestQuery::create(null, $criteria)
                     ->filterByUser($this)
@@ -2988,10 +3015,19 @@ abstract class User implements ActiveRecordInterface
     public function getRelevancies(Criteria $criteria = null, ConnectionInterface $con = null)
     {
         $partial = $this->collRelevanciesPartial && !$this->isNew();
-        if (null === $this->collRelevancies || null !== $criteria  || $partial) {
-            if ($this->isNew() && null === $this->collRelevancies) {
+        if (null === $this->collRelevancies || null !== $criteria || $partial) {
+            if ($this->isNew()) {
                 // return empty collection
-                $this->initRelevancies();
+                if (null === $this->collRelevancies) {
+                    $this->initRelevancies();
+                } else {
+                    $collectionClassName = RelevancyTableMap::getTableMap()->getCollectionClassName();
+
+                    $collRelevancies = new $collectionClassName;
+                    $collRelevancies->setModel('\App\Entity\Relevancy');
+
+                    return $collRelevancies;
+                }
             } else {
                 $collRelevancies = ChildRelevancyQuery::create(null, $criteria)
                     ->filterByUser($this)
@@ -3241,10 +3277,19 @@ abstract class User implements ActiveRecordInterface
     public function getQuestionTags(Criteria $criteria = null, ConnectionInterface $con = null)
     {
         $partial = $this->collQuestionTagsPartial && !$this->isNew();
-        if (null === $this->collQuestionTags || null !== $criteria  || $partial) {
-            if ($this->isNew() && null === $this->collQuestionTags) {
+        if (null === $this->collQuestionTags || null !== $criteria || $partial) {
+            if ($this->isNew()) {
                 // return empty collection
-                $this->initQuestionTags();
+                if (null === $this->collQuestionTags) {
+                    $this->initQuestionTags();
+                } else {
+                    $collectionClassName = QuestionTagTableMap::getTableMap()->getCollectionClassName();
+
+                    $collQuestionTags = new $collectionClassName;
+                    $collQuestionTags->setModel('\App\Entity\QuestionTag');
+
+                    return $collQuestionTags;
+                }
             } else {
                 $collQuestionTags = ChildQuestionTagQuery::create(null, $criteria)
                     ->filterByUser($this)
@@ -3494,10 +3539,19 @@ abstract class User implements ActiveRecordInterface
     public function getReportQuestions(Criteria $criteria = null, ConnectionInterface $con = null)
     {
         $partial = $this->collReportQuestionsPartial && !$this->isNew();
-        if (null === $this->collReportQuestions || null !== $criteria  || $partial) {
-            if ($this->isNew() && null === $this->collReportQuestions) {
+        if (null === $this->collReportQuestions || null !== $criteria || $partial) {
+            if ($this->isNew()) {
                 // return empty collection
-                $this->initReportQuestions();
+                if (null === $this->collReportQuestions) {
+                    $this->initReportQuestions();
+                } else {
+                    $collectionClassName = ReportQuestionTableMap::getTableMap()->getCollectionClassName();
+
+                    $collReportQuestions = new $collectionClassName;
+                    $collReportQuestions->setModel('\App\Entity\ReportQuestion');
+
+                    return $collReportQuestions;
+                }
             } else {
                 $collReportQuestions = ChildReportQuestionQuery::create(null, $criteria)
                     ->filterByUser($this)
@@ -3747,10 +3801,19 @@ abstract class User implements ActiveRecordInterface
     public function getReportAnswers(Criteria $criteria = null, ConnectionInterface $con = null)
     {
         $partial = $this->collReportAnswersPartial && !$this->isNew();
-        if (null === $this->collReportAnswers || null !== $criteria  || $partial) {
-            if ($this->isNew() && null === $this->collReportAnswers) {
+        if (null === $this->collReportAnswers || null !== $criteria || $partial) {
+            if ($this->isNew()) {
                 // return empty collection
-                $this->initReportAnswers();
+                if (null === $this->collReportAnswers) {
+                    $this->initReportAnswers();
+                } else {
+                    $collectionClassName = ReportAnswerTableMap::getTableMap()->getCollectionClassName();
+
+                    $collReportAnswers = new $collectionClassName;
+                    $collReportAnswers->setModel('\App\Entity\ReportAnswer');
+
+                    return $collReportAnswers;
+                }
             } else {
                 $collReportAnswers = ChildReportAnswerQuery::create(null, $criteria)
                     ->filterByUser($this)

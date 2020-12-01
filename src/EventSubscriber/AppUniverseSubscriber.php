@@ -31,6 +31,17 @@ class AppUniverseSubscriber implements EventSubscriberInterface
 
                 // add a custom stylesheet
                 $event->getRequest()->attributes->set('custom_stylesheet', $tag);
+
+                $request = $event->getRequest();
+                // is the tag a culture?
+                if (is_readable($this->params->get('kernel.project_dir').'/translations/messages.'.strtolower($tag).'.yaml'))
+                {
+                     $request->setLocale(strtolower($tag));
+                }
+                else
+                {
+                     $request->setLocale('en');
+                }
             }
         }
     }
