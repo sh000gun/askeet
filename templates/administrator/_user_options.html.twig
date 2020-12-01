@@ -1,14 +1,14 @@
 {% if is_granted('ROLE_ADMINISTRATOR') %}
-    <a id="{{ 'delete_user' ~ subscriber.id }}" href="" data-user="{{ subscriber.id }}">[delete user]</a>
+    <a id="{{ 'delete_user' ~ subscriber.id }}" href="" data-user="{{ subscriber.id }}">[{% trans %}delete user{% endtrans %}]</a>
 
     {% if subscriber.isModerator == 2 %}
-        &nbsp;<a id="{{ 'refuse_moderator' ~ subscriber.id }}" href="" data-user="{{ subscriber.id }}">[refuse moderator]</a>
+        &nbsp;<a id="{{ 'refuse_moderator' ~ subscriber.id }}" href="" data-user="{{ subscriber.id }}">[{% trans %}refuse moderator{% endtrans %}]</a>
     {% else %}
-        &nbsp;<a id="{{ 'grant_moderator' ~ subscriber.id }}" href="" data-user="{{ subscriber.id }}">[grant moderator]</a>
+        &nbsp;<a id="{{ 'grant_moderator' ~ subscriber.id }}" href="" data-user="{{ subscriber.id }}">[{% trans %}grant moderator{% endtrans %}]</a>
     {% endif %}
 
     {% if subscriber.isAdministrator == false %}
-        &nbsp;<a id="{{ 'grant_administrator' ~ subscriber.id }}" href="" data-user="{{ subscriber.id }}">[grant administrator ]</a>
+        &nbsp;<a id="{{ 'grant_administrator' ~ subscriber.id }}" href="" data-user="{{ subscriber.id }}">[{% trans %}grant administrator{% endtrans %}]</a>
     {% endif %}
 
 {% endif %}

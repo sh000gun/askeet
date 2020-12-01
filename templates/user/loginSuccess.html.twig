@@ -17,9 +17,9 @@
     </div>
 
     <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}" />
-    <input type="submit" value="sign in" />
+    <input type="submit" value="{% trans %}sign in{% endtrans %}" />
   {{ form_end(form) }} 
 
-<a href="{{ path('user_resetPassword') }}">Forgot your password?</a>
+<a href="{{ path('user_resetPassword') }}">{% trans %}Forgot your password{% endtrans %}?</a>
 
 {% endblock %}

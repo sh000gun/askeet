@@ -54,6 +54,38 @@ App\Entity\Question:
       I have a very swell blog that talks 
       about my class and mates and pets and favorite movies.
 
+App\Entity\QuestionI18n:
+  q1.fr:
+      id: q1
+      locale: fr
+      title: Que dois-je faire ce soir avec ma copine?
+      body:  |
+        Nous nous retrouverons devant le __Dunkin'Donuts__ avant le dîner,
+        et je n'ai pas la moindre idée de ce que je peux faire avec elle.
+        Elle n'est pas intéressée par la _programmation_, les films d'opéra
+        spatial_ ni les _insectes_
+        Elle est plutôt mignonne, donc j'ai __ vraiment__ besoin de trouver quelque
+        chose
+        cela la gardera à mes côtés pour une autre soirée.
+
+  q2.fr:
+      id: q2
+      locale: fr
+      title: Que puis-je offrir à ma belle-mère?
+      body:  |
+        Ma belle-mère a tout ce qu'une belle-mère est habituellement offerte
+        (montre, aspirateur, boucles d'oreilles, compte [del.icio.us] (http://del.icio.us)).
+        Son anniversaire arrive la semaine prochaine, je suis fauché, et je le sais
+        si je ne lui offre pas quelque chose de * doux *, ma copine
+        ne me regardera pas dans les yeux pendant un autre mois.
+
+  q3.fr:
+      id: q3
+      locale: fr
+      title: Comment puis-je générer du trafic vers mon blog?
+      body:  |
+        J'ai un blog très coquet qui parle sur ma classe, mes amis, mes animaux de compagnie et mes films préférés.
+
 App\Entity\Interest:
   i1: { user_id: fabien, question_id: q1 }
   i2: { user_id: francois, question_id: q1 }

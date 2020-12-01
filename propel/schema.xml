@@ -10,6 +10,9 @@
         <column name="body" type="longvarchar" />
         <column name="created_at" type="timestamp" />
         <column name="updated_at" type="timestamp" />
+        <behavior name="l10n">
+            <parameter name="i18n_columns" value="title, body, html_body" />
+        </behavior>
         <behavior name="timestampable">
             <parameter name="create_column" value="created_at" />
             <parameter name="update_column" value="updated_at" />

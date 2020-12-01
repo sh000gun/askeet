@@ -259,7 +259,7 @@ abstract class SearchIndex implements ActiveRecordInterface
      * @param string $name  The virtual column name
      * @param mixed  $value The value to give to the virtual column
      *
-     * @return $this|SearchIndex The current object, for fluid interface
+     * @return $this The current object, for fluid interface
      */
     public function setVirtualColumn($name, $value)
     {
@@ -273,11 +273,11 @@ abstract class SearchIndex implements ActiveRecordInterface
      *
      * @param  string  $msg
      * @param  int     $priority One of the Propel::LOG_* logging levels
-     * @return boolean
+     * @return void
      */
     protected function log($msg, $priority = Propel::LOG_INFO)
     {
-        return Propel::log(get_class($this) . ': ' . $msg, $priority);
+        Propel::log(get_class($this) . ': ' . $msg, $priority);
     }
 
     /**
@@ -353,7 +353,7 @@ abstract class SearchIndex implements ActiveRecordInterface
     /**
      * Set the value of [question_id] column.
      *
-     * @param int $v new value
+     * @param int|null $v New value
      * @return $this|\App\Entity\SearchIndex The current object (for fluent API support)
      */
     public function setQuestionId($v)
@@ -377,7 +377,7 @@ abstract class SearchIndex implements ActiveRecordInterface
     /**
      * Set the value of [word] column.
      *
-     * @param string $v new value
+     * @param string|null $v New value
      * @return $this|\App\Entity\SearchIndex The current object (for fluent API support)
      */
     public function setWord($v)
@@ -397,7 +397,7 @@ abstract class SearchIndex implements ActiveRecordInterface
     /**
      * Set the value of [weight] column.
      *
-     * @param int $v new value
+     * @param int|null $v New value
      * @return $this|\App\Entity\SearchIndex The current object (for fluent API support)
      */
     public function setWeight($v)

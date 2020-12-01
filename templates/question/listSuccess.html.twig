@@ -2,7 +2,7 @@
 
 {% block body %}
 
-<h1>popular questions</h1> 
+<h1>{% trans %}popular questions{% endtrans %}</h1> 
 
 {% include 'question/_list.html.twig' with {'question_pager': question_pager, 'rule': 'question_list'}  %}
 

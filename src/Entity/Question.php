@@ -18,16 +18,16 @@ use Propel\Runtime\Propel;
  */
 class Question extends BaseQuestion
 {
-    public function setTitle($v)
+    public function setTitle($v, $locale = NULL)
     {
-        parent::setTitle($v);
+        parent::setTitle($v, $locale);
 
         $this->setStrippedTitle(myTools::stripText($v));
     }
 
-    public function setBody($v)
+    public function setBody($v, $locale = NULL)
     {
-        parent::setBody($v);
+        parent::setBody($v, $locale = NULL);
 
         $v = htmlentities($v, ENT_QUOTES, 'UTF-8');
         $this->setHtmlBody(Markdown::defaultTransform($v));

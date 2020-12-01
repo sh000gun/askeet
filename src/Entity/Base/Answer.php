@@ -360,7 +360,7 @@ abstract class Answer implements ActiveRecordInterface
      * @param string $name  The virtual column name
      * @param mixed  $value The value to give to the virtual column
      *
-     * @return $this|Answer The current object, for fluid interface
+     * @return $this The current object, for fluid interface
      */
     public function setVirtualColumn($name, $value)
     {
@@ -374,11 +374,11 @@ abstract class Answer implements ActiveRecordInterface
      *
      * @param  string  $msg
      * @param  int     $priority One of the Propel::LOG_* logging levels
-     * @return boolean
+     * @return void
      */
     protected function log($msg, $priority = Propel::LOG_INFO)
     {
-        return Propel::log(get_class($this) . ': ' . $msg, $priority);
+        Propel::log(get_class($this) . ': ' . $msg, $priority);
     }
 
     /**
@@ -534,7 +534,7 @@ abstract class Answer implements ActiveRecordInterface
     /**
      * Set the value of [id] column.
      *
-     * @param int $v new value
+     * @param int $v New value
      * @return $this|\App\Entity\Answer The current object (for fluent API support)
      */
     public function setId($v)
@@ -554,7 +554,7 @@ abstract class Answer implements ActiveRecordInterface
     /**
      * Set the value of [question_id] column.
      *
-     * @param int $v new value
+     * @param int|null $v New value
      * @return $this|\App\Entity\Answer The current object (for fluent API support)
      */
     public function setQuestionId($v)
@@ -578,7 +578,7 @@ abstract class Answer implements ActiveRecordInterface
     /**
      * Set the value of [user_id] column.
      *
-     * @param int $v new value
+     * @param int|null $v New value
      * @return $this|\App\Entity\Answer The current object (for fluent API support)
      */
     public function setUserId($v)
@@ -602,7 +602,7 @@ abstract class Answer implements ActiveRecordInterface
     /**
      * Set the value of [body] column.
      *
-     * @param string $v new value
+     * @param string|null $v New value
      * @return $this|\App\Entity\Answer The current object (for fluent API support)
      */
     public function setBody($v)
@@ -642,7 +642,7 @@ abstract class Answer implements ActiveRecordInterface
     /**
      * Set the value of [relevancy_up] column.
      *
-     * @param int $v new value
+     * @param int|null $v New value
      * @return $this|\App\Entity\Answer The current object (for fluent API support)
      */
     public function setRelevancyUp($v)
@@ -662,7 +662,7 @@ abstract class Answer implements ActiveRecordInterface
     /**
      * Set the value of [relevancy_down] column.
      *
-     * @param int $v new value
+     * @param int|null $v New value
      * @return $this|\App\Entity\Answer The current object (for fluent API support)
      */
     public function setRelevancyDown($v)
@@ -682,7 +682,7 @@ abstract class Answer implements ActiveRecordInterface
     /**
      * Set the value of [reports] column.
      *
-     * @param int $v new value
+     * @param int|null $v New value
      * @return $this|\App\Entity\Answer The current object (for fluent API support)
      */
     public function setReports($v)
@@ -1791,11 +1791,11 @@ abstract class Answer implements ActiveRecordInterface
      */
     public function initRelation($relationName)
     {
-        if ('Relevancy' == $relationName) {
+        if ('Relevancy' === $relationName) {
             $this->initRelevancies();
             return;
         }
-        if ('ReportAnswer' == $relationName) {
+        if ('ReportAnswer' === $relationName) {
             $this->initReportAnswers();
             return;
         }
@@ -1864,10 +1864,19 @@ abstract class Answer implements ActiveRecordInterface
     public function getRelevancies(Criteria $criteria = null, ConnectionInterface $con = null)
     {
         $partial = $this->collRelevanciesPartial && !$this->isNew();
-        if (null === $this->collRelevancies || null !== $criteria  || $partial) {
-            if ($this->isNew() && null === $this->collRelevancies) {
+        if (null === $this->collRelevancies || null !== $criteria || $partial) {
+            if ($this->isNew()) {
                 // return empty collection
-                $this->initRelevancies();
+                if (null === $this->collRelevancies) {
+                    $this->initRelevancies();
+                } else {
+                    $collectionClassName = RelevancyTableMap::getTableMap()->getCollectionClassName();
+
+                    $collRelevancies = new $collectionClassName;
+                    $collRelevancies->setModel('\App\Entity\Relevancy');
+
+                    return $collRelevancies;
+                }
             } else {
                 $collRelevancies = ChildRelevancyQuery::create(null, $criteria)
                     ->filterByAnswer($this)
@@ -2117,10 +2126,19 @@ abstract class Answer implements ActiveRecordInterface
     public function getReportAnswers(Criteria $criteria = null, ConnectionInterface $con = null)
     {
         $partial = $this->collReportAnswersPartial && !$this->isNew();
-        if (null === $this->collReportAnswers || null !== $criteria  || $partial) {
-            if ($this->isNew() && null === $this->collReportAnswers) {
+        if (null === $this->collReportAnswers || null !== $criteria || $partial) {
+            if ($this->isNew()) {
                 // return empty collection
-                $this->initReportAnswers();
+                if (null === $this->collReportAnswers) {
+                    $this->initReportAnswers();
+                } else {
+                    $collectionClassName = ReportAnswerTableMap::getTableMap()->getCollectionClassName();
+
+                    $collReportAnswers = new $collectionClassName;
+                    $collReportAnswers->setModel('\App\Entity\ReportAnswer');
+
+                    return $collReportAnswers;
+                }
             } else {
                 $collReportAnswers = ChildReportAnswerQuery::create(null, $criteria)
                     ->filterByAnswer($this)

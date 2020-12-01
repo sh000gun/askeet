@@ -268,7 +268,7 @@ abstract class ReportAnswer implements ActiveRecordInterface
      * @param string $name  The virtual column name
      * @param mixed  $value The value to give to the virtual column
      *
-     * @return $this|ReportAnswer The current object, for fluid interface
+     * @return $this The current object, for fluid interface
      */
     public function setVirtualColumn($name, $value)
     {
@@ -282,11 +282,11 @@ abstract class ReportAnswer implements ActiveRecordInterface
      *
      * @param  string  $msg
      * @param  int     $priority One of the Propel::LOG_* logging levels
-     * @return boolean
+     * @return void
      */
     protected function log($msg, $priority = Propel::LOG_INFO)
     {
-        return Propel::log(get_class($this) . ': ' . $msg, $priority);
+        Propel::log(get_class($this) . ': ' . $msg, $priority);
     }
 
     /**
@@ -372,7 +372,7 @@ abstract class ReportAnswer implements ActiveRecordInterface
     /**
      * Set the value of [answer_id] column.
      *
-     * @param int $v new value
+     * @param int $v New value
      * @return $this|\App\Entity\ReportAnswer The current object (for fluent API support)
      */
     public function setAnswerId($v)
@@ -396,7 +396,7 @@ abstract class ReportAnswer implements ActiveRecordInterface
     /**
      * Set the value of [user_id] column.
      *
-     * @param int $v new value
+     * @param int $v New value
      * @return $this|\App\Entity\ReportAnswer The current object (for fluent API support)
      */
     public function setUserId($v)

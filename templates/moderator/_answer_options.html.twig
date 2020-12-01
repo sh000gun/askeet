@@ -1,8 +1,8 @@
 {% if is_granted('ROLE_MODERATOR') %}
     {% if answer.reports %}
-        &nbsp;[<strong>{{ answer.reports }}</strong> reports]
-        &nbsp;<a id="{{ 'reset_answer_report' ~ answer.id }}" href="" data-answer="{{ answer.id }}">[reset reports]</a>
+        &nbsp;[<strong>{{ answer.reports }}</strong> {% trans %}reports{% endtrans %}]
+        &nbsp;<a id="{{ 'reset_answer_report' ~ answer.id }}" href="" data-answer="{{ answer.id }}">[{% trans %}reset reports{% endtrans %}]</a>
     {% endif %}
-  &nbsp;<a id="{{ 'delete_answer' ~ answer.id }}" href="" data-answer="{{ answer.id }}">[delete answer]</a>
+  &nbsp;<a id="{{ 'delete_answer' ~ answer.id }}" href="" data-answer="{{ answer.id }}">[{% trans %}delete answer{% endtrans %}]</a>
 {% endif %}
 

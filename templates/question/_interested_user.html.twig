@@ -4,11 +4,11 @@
 
 {% if is_granted('IS_AUTHENTICATED_FULLY') %}
     {% if static_call('App\\Entity\\InterestQuery', 'isQuestionInterestedByUser', [question.id, app.user.id]) %}
-        interested
+        {% trans %}interested{% endtrans %}
     {% else %}
-        <a id="{{ 'interested_link' ~ question.id }}" href="#" data-question="{{ question.id }}" >interested?</a>
+        <a id="{{ 'interested_link' ~ question.id }}" href="#" data-question="{{ question.id }}" >{% trans %}interested{% endtrans %}?</a>
     {% endif %}
 
 {% else %}
-  <a id="unauthenticated_interested_link_{{ question.id }}" href="#">interested?</a>
+  <a id="unauthenticated_interested_link_{{ question.id }}" href="#">{% trans %}interested{% endtrans %}?</a>
 {% endif %}

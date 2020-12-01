@@ -13,13 +13,10 @@ CREATE TABLE `ask_question`
 (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `user_id` INTEGER,
-    `title` TEXT,
-    `body` TEXT,
     `created_at` DATETIME,
     `updated_at` DATETIME,
     `interested_users` INTEGER DEFAULT 0,
     `stripped_title` VARCHAR(255),
-    `html_body` TEXT,
     `reports` INTEGER DEFAULT 0,
     PRIMARY KEY (`id`),
     UNIQUE INDEX `unique_stripped_title` (`stripped_title`),
@@ -220,6 +217,26 @@ CREATE TABLE `ask_search_index`
     INDEX `ask_search_index_fi_3a3644` (`question_id`),
     CONSTRAINT `ask_search_index_fk_3a3644`
         FOREIGN KEY (`question_id`)
+        REFERENCES `ask_question` (`id`)
+        ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- ---------------------------------------------------------------------
+-- ask_question_i18n
+-- ---------------------------------------------------------------------
+
+DROP TABLE IF EXISTS `ask_question_i18n`;
+
+CREATE TABLE `ask_question_i18n`
+(
+    `id` INTEGER NOT NULL,
+    `locale` VARCHAR(76) DEFAULT 'en' NOT NULL,
+    `title` TEXT,
+    `body` TEXT,
+    `html_body` TEXT,
+    PRIMARY KEY (`id`,`locale`),
+    CONSTRAINT `ask_question_i18n_fk_b813d8`
+        FOREIGN KEY (`id`)
         REFERENCES `ask_question` (`id`)
         ON DELETE CASCADE
 ) ENGINE=InnoDB;
