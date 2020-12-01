@@ -1,11 +1,11 @@
-<h2>browser askeet</h2>
-<a href="{{ path('question_add') }}">ask a new question</a>
+<h2>{% trans %}browser askeet{% endtrans %}</h2>
+<a href="{{ path('question_add') }}">{% trans %}ask a new question{% endtrans %}</a>
  
 <ul>
   <li>
-    <a href="{{ path('question_list') }}">popular questions</a>
+    <a href="{{ path('question_list') }}">{% trans %}popular questions{% endtrans %}</a>
     <a href="{{ path('feed_popular') }}"><img src=" {{ asset('images/feed.gif') }}"></a>
   </li>
-  <li><a href="{{ path('question_recent') }}">latest questions</a></li>
-  <li><a href="{{ path('answer_recent') }}">latest aswers</a></li>
+  <li><a href="{{ path('question_recent') }}">{% trans %}latest questions{% endtrans %}</a></li>
+  <li><a href="{{ path('answer_recent') }}">{% trans %}latest aswers{% endtrans %}</a></li>
 </ul>

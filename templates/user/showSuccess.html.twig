@@ -2,9 +2,9 @@
 
 {% block body %}
 
-<h1>{{ subscriber }}'s profile</h1>
+<h1>{{ subscriber }}'s {% trans %}profile{% endtrans %}</h1>
  
-<h2>Interests</h2>
+<h2>{% trans %}Interests{% endtrans %}</h2>
 <ul>
 {% for interest in interests %}
   <li><a href="{{ path('question_show', {stripped_title: interest.question.strippedTitle}) }}">{{ interest.question.title }}</a>
@@ -12,7 +12,7 @@
 {% endfor %}
 </ul>
 
-<h2>Contributions</h2>
+<h2>{% trans %}Contributions{% endtrans %}</h2>
 <ul>
 {% for answer in answers %}
   <li><a href="{{ path('question_show', {stripped_title: answer.question.strippedTitle}) }}">{{ answer.question.title }}</a><br />
@@ -21,7 +21,7 @@
 {% endfor %}
 </ul>
 
-<h2>Questions</h2>
+<h2>{% trans %}Questions{% endtrans %}</h2>
 <ul>
 {% for question in questions %}
   <li><a href="{{ path('question_show', {stripped_title: question.strippedTitle}) }}">{{ question.title }}</a>
@@ -30,7 +30,7 @@
 </ul>
 
 {% if app.user.getHasPaypal is defined %}
-<p>If you appreciated this user's contributions, you can grant him a small donation.</p>
+<p>{% trans %}If you appreciated this user's contributions, you can grant him a small donation{% endtrans %}.</p>
 <form action="https://www.paypal.com/cgi-bin/webscr" method="post">
   <input type="hidden" name="cmd" value="_xclick">
   <input type="hidden" name="business" value="{{ app.user.getEmail }}">
@@ -40,7 +40,7 @@
   <input type="hidden" name="no_note" value="1">
   <input type="hidden" name="tax" value="0">
   <input type="hidden" name="bn" value="PP-DonationsBF">
-  <input type="image" src="https://www.paypal.com/en_US/i/btn/btn_donate_LG.gif" border="0" name="submit" alt="Donate to this user">
+  <input type="image" src="https://www.paypal.com/en_US/i/btn/btn_donate_LG.gif" border="0" name="{% trans %}submit{% endtrans %}" alt="{% trans %}Donate to this user{% endtrans %}">
 </form>
 {% endif %}
 {% include 'user/_user_options.html.twig' %}

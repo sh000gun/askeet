@@ -2,7 +2,7 @@
 
 {% block body %}
 
-<h1>questions matching "{{ search }}"</h1>
+<h1>{% trans %}questions matching{% endtrans %} "{{ search }}"</h1>
 
 {% include 'question/_list.html.twig' with {'question_pager': question_pager, 'rule': 'question_search'}  %}
 

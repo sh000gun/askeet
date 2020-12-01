@@ -10,5 +10,5 @@
     </div>
 
     <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}" />
-    <input type="submit" value="login" />
+    <input type="submit" value="{% trans %}login{% endtrans %}" />
 {{ form_end(form) }} 

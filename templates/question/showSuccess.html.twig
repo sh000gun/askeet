@@ -41,38 +41,38 @@
             {{ app.user.nickname }}
         {% else %}
             Anonymous Coward 
-            <a id="answer_{{ question.id }}" href="#">login</a>
+            <a id="answer_{{ question.id }}" href="#">{% trans %}login{% endtrans %}</a>
         {% endif %}
 </div>
 
 {{ form_start(form, {'action': path('answer_add'), 'method': 'POST', attr: {'novalidate': 'novalidate'}}) }}
         <div class="form-row">
             <div class="form_error">{{ form_errors(form.body) }}</div>
-            {{ form_label(form.body, 'Your answer:') }}
+            {{ form_label(form.body, 'Your answer'|trans ~ ':') }}
             {{ form_widget(form.body) }}
         </div>
          
         {{ form_widget(form.question_id) }}
 
         <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}" />
-        <input id="answer_it" type="submit" value="answer it" />
+        <input id="answer_it" type="submit" value="{% trans %}answer it{% endtrans %}" />
     {{ form_end(form) }}
 </div>
 
 {% endblock %}
 
 {% block search %}
-<h2>find it</h2>
+<h2>{% trans %}find it{% endtrans %}</h2>
 
 {{ form_start(searchForm, {'action': path('question_search'), 'method': 'POST', attr: {'novalidate': 'novalidate'}}) }}
         <div class="form-row">
             <div class="form_error">{{ form_errors(searchForm.search) }}</div>
             {{ form_widget(searchForm.search) }}
-            <input id="search_it" type="submit" value="Search" />
+            <input id="search_it" type="submit" value="{% trans %}Search{% endtrans %}" />
         </div>
         
         <label for="search_all">
-            {{ form_widget(searchForm.search_all) }} search with all words
+            {{ form_widget(searchForm.search_all) }} {% trans %}search with all words{% endtrans %}
         </label>
 
         <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}" /> 
@@ -81,7 +81,7 @@
 {% endblock %}
 
 {% block tag %}
-<h2>question tags</h2>
+<h2>{% trans %}question tags{% endtrans %}</h2>
 
 <ul id="question_tags">
 {% for tag in question.getTags(app.request.attributes.get('app_permanent_tag')) %}
@@ -91,12 +91,12 @@
 {% endfor %}
 </ul>
 
-Add your own:
+{% trans %}Add your own{% endtrans %}:
 {{ form_start(tagForm, {'action': path('tag_add'), 'method': 'POST', attr: {'novalidate': 'novalidate'}}) }}
         <div class="form-row">
             <div class="form_error">{{ form_errors(tagForm.tag) }}</div>
             {{ form_widget(tagForm.tag) }}
-            <input id="tag_it" type="submit" value="Tag" />
+            <input id="tag_it" type="submit" value="{% trans %}Tag{% endtrans %}" />
         </div>
          
         {{ form_widget(tagForm.question_id) }}
