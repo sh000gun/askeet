@@ -4,7 +4,11 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
+<<<<<<< HEAD
     "content-hash": "5b6463bc60bf716560dd954fe350f0e0",
+=======
+    "content-hash": "241b65a64a57b5375598ff4f93594fa3",
+>>>>>>> 66df0c5... release_day_23
     "packages": [
         {
             "name": "doctrine/annotations",
@@ -216,6 +220,7 @@
                 }
             ],
             "time": "2020-11-14T15:56:27+00:00"
+<<<<<<< HEAD
         },
         {
             "name": "gossi/propel-l10n-behavior",
@@ -260,6 +265,8 @@
                 "propel"
             ],
             "time": "2016-01-12T23:29:10+00:00"
+=======
+>>>>>>> 66df0c5... release_day_23
         },
         {
             "name": "michelf/php-markdown",
@@ -546,6 +553,7 @@
             ],
             "description": "A PSR-5 based resolver of Class names, Types and Structural Element Names",
             "time": "2020-09-17T18:55:26+00:00"
+<<<<<<< HEAD
         },
         {
             "name": "propel/propel",
@@ -615,6 +623,8 @@
                 "persistence"
             ],
             "time": "2020-08-05T13:20:41+00:00"
+=======
+>>>>>>> 66df0c5... release_day_23
         },
         {
             "name": "psr/cache",

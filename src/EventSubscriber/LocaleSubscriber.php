@@ -7,7 +7,10 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
+<<<<<<< HEAD
 use gossi\propel\behavior\l10n\PropelL10n;
+=======
+>>>>>>> 66df0c5... release_day_23
 
 class LocaleSubscriber implements EventSubscriberInterface
 {
@@ -30,12 +33,19 @@ class LocaleSubscriber implements EventSubscriberInterface
             if (is_readable($this->params->get('kernel.project_dir').'/translations/messages.'.strtolower($tag).'.yaml'))
             {
                 $request->setLocale(strtolower($tag));
+<<<<<<< HEAD
                 PropelL10n::setLocale(strtolower($tag));
             }
             else
             {
                 $request->setLocale($this->$defaultLocale);
                 PropelL10n::setLocale($this->$defaultLocale);
+=======
+            }
+            else
+            {
+                $request->setLocale($this->$defaultLocale); 
+>>>>>>> 66df0c5... release_day_23
             }
         }       
     }
