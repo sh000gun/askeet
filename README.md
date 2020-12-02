@@ -10,6 +10,3 @@ I tried to follow the tutorials day-by-day strictly as much as I can to learn th
 - JQuery
 - Algoria
 - Old Selenium (access by http://askeet/selenium/core/TestRunner.html)
-
-## Limitation
-- No Propel I18n applied. Maybe I will learn gossi/propel-l10n-behavior if I have free time.
